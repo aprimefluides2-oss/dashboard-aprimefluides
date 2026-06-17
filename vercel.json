@@ -1,0 +1,14 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "env": {
+    "AWS_LAMBDA_JS_RUNTIME": "nodejs22.x"
+  },
+  "functions": {
+    "app/api/generate-video/route.ts": {
+      "maxDuration": 300,
+      "memory": 3008
+    }
+  }
+}

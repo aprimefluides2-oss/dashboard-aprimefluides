@@ -1,0 +1,349 @@
+<     !doctype html>
+<html 
+lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Débouchage colonne d'eaux usées à Toulon — Aprime fluides</title>
+<!--
+  ============================================================
+  MAQUETTE — Page de réalisation LTDB
+  ============================================================
+  Design "sections distinctes encadrées + FAQ lisible".
+
+  Le HTML de contenu (sections .content-block, .info-box, .checklist-box,
+  .photo-grid, .faq-block) est exactement celui que l'app génère et envoie
+  à Django dans le champ `content`.
+
+  → Pour appliquer ce design sur www.aprime-fluide.fr :
+    copier le bloc <style> ci-dessous dans la feuille de style Django
+    qui rend les pages /nos-realisations/<slug>.
+  ============================================================
+-->
+<style>
+  :root {
+    --navy: #0e2a52;
+    --navy-light: #1a3a6b;
+    --orange: #e67e22;
+    --ink: #1e293b;
+    --muted: #5b6678;
+    --border: #e1e6ef;
+    --bg: #f4f6fa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.65;
+    font-size: 16px;
+  }
+  .page { max-width: 820px; margin: 0 auto; padding: 0 16px 60px; }
+
+  /* ---------- En-tête ---------- */
+  .hero {
+    background: linear-gradient(135deg, var(--navy), var(--navy-light));
+    color: #fff;
+    padding: 40px 32px;
+    border-radius: 0 0 16px 16px;
+    margin-bottom: 28px;
+  }
+  .hero h1 {
+    margin: 0 0 14px;
+    font-size: 28px;
+    line-height: 1.3;
+  }
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hero-meta span {
+    background: rgba(255,255,255,.14);
+    border: 1px solid rgba(255,255,255,.22);
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* ---------- Section encadrée générique ---------- */
+  .content-block {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 26px 28px;
+    margin-bottom: 22px;
+    box-shadow: 0 1px 3px rgba(14,42,82,.04);
+  }
+  .content-block h2 {
+    margin: 0 0 16px;
+    font-size: 21px;
+    color: var(--navy);
+    padding-bottom: 10px;
+    border-bottom: 3px solid var(--orange);
+    display: inline-block;
+  }
+  .content-block h3 {
+    margin: 20px 0 8px;
+    font-size: 17px;
+    color: var(--navy-light);
+  }
+  .content-block p { margin: 10px 0; }
+  .content-block a {
+    color: var(--orange);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  .content-block a:hover { border-bottom-color: var(--orange); }
+
+  /* ---------- Bloc résumé (mis en avant) ---------- */
+  .resume-block {
+    background: #fff7ef;
+    border: 1px solid #f3d9bd;
+    border-left: 5px solid var(--orange);
+  }
+  .resume-block h2 { border-bottom-color: #f3d9bd; }
+
+  /* ---------- Encadrés internes ---------- */
+  .info-box {
+    background: #e9f2fb;
+    border-left: 4px solid #2980b9;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 18px 0;
+  }
+  .info-box strong { color: #1f5f8b; }
+  .checklist-box {
+    background: #e9f6ee;
+    border-left: 4px solid #1e8449;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 18px 0;
+  }
+  .checklist-box ul { margin: 6px 0; padding-left: 22px; }
+  .checklist-box li { margin: 4px 0; }
+
+  /* ---------- Galerie photos ---------- */
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-top: 14px;
+  }
+  .photo-card {
+    margin: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .photo-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+  }
+  .photo-card figcaption {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--muted);
+    background: #fafbfc;
+  }
+
+  /* ---------- FAQ ---------- */
+  .faq-block { padding-bottom: 14px; }
+  .faq-item {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    background: #fafbfc;
+  }
+  .faq-item summary {
+    cursor: pointer;
+    padding: 15px 20px;
+    font-weight: 700;
+    color: var(--navy);
+    list-style: none;
+    position: relative;
+    padding-right: 44px;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: "+";
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--orange);
+    transition: transform .2s;
+  }
+  .faq-item[open] summary::after { transform: translateY(-50%) rotate(45deg); }
+  .faq-item[open] summary { background: #fff; border-bottom: 1px solid var(--border); }
+  .faq-answer { padding: 4px 20px 16px; color: var(--muted); }
+  .faq-answer p { margin: 10px 0 0; }
+
+  /* ---------- Services liés ---------- */
+  .related-block ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+  }
+  .related-block li a {
+    display: block;
+    padding: 13px 16px;
+    background: #fafbfc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--navy);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .related-block li a:hover {
+    border-color: var(--orange);
+    background: #fff7ef;
+  }
+
+  /* ---------- Pied de page contact ---------- */
+  .contact-strip {
+    background: var(--navy);
+    color: #fff;
+    border-radius: 12px;
+    padding: 24px 28px;
+    text-align: center;
+    margin-top: 26px;
+  }
+  .contact-strip p { margin: 6px 0; }
+  .contact-strip .tel { font-size: 22px; font-weight: 800; color: #fff; }
+
+  @media (max-width: 560px) {
+    .hero { padding: 28px 20px; border-radius: 0 0 12px 12px; }
+    .hero h1 { font-size: 22px; }
+    .content-block { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- EN-TÊTE — généré côté Django depuis title / location / date / service_type -->
+  <header class="hero">
+    <h1>Débouchage d'une colonne d'eaux usées à Toulon après accumulation de graisses</h1>
+    <div class="hero-meta">
+      <span>📍 Toulon (83000)</span>
+      <span>🛠 Débouchage canalisation</span>
+      <span>📅 14 mai 2026</span>
+    </div>
+  </header>
+
+  <!-- ▼▼▼ ZONE `content` — exactement le HTML envoyé par l'app ▼▼▼ -->
+
+  <section class="content-block resume-block">
+    <h2>Résumé de l'intervention</h2>
+    <p>Intervention sur une colonne d'eaux usées d'un immeuble collectif à Toulon. Hydrocurage haute pression à 200 bars puis inspection vidéo du réseau ; le bouchon de graisse situé en pied de colonne a été retiré et l'évacuation rétablie en moins de deux heures.</p>
+  </section>
+
+  <section class="content-block">
+    <h2>Contexte de l'intervention</h2>
+    <p>On a été appelés par le syndic d'une copropriété toulonnaise pour un problème de refoulement sur le réseau d'eaux usées. Plusieurs occupants signalaient un écoulement de plus en plus lent depuis quelques jours. À l'arrivée sur place, on a localisé le regard en pied de colonne au rez-de-chaussée pour démarrer le diagnostic.</p>
+  </section>
+
+  <section class="content-block">
+    <h2>Ce qu'on a trouvé sur place</h2>
+    <p>Au niveau du regard du rez-de-chaussée, un bouchon de graisse compact obstruait une grande partie de la section de la canalisation. C'est un grand classique sur les <a href="#">colonnes d'eaux usées</a> d'immeubles collectifs : les corps gras s'accumulent progressivement et finissent par durcir.</p>
+    <div class="info-box">
+      <strong>Point clé :</strong> sans point de visite intermédiaire sur la hauteur de la colonne, l'accès se fait uniquement par le regard en pied — d'où l'importance d'un curage complet et pas seulement d'un débouchage ponctuel.
+    </div>
+  </section>
+
+  <section class="content-block">
+    <h2>Travaux réalisés</h2>
+    <h3>Étape 1 — Perçage mécanique du bouchon</h3>
+    <p>Un furet électrique a d'abord été introduit par le regard pour percer le bouchon de graisse et rétablir un premier passage.</p>
+    <h3>Étape 2 — Hydrocurage haute pression</h3>
+    <p>On a ensuite passé l'<a href="#">hydrocureur</a> à 200 bars pour décoller la totalité des dépôts sur les parois et nettoyer la colonne sur toute sa hauteur.</p>
+    <div class="checklist-box">
+      <ul>
+        <li>Perçage du bouchon au furet électrique</li>
+        <li>Hydrocurage haute pression de la colonne complète</li>
+        <li>Contrôle visuel de l'écoulement au regard</li>
+        <li>Vérification de l'absence de refoulement en amont</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="content-block">
+    <h2>Comment éviter que ça recommence</h2>
+    <p>Pour ce type de colonne collective, on recommande un <a href="#">curage préventif annuel</a>. Côté occupants, éviter de jeter graisses de cuisson et lingettes dans les éviers et WC limite fortement la reformation des bouchons.</p>
+  </section>
+
+  <section class="content-block gallery-block">
+    <h2>Photos de l'intervention</h2>
+    <p>Ces photos documentent les étapes clés sur site (avant, pendant, après).</p>
+    <div class="photo-grid">
+      <figure class="photo-card">
+        <img src="https://placehold.co/400x300/0e2a52/ffffff?text=Avant" alt="Regard obstrué avant intervention">
+        <figcaption>Regard obstrué avant intervention</figcaption>
+      </figure>
+      <figure class="photo-card">
+        <img src="https://placehold.co/400x300/e67e22/ffffff?text=Pendant" alt="Hydrocurage en cours">
+        <figcaption>Hydrocurage haute pression en cours</figcaption>
+      </figure>
+      <figure class="photo-card">
+        <img src="https://placehold.co/400x300/1e8449/ffffff?text=Apr%C3%A8s" alt="Écoulement rétabli après intervention">
+        <figcaption>Écoulement rétabli après intervention</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- FAQ — désormais intégrée dans le `content` par l'app -->
+  <section class="content-block faq-block">
+    <h2>Questions fréquentes</h2>
+    <details class="faq-item" open>
+      <summary>Combien de temps dure un débouchage de colonne ?</summary>
+      <div class="faq-answer"><p>Sur une colonne d'immeuble avec un bouchon de graisse comme celui-ci, comptez entre 1h et 2h selon l'accès et l'épaisseur du dépôt. L'inspection caméra ajoute 15 à 30 minutes.</p></div>
+    </details>
+    <details class="faq-item">
+      <summary>Faut-il prévenir tous les occupants avant l'intervention ?</summary>
+      <div class="faq-answer"><p>Ce n'est pas obligatoire, mais c'est conseillé : pendant l'hydrocurage il vaut mieux éviter d'utiliser les sanitaires sur la colonne concernée. Le syndic peut diffuser un simple mot dans les boîtes.</p></div>
+    </details>
+    <details class="faq-item">
+      <summary>Le curage annuel, c'est vraiment utile ?</summary>
+      <div class="faq-answer"><p>Sur une colonne collective sujette aux graisses, oui. Un curage préventif coûte bien moins cher qu'une intervention d'urgence un dimanche, et évite les refoulements chez les occupants.</p></div>
+    </details>
+    <details class="faq-item">
+      <summary>Quels sont les signes qu'une canalisation va se boucher ?</summary>
+      <div class="faq-answer"><p>Un écoulement qui ralentit, des gargouillis, une odeur qui remonte, ou de l'eau qui stagne dans un évier. Dès les premiers signes, mieux vaut intervenir avant le bouchon complet.</p></div>
+    </details>
+  </section>
+
+  <!-- ▲▲▲ FIN ZONE `content` ▲▲▲ -->
+
+  <!-- SERVICES LIÉS — généré côté Django depuis related_services_json -->
+  <section class="content-block related-block">
+    <h2>Nos autres prestations</h2>
+    <ul>
+      <li><a href="#">Curage de canalisation</a></li>
+      <li><a href="#">Inspection caméra</a></li>
+      <li><a href="#">Débouchage WC</a></li>
+      <li><a href="#">Urgence débouchage 24/7</a></li>
+    </ul>
+  </section>
+
+  <div class="contact-strip">
+    <p>Un problème de canalisation à Toulon ou dans le Var ?</p>
+    <p class="tel">07 83 63 68 35</p>
+    <p style="opacity:.8;font-size:14px">Aprime fluides — intervention rapide dans le Var</p>
+  </div>
+
+</div>
+</body>
+</html>

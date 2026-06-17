@@ -1,0 +1,56 @@
+{
+  "name": "app-aprimefluides",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0",
+    "build": "remotion bundle && rm -rf node_modules/.cache && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "remotion:bundle": "remotion bundle",
+    "remotion:studio": "remotion studio",
+    "remotion:render:vertical": "remotion render InterventionVertical out/video-vertical.mp4",
+    "remotion:render:horizontal": "remotion render InterventionHorizontal out/video-horizontal.mp4",
+    "remotion:render:square": "remotion render InterventionSquare out/video-square.mp4",
+    "test:remotion": "tsx scripts/test-remotion-bundle.ts",
+    "test:e2e": "tsx scripts/e2e-test-flow.ts",
+    "test:e2e:publish": "tsx scripts/e2e-full-publish.ts",
+    "test:e2e:publish:vercel": "E2E_BASE_URL=https://app-aprimefluides.vercel.app tsx scripts/e2e-full-publish.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.86.1",
+    "@react-pdf/renderer": "^4.4.0",
+    "@remotion/bundler": "^4.0.459",
+    "@remotion/cli": "^4.0.459",
+    "@remotion/player": "^4.0.459",
+    "@remotion/renderer": "^4.0.459",
+    "@sparticuz/chromium": "^131.0.1",
+    "@supabase/supabase-js": "^2.105.1",
+    "@types/leaflet": "^1.9.21",
+    "googleapis": "^171.4.0",
+    "leaflet": "^1.9.4",
+    "next": "14.2.35",
+    "openai": "^6.34.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-leaflet": "^4.2.1",
+    "remotion": "^4.0.459",
+    "resend": "^6.10.0"
+  },
+  "optionalDependencies": {
+    "@remotion/compositor-linux-x64-gnu": "^4.0.459",
+    "@remotion/compositor-linux-x64-musl": "^4.0.459"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/react-pdf": "^6.2.0",
+    "node-loader": "^2.1.0",
+    "playwright": "^1.59.1",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}
