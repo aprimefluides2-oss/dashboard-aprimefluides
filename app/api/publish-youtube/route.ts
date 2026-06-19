@@ -3,7 +3,7 @@ import { getSupabase } from "@/lib/supabase"
 import { buildVideoMetadata, uploadVideoToYouTube } from "@/lib/youtube"
 
 export const dynamic = "force-dynamic"
-export const maxDuration = 300
+export const maxDuration = 60
 
 type Body = { interventionId?: string }
 

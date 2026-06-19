@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { deepseek } from "@/lib/deepseek"
 import { parseAiJson } from "@/lib/parseAiJson"
 
-export const maxDuration = 300
+export const maxDuration = 60
 
 const MODEL = "deepseek-v4-pro"
 const SITE = 'https://www.aprime-fluide.fr'

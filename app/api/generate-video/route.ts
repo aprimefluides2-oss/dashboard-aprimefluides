@@ -5,7 +5,7 @@ import type { VideoFormat } from "@/lib/video-render-prod"
 import { uploadVideoToStorage } from "@/lib/video-storage"
 
 export const dynamic = "force-dynamic"
-export const maxDuration = 300 // 5 min — Vercel Pro plan needed beyond 60s
+export const maxDuration = 60 // plafonné à 60s (plan Hobby) — repasser à 300 si plan Pro
 
 const ALL_FORMATS: VideoFormat[] = ["vertical", "horizontal", "square"]
 
