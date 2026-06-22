@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { deepseek } from "@/lib/deepseek"
 import { VILLES_VAR, findVilleByName, searchVilles } from "@/lib/villes-var"
 
-const MODEL = "deepseek-v4-flash"
+const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6"
 
 const TYPES = [
   'Débouchage canalisation',
@@ -50,8 +50,8 @@ export async function POST(req: NextRequest) {
   if (!transcription || typeof transcription !== 'string' || transcription.trim().length < 10) {
     return NextResponse.json({ error: 'Dictée trop courte' }, { status: 400 })
   }
-  if (!process.env.DEEPSEEK_API_KEY) {
-    return NextResponse.json({ error: 'DEEPSEEK_API_KEY non configurée' }, { status: 500 })
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json({ error: 'ANTHROPIC_API_KEY non configurée' }, { status: 500 })
   }
 
   const prompt = `Tu es un assistant qui extrait des informations structurées depuis la dictée vocale d'un technicien plombier du Var (83).

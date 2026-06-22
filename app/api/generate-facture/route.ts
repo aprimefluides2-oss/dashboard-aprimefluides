@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { deepseek } from "@/lib/deepseek"
 
-const MODEL = "deepseek-v4-pro"
+const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6"
 
 async function callWithRetry<T>(fn: () => Promise<T>, maxAttempts = 5): Promise<T> {
   let lastErr: any
@@ -59,8 +59,8 @@ export async function POST(req: NextRequest) {
       error: "Dictée trop courte (décris l'intervention réalisée, les prestations, les prix et le mode de règlement).",
     }, { status: 400 })
   }
-  if (!process.env.DEEPSEEK_API_KEY) {
-    return NextResponse.json({ error: 'DEEPSEEK_API_KEY non configurée' }, { status: 500 })
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json({ error: 'ANTHROPIC_API_KEY non configurée' }, { status: 500 })
   }
 
   const today = new Date()

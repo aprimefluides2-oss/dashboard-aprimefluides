@@ -7,11 +7,11 @@ export const dynamic = 'force-dynamic'
 type Check = { ok: boolean; latencyMs?: number; detail?: string }
 
 async function checkDeepseek(): Promise<Check> {
-  if (!process.env.DEEPSEEK_API_KEY) return { ok: false, detail: 'DEEPSEEK_API_KEY missing' }
+  if (!process.env.ANTHROPIC_API_KEY) return { ok: false, detail: 'ANTHROPIC_API_KEY missing' }
   const start = Date.now()
   try {
     await deepseek.messages.create({
-      model: 'deepseek-v4-flash',
+      model: process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6',
       max_tokens: 1,
       thinking: { type: 'disabled' },
       messages: [{ role: 'user', content: 'ok' }],
@@ -76,7 +76,7 @@ export async function GET() {
 
   // Clés JSON conservées (anthropic_api, env_anthropic_key) pour compat avec monitoring externe (Vercel, Uptime, etc.) — DeepSeek en interne
   const checks = {
-    env_anthropic_key: { ok: !!process.env.DEEPSEEK_API_KEY } as Check,
+    env_anthropic_key: { ok: !!process.env.ANTHROPIC_API_KEY } as Check,
     env_ltdb_api_url: { ok: !!process.env.CLIENT_API_URL } as Check,
     env_nextauth_secret: { ok: !!process.env.NEXTAUTH_SECRET } as Check,
     env_resend_key: { ok: !!process.env.RESEND_API_KEY } as Check,
