@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
 
   // URL avis Google : priorité table parametres > env var > fallback recherche Maps
   let reviewUrl = process.env.GOOGLE_REVIEW_URL
-    || 'https://maps.app.goo.gl/v8VgJWcGobLg9Gg66'
+    || 'https://g.page/r/CR4wdMkwcd1QEBM/review'
   try {
     const { data: paramRow } = await sb
       .from('parametres')

@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
   const resendKey = process.env.RESEND_API_KEY
   const fromEmail = getResendFromEmail()
-  const reviewUrl = process.env.GOOGLE_REVIEW_URL || 'https://maps.app.goo.gl/v8VgJWcGobLg9Gg66'
+  const reviewUrl = process.env.GOOGLE_REVIEW_URL || 'https://g.page/r/CR4wdMkwcd1QEBM/review'
 
   if (!resendKey) {
     return NextResponse.json({ error: 'RESEND_API_KEY manquante' }, { status: 500 })

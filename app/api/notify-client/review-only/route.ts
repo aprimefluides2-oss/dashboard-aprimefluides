@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   const fromEmail = getResendFromEmail()
   const recipient = getResendRecipient(clientEmail)
   const reviewUrl = process.env.GOOGLE_REVIEW_URL
-    || 'https://maps.app.goo.gl/v8VgJWcGobLg9Gg66'
+    || 'https://g.page/r/CR4wdMkwcd1QEBM/review'
   const tech = technicienNom || 'votre technicien'
 
   const tel = await getTelPrincipal()
