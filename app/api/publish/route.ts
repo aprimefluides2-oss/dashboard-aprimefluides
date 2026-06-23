@@ -62,6 +62,7 @@ async function persistIntervention(formData: FormData, ltdbResponse: any) {
   const clientAdresse = get('client_adresse') || ''
   const ville = get('intervention_city') || get('location') || ''
   const codePostal = get('postal_code') || ''
+  const agence = get('agence') || null
   const slug = ltdbResponse?.slug || get('slug') || ''
   const typeIntervention = get('service_type') || ''
   const dateRealisee = get('intervention_date') || null
@@ -90,6 +91,7 @@ async function persistIntervention(formData: FormData, ltdbResponse: any) {
       adresse_chantier: clientAdresse || null,
       ville: ville || null,
       code_postal: codePostal || null,
+      agence,
       date_realisee: dateRealisee,
       statut: 'terminee',
       transcription: transcription || null,
@@ -114,6 +116,7 @@ async function persistIntervention(formData: FormData, ltdbResponse: any) {
       adresse_chantier: clientAdresse || null,
       ville: ville || null,
       code_postal: codePostal || null,
+      agence,
       date_realisee: dateRealisee,
       statut: 'terminee',
       transcription: transcription || null,

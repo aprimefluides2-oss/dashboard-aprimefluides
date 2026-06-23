@@ -6,8 +6,7 @@ import GenerationPreview from "@/components/GenerationPreview"
 import AppTabs from "@/components/AppTabs"
 import RapportTabs from "@/components/RapportTabs"
 import dynamic from "next/dynamic"
-import { type VilleVar } from "@/lib/villes-var"
-import VilleCombobox from "@/components/VilleCombobox"
+import { AGENCES } from "@/lib/agences"
 import { useUnsavedChangesWarning } from "@/lib/useUnsavedChangesWarning"
 import { REALISATION_PAGE_STYLE } from "@/lib/realisationPageCss"
 
@@ -96,6 +95,7 @@ export default function NouveauPage() {
   const [typeIntervention, setTypeIntervention] = useState('Débouchage canalisation')
   const [adresse, setAdresse] = useState('')
   const [ville, setVille] = useState('')
+  const [agence, setAgence] = useState<string>(AGENCES[0])
   const [codePostal, setCodePostal] = useState('')
   const [dateIntervention, setDateIntervention] = useState(new Date().toISOString().split('T')[0])
   const [clientNom, setClientNom] = useState('')
@@ -545,6 +545,7 @@ export default function NouveauPage() {
     formData.append('location', ville)
     formData.append('intervention_city', ville)
     formData.append('postal_code', codePostal)
+    formData.append('agence', agence)
     formData.append('intervention_date', dateIntervention)
     formData.append('description', truncate(seo.meta_description || '', 195))
     formData.append('meta_keywords', (seo.meta_keywords || []).join(', '))
@@ -625,6 +626,7 @@ export default function NouveauPage() {
       setTranscription(i.transcription || '')
       setTypeIntervention(i.type_intervention || 'Débouchage canalisation')
       setVille(i.ville || '')
+      if (i.agence) setAgence(i.agence)
       setCodePostal(i.code_postal || '')
       setAdresse(i.adresse_chantier || '')
       setDateIntervention(i.date_realisee || i.date_prevue || new Date().toISOString().split('T')[0])
@@ -935,17 +937,41 @@ export default function NouveauPage() {
                 </div>
               </div>
 
-              {/* Ville */}
+              {/* Département / Agence */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Département / Agence</label>
+                <div className="flex flex-wrap gap-2">
+                  {AGENCES.map(a => (
+                    <button key={a} type="button"
+                      onClick={() => setAgence(a)}
+                      className={`px-3 py-2 rounded-xl border-2 text-sm font-semibold transition-all ${
+                        agence === a
+                          ? 'border-blue-500 bg-blue-50 text-[#0e2a52] shadow-sm'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                      }`}>
+                      {a.replace(/^Agence /, '')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Ville (saisie libre après choix du département) */}
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ville *</label>
-                <VilleCombobox value={ville} onSelect={(v: VilleVar) => { setVille(v.nom); setCodePostal(v.cp) }} onChange={setVille} />
+                <input
+                  value={ville}
+                  onChange={e => setVille(e.target.value)}
+                  placeholder="Ex : Argenteuil, Paris 15e, Cergy…"
+                  autoComplete="off"
+                  className="w-full border-2 border-slate-200 focus:border-blue-500 outline-none rounded-xl px-4 py-3 text-base transition-colors"
+                />
               </div>
 
               {/* CP + Date */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Code postal</label>
-                  <input value={codePostal} onChange={e => setCodePostal(e.target.value)} placeholder="83000" inputMode="numeric" pattern="[0-9]*" className="w-full border-2 border-slate-200 focus:border-blue-500 outline-none rounded-xl px-4 py-3 text-base transition-colors" />
+                  <input value={codePostal} onChange={e => setCodePostal(e.target.value)} placeholder="95100" inputMode="numeric" pattern="[0-9]*" className="w-full border-2 border-slate-200 focus:border-blue-500 outline-none rounded-xl px-4 py-3 text-base transition-colors" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Date</label>
