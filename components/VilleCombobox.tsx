@@ -49,7 +49,7 @@ export default function VilleCombobox({
           else if (e.key === 'Enter' && suggestions[highlight]) { e.preventDefault(); pick(suggestions[highlight]) }
           else if (e.key === 'Escape') setOpen(false)
         }}
-        placeholder={placeholder ?? "Toulon, Hyères, Bandol…"}
+        placeholder={placeholder ?? "Argenteuil, Cergy, Paris…"}
         autoComplete="off"
         className={className ?? baseInput}
       />

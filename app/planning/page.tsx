@@ -677,7 +677,7 @@ function NouvelleInterventionModal({
                   />
                 </div>
               </label>
-              <Field label="Code postal" value={clientCP} onChange={setClientCP} placeholder="83000" />
+              <Field label="Code postal" value={clientCP} onChange={setClientCP} placeholder="95100" />
             </div>
           </section>
 

@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
   const seq = String(today.getHours()).padStart(2, '0') + String(today.getMinutes()).padStart(2, '0')
   const numeroFallback = `DV-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}-${seq}`
 
-  const prompt = `Tu es un assistant spécialisé dans la rédaction de devis estimatifs pour une entreprise de débouchage et assainissement (Aprime fluides, Var). À partir d'une dictée vocale du technicien/chef d'équipe, tu structures un devis complet.
+  const prompt = `Tu es un assistant spécialisé dans la rédaction de devis estimatifs pour une entreprise de débouchage et assainissement (Aprime fluides, Île-de-France). À partir d'une dictée vocale du technicien/chef d'équipe, tu structures un devis complet.
 
 DICTÉE :
 """

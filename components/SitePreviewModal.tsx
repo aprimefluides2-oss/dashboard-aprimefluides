@@ -87,7 +87,7 @@ export default function SitePreviewModal({ open, onClose, seo, ville, photos }: 
   ${gallery}
   ${faq}
   <div class="contact-strip">
-    <p>Un problème de canalisation à ${escape(ville)} ou dans le Var ?</p>
+    <p>Un problème de canalisation à ${escape(ville)} ou en Île-de-France ?</p>
     <p class="tel">${escape(TEL_PRINCIPAL_FALLBACK)}</p>
     <p style="opacity:.8;font-size:14px">Aprime fluides</p>
   </div>

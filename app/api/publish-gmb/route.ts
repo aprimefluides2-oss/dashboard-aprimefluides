@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     meta_description?: string
   }
   const type = interv.type_intervention || "Intervention"
-  const ville = interv.ville || "Var"
+  const ville = interv.ville || "Île-de-France"
   const resume =
     seo.resume_rich_snippet ||
     seo.meta_description ||

@@ -168,7 +168,7 @@ export async function buildVideoMetadata(opts: {
   rapport?: any
 }): Promise<{ title: string; description: string; tags: string[] }> {
   const type = opts.typeIntervention || "Intervention plomberie"
-  const ville = opts.ville || "Var"
+  const ville = opts.ville || "Île-de-France"
   const ref = opts.reference ? ` · Réf ${opts.reference}` : ""
   const title = `${type} à ${ville} — LTDB Plombier 24h/24${ref}`
 
@@ -182,10 +182,10 @@ export async function buildVideoMetadata(opts: {
   const description = [
     summary,
     "",
-    "🔧 Aprime fluides — Var (83) — 24h/24, 7j/7",
+    "🔧 Aprime fluides — Île-de-France — 24h/24, 7j/7",
     `📞 ${tel}`,
     "🌐 https://www.aprime-fluides.fr",
-    "📍 Toulon, Hyères, Fréjus, Draguignan, Brignoles et tout le Var",
+    "📍 Paris, Argenteuil, Cergy, Versailles, Beauvais et toute l'Île-de-France",
     "",
     "Tarif débouchage à partir de 99€ TTC.",
     "",

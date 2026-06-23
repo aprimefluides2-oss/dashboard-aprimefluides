@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
       file: audioFile,
       model: "whisper-1",
       language: "fr",
-      prompt: "débouchage, hydrocurage, canalisation, évier, WC, siphon, bouchon, curage, chemisage, inspection caméra, Toulon, Hyères, Var",
+      prompt: "débouchage, hydrocurage, canalisation, évier, WC, siphon, bouchon, curage, chemisage, inspection caméra, Argenteuil, Cergy, Bezons, Versailles, Paris, Île-de-France",
     })
     return NextResponse.json({ text: transcription.text })
   } catch (e: any) {

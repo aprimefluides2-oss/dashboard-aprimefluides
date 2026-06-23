@@ -724,7 +724,7 @@ function DevisPageContent() {
           <div>
             <h2 className="text-xl font-black text-[#0e2a52]">Raconte le chantier</h2>
             <p className="text-sm text-slate-500 mt-1">
-              Dicte ou tape. Exemple : « Devis pour M. Dupont à Toulon — pompage fosse 390 €, tranchée 8 mètres à 95 € le mètre, pose carrelage 18 m² à 78 €, TVA 10 %. »
+              Dicte ou tape. Exemple : « Devis pour M. Dupont à Argenteuil — pompage fosse 390 €, tranchée 8 mètres à 95 € le mètre, pose carrelage 18 m² à 78 €, TVA 10 %. »
             </p>
           </div>
 

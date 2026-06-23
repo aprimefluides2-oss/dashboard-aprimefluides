@@ -840,7 +840,7 @@ export default function NouveauPage() {
                 value={transcription}
                 onChange={e => setTranscription(e.target.value)}
                 rows={5}
-                placeholder="Ex : Débouchage WC chez Mme Dupont à Toulon, 5 rue des Tombades. Colonne EU bouchée au 2e étage, furet électrique 15m…"
+                placeholder="Ex : Débouchage WC chez Mme Dupont à Argenteuil, 5 rue des Tombades. Colonne EU bouchée au 2e étage, furet électrique 15m…"
                 className="w-full border-2 border-slate-200 focus:border-blue-500 outline-none rounded-xl px-4 py-3 text-base transition-colors"
               />
               <div className="flex justify-between text-xs text-slate-400">

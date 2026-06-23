@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'ANTHROPIC_API_KEY non configurée' }, { status: 500 })
   }
 
-  const prompt = `Tu es un assistant qui extrait des informations structurées depuis la dictée vocale d'un technicien plombier du Var (83).
+  const prompt = `Tu es un assistant qui extrait des informations structurées depuis la dictée vocale d'un technicien plombier en Île-de-France.
 
 Dictée : """
 ${transcription}
@@ -63,14 +63,14 @@ ${transcription}
 Types d'intervention possibles (choisis LE PLUS proche) :
 ${TYPES.map(t => `- ${t}`).join('\n')}
 
-Communes possibles (101 communes du Var) : ${VILLES_VAR.map(v => v.nom).slice(0, 40).join(', ')}, … (liste complète non affichée — utilise celle qui colle le mieux phonétiquement à ce que tu entends).
+Communes possibles (Île-de-France et départements limitrophes) : ${VILLES_VAR.map(v => v.nom).slice(0, 40).join(', ')}, … (liste complète non affichée — utilise celle qui colle le mieux phonétiquement à ce que tu entends).
 
 Extrait les champs suivants. Si une info est absente, renvoie "" (chaîne vide). N'INVENTE RIEN.
 
 Réponds UNIQUEMENT avec ce JSON (sans markdown, sans backticks) :
 {
   "type_intervention": "un des types de la liste ci-dessus",
-  "ville": "nom exact de la commune du Var (orthographe officielle)",
+  "ville": "nom exact de la commune (Île-de-France ou département limitrophe, orthographe officielle)",
   "adresse": "rue/numéro si mentionné, sinon \\"\\"",
   "client_nom": "nom du client si mentionné (Mme X, M. Y, nom société), sinon \\"\\"",
   "client_email": "email si dicté (ex: 'arobase' → @, 'point' → .), sinon \\"\\""

@@ -24,8 +24,8 @@ const C = {
 
 const FIRM = {
   raison: 'Aprime fluides',
-  adresse1: '700 Avenue du 15ème Corps',
-  adresse2: '83000 Toulon',
+  adresse1: '1, rue Jean Carasso',
+  adresse2: '95000 Bezons',
   tel: TEL_PRINCIPAL_FALLBACK,
   email: 'contact@aprime-fluides.fr',
   site: 'www.aprime-fluides.fr',

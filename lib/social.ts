@@ -280,7 +280,7 @@ export async function buildSocialMetadata(opts: {
   rapport?: any
 }): Promise<{ title: string; description: string }> {
   const type = opts.typeIntervention || "Intervention plomberie"
-  const ville = opts.ville || "Var"
+  const ville = opts.ville || "Île-de-France"
   const title = `${type} à ${ville} — LTDB Plombier 24h/24`
 
   const summary =
@@ -293,9 +293,9 @@ export async function buildSocialMetadata(opts: {
   const description = [
     summary,
     "",
-    "🔧 Aprime fluides — Var (83)",
+    "🔧 Aprime fluides — Île-de-France",
     `📞 ${tel} · www.aprime-fluides.fr`,
-    "📍 Toulon, Hyères, Fréjus, Draguignan et tout le Var",
+    "📍 Paris, Argenteuil, Cergy, Versailles, Beauvais et toute l'Île-de-France",
     "",
     "#debouchage #plomberie #var #ltdb #urgence",
   ].join("\n")

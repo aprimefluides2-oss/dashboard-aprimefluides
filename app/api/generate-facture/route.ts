@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
 
   const dateFR = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`
 
-  const prompt = `Tu es un assistant spécialisé dans la rédaction de factures pour LTDB (Aprime fluides, Var). Le technicien décrit dans une dictée vocale une intervention déjà réalisée. Tu dois en extraire les éléments structurés d'une facture.
+  const prompt = `Tu es un assistant spécialisé dans la rédaction de factures pour Aprime fluides (Île-de-France). Le technicien décrit dans une dictée vocale une intervention déjà réalisée. Tu dois en extraire les éléments structurés d'une facture.
 
 DICTÉE :
 """

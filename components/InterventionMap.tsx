@@ -37,8 +37,8 @@ type Props = {
 
 type LatLng = [number, number]
 
-// Centre de Toulon, fallback si géocodage échoue
-const TOULON_CENTER: LatLng = [43.1242, 5.928]
+// Centre Île-de-France (Paris), fallback si géocodage échoue
+const IDF_CENTER: LatLng = [48.8566, 2.3522]
 
 // Cache module-level : évite de re-géocoder la même adresse en navigant entre fiches.
 const geocodeCache = new Map<string, LatLng | null>()
@@ -143,7 +143,7 @@ export default function InterventionMap(props: Props): JSX.Element {
         setCoords(result)
         setGeocodingFailed(false)
       } else {
-        setCoords(TOULON_CENTER)
+        setCoords(IDF_CENTER)
         setGeocodingFailed(true)
       }
       setLoading(false)

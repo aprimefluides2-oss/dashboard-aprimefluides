@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
 
   // Pré-calculs (utilisés par les 2 prompts en parallèle)
   const villeSlug = slugify(ville)
-  const cp = code_postal || '83000'
+  const cp = code_postal || '95870'
   const cityUrl = `${SITE}/${villeSlug}-${cp}`
   const typeSlug = slugify(type_intervention)
   const today = new Date()
@@ -188,7 +188,7 @@ ${SERVICES.map(s => `- ${s.label} → ${SITE}/${s.slug}`).join('\n')}
 
 PAGE VILLE DE DESTINATION (OBLIGATOIRE) :
 - Page locale "${ville}" → ${cityUrl}
-- Page Var → ${SITE}/debouchage-var
+- Page débouchage (hub) → ${SITE}/debouchage-canalisation
 
 URL FINALE : ${SITE}/nos-realisations/${realisationSlug}
 
@@ -232,7 +232,7 @@ Les 3 champs "titre_h1", "meta_description" et "resume_rich_snippet" doivent pou
 - Contenu HTML : 700-1100 mots, h2/h3 (4-6 h2 minimum), paragraphes courts (2-4 phrases), strong sur mots-clés locaux utilisés NATURELLEMENT dans la phrase, listes <ul> quand c'est pertinent (étapes, symptômes, causes).
 - Intertitres orientés récit ou bénéfice lecteur, pas sloganesques. Ex : "Ce qu'on a trouvé sur place", "Pourquoi la canalisation s'était rebouchée", "Comment éviter que ça recommence".
 - Conteneurs HTML à utiliser : <section class=\\"content-block\\">, <div class=\\"info-box\\"> (pour un point-clé ou conseil), <div class=\\"checklist-box\\"> (pour une liste d'étapes).
-- MAILLAGE INTERNE : ≥ 3 liens vers les SERVICES + ≥ 2 liens vers la page ville (${cityUrl}) + 1 lien vers la page Var. Les liens doivent apparaître naturellement dans une phrase, pas collés en fin de paragraphe comme une liste SEO.
+- MAILLAGE INTERNE : ≥ 3 liens vers les SERVICES + ≥ 2 liens vers la page ville (${cityUrl}) + 1 lien vers le hub débouchage. Les liens doivent apparaître naturellement dans une phrase, pas collés en fin de paragraphe comme une liste SEO.
 - Prix : placeholders {PRIX_MIN}/{PRIX_MAX} uniquement si un tarif est mentionné par le technicien.
 - FAQ : 6 questions que de VRAIS clients se posent à ${ville} (longue traîne). Réponses courtes, honnêtes, sans langue de bois. Pas de "contactez-nous vite !" en fin de réponse.
 - 8-12 mots-clés longue traîne, vrais termes de recherche humains.
@@ -374,21 +374,21 @@ sont placés avant pour ne jamais être perdus si la réponse est longue.
         "priceRange": "€€",
         "address": {
           "@type": "PostalAddress",
-          "streetAddress": "700 Avenue du 15ème Corps",
-          "addressLocality": "Toulon",
-          "postalCode": "83000",
-          "addressRegion": "Var",
+          "streetAddress": "1, rue Jean Carasso",
+          "addressLocality": "Bezons",
+          "postalCode": "95870",
+          "addressRegion": "Île-de-France",
           "addressCountry": "FR"
         },
         "geo": {
           "@type": "GeoCoordinates",
-          "latitude": 43.1284504,
-          "longitude": 5.9090923
+          "latitude": 48.9244,
+          "longitude": 2.2172
         },
         "areaServed": [
           { "@type": "City", "name": ville },
-          { "@type": "AdministrativeArea", "name": "Var" },
-          { "@type": "AdministrativeArea", "name": "Provence-Alpes-Côte d'Azur" }
+          { "@type": "AdministrativeArea", "name": "Île-de-France" },
+          { "@type": "AdministrativeArea", "name": "Hauts-de-France" }
         ],
         "openingHoursSpecification": [{
           "@type": "OpeningHoursSpecification",

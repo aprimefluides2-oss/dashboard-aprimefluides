@@ -417,7 +417,7 @@ const Footer = () => (
   <View style={s.footer} fixed>
     <View>
       <Text style={s.footerL}>
-        Aprime fluides · Intervention et assainissement dans le Var
+        Aprime fluides · Intervention et assainissement en Île-de-France
       </Text>
       <Text style={s.footerL}>
         Tél. {TEL_PRINCIPAL_FALLBACK} · contact@aprime-fluides.fr · www.aprime-fluides.fr

@@ -17,13 +17,13 @@ export default function TestMapPage(): JSX.Element {
       <div className="space-y-8 max-w-3xl">
         <section>
           <h2 className="text-lg font-semibold text-gray-700 mb-2">
-            Toulon — 700 Avenue du 15ème Corps (avec cadastre)
+            Bezons — 1 rue Jean Carasso (avec cadastre)
           </h2>
           <div style={{ width: 600, height: 400 }}>
             <InterventionMap
-              adresse="700 Avenue du 15ème Corps"
-              ville="Toulon"
-              codePostal="83000"
+              adresse="1 rue Jean Carasso"
+              ville="Bezons"
+              codePostal="95870"
               showCadastre
             />
           </div>
@@ -43,7 +43,7 @@ export default function TestMapPage(): JSX.Element {
             Adresse partielle (ville seule)
           </h2>
           <div style={{ width: 600, height: 300 }}>
-            <InterventionMap ville="Hyères" codePostal="83400" zoom={14} />
+            <InterventionMap ville="Argenteuil" codePostal="95100" zoom={14} />
           </div>
         </section>
       </div>
