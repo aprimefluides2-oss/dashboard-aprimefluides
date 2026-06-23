@@ -108,7 +108,7 @@ function emailAttestation({ clientNom, technicienNom, ville, dateAttestation, va
         <p style="margin-top:30px;font-size:13px;color:#666">Cordialement,<br><strong>${tn}</strong> — Expert en assainissement<br>Aprime fluides</p>
       </td></tr>
       <tr><td style="background:#0f2e5c;color:#a0c0ff;padding:18px;text-align:center;font-size:11px">
-        Aprime fluides · ${escapeHtml(tel)} · www.aprime-fluide.fr
+        Aprime fluides · ${escapeHtml(tel)} · www.aprime-fluides.fr
       </td></tr>
     </table>
   </td></tr>

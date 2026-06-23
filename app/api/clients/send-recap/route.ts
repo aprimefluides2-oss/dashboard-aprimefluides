@@ -160,7 +160,7 @@ function renderRecap({ clientNom, ville, interventions, documents, caTotal, caPa
         </table>
 
         <p style="margin:24px 0 0;font-size:12px;color:#666">
-          Pour toute question : ${escapeHtml(tel)} · contact@www.aprime-fluide.fr
+          Pour toute question : ${escapeHtml(tel)} · contact@aprime-fluides.fr
         </p>
       </td></tr>
       <tr><td style="background:#0e2a52;color:#a0c0ff;padding:14px;text-align:center;font-size:11px">

@@ -9,7 +9,7 @@ export const APRIME_EMETTEUR: EmetteurData = {
   raisonSociale: 'Aprime fluides',
   adresseLignes: ['1, rue Jean Carasso', '95000 Bezons'],
   telephone: TEL_PRINCIPAL_FALLBACK,
-  email: 'contact@aprime-fluide.fr',
+  email: 'contact@aprime-fluides.fr',
   rcs: '',
   capital: '',
   siret: '',

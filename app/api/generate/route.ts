@@ -5,7 +5,7 @@ import { parseAiJson } from "@/lib/parseAiJson"
 export const maxDuration = 60
 
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6"
-const SITE = 'https://www.aprime-fluide.fr'
+const SITE = 'https://www.aprime-fluides.fr'
 
 const SERVICES = [
   { slug: 'debouchage/debouchage-canalisations', label: 'Débouchage de canalisations' },

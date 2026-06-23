@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
   const resendKey = process.env.RESEND_API_KEY
   const fromEmail = getResendFromEmail()
-  const reviewUrl = process.env.GOOGLE_REVIEW_URL || 'https://www.google.com/maps/place/Les+Techniciens+du+Débouchage/@43.1284504,5.9090923,17z/data=!3m1!4b1!4m6!3m5!1s0x21ef75613753f47f:0x840c1e4a335b1cab!8m2!3d43.1284504!4d5.9090923!16s%2Fg%2F11xf1s70y8?entry=ttu&g_ep=EgoyMDI2MDQxMi4wIKXMDSoASAFQAw%3D%3D'
+  const reviewUrl = process.env.GOOGLE_REVIEW_URL || 'https://maps.app.goo.gl/v8VgJWcGobLg9Gg66'
 
   if (!resendKey) {
     return NextResponse.json({ error: 'RESEND_API_KEY manquante' }, { status: 500 })
@@ -140,7 +140,7 @@ function emailRapport({ clientNom, technicienNom, ville, dateIntervention, revie
         <p style="margin-top:30px;font-size:13px;color:#666">Cordialement,<br><strong>${tn}</strong> — Expert en assainissement<br>Aprime fluides</p>
       </td></tr>
       <tr><td style="background:#0e2a52;color:#a0c0ff;padding:18px;text-align:center;font-size:11px">
-        Aprime fluides · ${escapeHtml(tel)} · www.aprime-fluide.fr
+        Aprime fluides · ${escapeHtml(tel)} · www.aprime-fluides.fr
       </td></tr>
     </table>
   </td></tr>

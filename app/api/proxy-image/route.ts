@@ -14,8 +14,8 @@ export const runtime = 'nodejs'
  * GET /api/proxy-image?url=<encoded>
  */
 const ALLOWED_HOSTS = [
-  'www.aprime-fluide.fr',
-  'www.www.aprime-fluide.fr',
+  'www.aprime-fluides.fr',
+  'www.aprime-fluides.fr',
   // Supabase Storage public URLs
   '.supabase.co',
   '.supabase.in',

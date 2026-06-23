@@ -91,7 +91,7 @@ export default function SitePreviewModal({ open, onClose, seo, ville, photos }: 
     <p class="tel">${escape(TEL_PRINCIPAL_FALLBACK)}</p>
     <p style="opacity:.8;font-size:14px">Aprime fluides</p>
   </div>
-  <footer>Aperçu — www.aprime-fluide.fr</footer>
+  <footer>Aperçu — www.aprime-fluides.fr</footer>
 </div>
 </body></html>`
   }, [seo, ville, photos])

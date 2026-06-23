@@ -5,7 +5,7 @@ import { createGmbPost } from "@/lib/gmb"
 export const dynamic = "force-dynamic"
 export const maxDuration = 30
 
-const SITE = "https://www.aprime-fluide.fr"
+const SITE = "https://www.aprime-fluides.fr"
 
 /**
  * POST /api/publish-gmb — publie une intervention en post Google Business Profile.

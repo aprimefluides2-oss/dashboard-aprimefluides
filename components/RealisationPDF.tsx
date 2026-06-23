@@ -420,7 +420,7 @@ const Footer = () => (
         Aprime fluides · Intervention et assainissement dans le Var
       </Text>
       <Text style={s.footerL}>
-        Tél. {TEL_PRINCIPAL_FALLBACK} · contact@www.aprime-fluide.fr · www.www.aprime-fluide.fr
+        Tél. {TEL_PRINCIPAL_FALLBACK} · contact@aprime-fluides.fr · www.aprime-fluides.fr
       </Text>
     </View>
     <Text style={s.footerR} render={({ pageNumber, totalPages }) => `Page ${pageNumber} / ${totalPages}`} />

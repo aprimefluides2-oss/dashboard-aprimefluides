@@ -27,8 +27,8 @@ const FIRM = {
   adresse1: '700 Avenue du 15ème Corps',
   adresse2: '83000 Toulon',
   tel: TEL_PRINCIPAL_FALLBACK,
-  email: 'contact@www.aprime-fluide.fr',
-  site: 'www.aprime-fluide.fr',
+  email: 'contact@aprime-fluides.fr',
+  site: 'www.aprime-fluides.fr',
   siret: process.env.NEXT_PUBLIC_LTDB_SIRET || '________________',
   rcPro: process.env.NEXT_PUBLIC_LTDB_RC_PRO || '__________',
 }

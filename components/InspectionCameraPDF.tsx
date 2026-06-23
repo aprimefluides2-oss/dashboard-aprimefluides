@@ -271,7 +271,7 @@ const Footer = ({ numero }: { numero: string }) => (
   <View style={s.footer} fixed>
     <View>
       <Text style={s.footerL}>LTDB · Rapport ITV {numero}</Text>
-      <Text style={s.footerL}>contact@www.aprime-fluide.fr · {TEL_PRINCIPAL_FALLBACK}</Text>
+      <Text style={s.footerL}>contact@aprime-fluides.fr · {TEL_PRINCIPAL_FALLBACK}</Text>
     </View>
     <Text style={s.footerR} render={({ pageNumber, totalPages }) => `Page ${pageNumber} / ${totalPages}`} />
   </View>
@@ -347,7 +347,7 @@ export function InspectionDocument({ data }: InspectionPDFProps) {
               <Text style={s.partyLine}>700 Avenue du 15ème Corps</Text>
               <Text style={s.partyLine}>83000 Toulon</Text>
               <Text style={s.partyLine}>Tél. {TEL_PRINCIPAL_FALLBACK}</Text>
-              <Text style={s.partyLine}>contact@www.aprime-fluide.fr</Text>
+              <Text style={s.partyLine}>contact@aprime-fluides.fr</Text>
             </View>
             <View style={s.partyCol}>
               <Text style={s.partyHead}>CLIENT</Text>

@@ -294,7 +294,7 @@ export async function buildSocialMetadata(opts: {
     summary,
     "",
     "🔧 Aprime fluides — Var (83)",
-    `📞 ${tel} · www.aprime-fluide.fr`,
+    `📞 ${tel} · www.aprime-fluides.fr`,
     "📍 Toulon, Hyères, Fréjus, Draguignan et tout le Var",
     "",
     "#debouchage #plomberie #var #ltdb #urgence",

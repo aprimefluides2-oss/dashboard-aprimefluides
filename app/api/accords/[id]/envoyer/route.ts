@@ -152,7 +152,7 @@ function emailAccord({
         <p style="margin-top:30px;font-size:13px;color:#666">Cordialement,<br>Aprime fluides</p>
       </td></tr>
       <tr><td style="background:#0e2a52;color:#a0c0ff;padding:18px;text-align:center;font-size:11px">
-        Aprime fluides · ${telEsc} · www.aprime-fluide.fr
+        Aprime fluides · ${telEsc} · www.aprime-fluides.fr
       </td></tr>
     </table>
   </td></tr>

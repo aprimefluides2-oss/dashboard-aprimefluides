@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   const fromEmail = getResendFromEmail()
   const recipient = getResendRecipient(clientEmail)
   const reviewUrl = process.env.GOOGLE_REVIEW_URL
-    || 'https://www.google.com/maps/place/Les+Techniciens+du+Débouchage'
+    || 'https://maps.app.goo.gl/v8VgJWcGobLg9Gg66'
   const tech = technicienNom || 'votre technicien'
 
   const tel = await getTelPrincipal()
@@ -79,7 +79,7 @@ function emailReviewOnly({ clientNom, technicienNom, ville, reviewUrl, tel }: {
         <p style="font-size:13px;color:#666">Merci pour votre confiance,<br><strong>${tn}</strong> — Expert en assainissement<br>Aprime fluides</p>
       </td></tr>
       <tr><td style="background:#0e2a52;color:#a0c0ff;padding:14px;text-align:center;font-size:11px">
-        Aprime fluides · ${escapeHtml(tel)} · www.aprime-fluide.fr
+        Aprime fluides · ${escapeHtml(tel)} · www.aprime-fluides.fr
       </td></tr>
     </table>
   </td></tr>

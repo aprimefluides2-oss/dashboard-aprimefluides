@@ -40,7 +40,7 @@ async function checkResend(): Promise<Check> {
   if (!key) return { ok: false, detail: 'RESEND_API_KEY missing' }
 
   const fromEmail = process.env.RESEND_FROM_EMAIL
-    || (process.env.RESEND_TEST_EMAIL ? 'onboarding@resend.dev' : 'contact@www.aprime-fluide.fr')
+    || (process.env.RESEND_TEST_EMAIL ? 'onboarding@resend.dev' : 'contact@aprime-fluides.fr')
   const fromDomain = fromEmail.split('@')[1]
 
   const start = Date.now()

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const SITE = "https://www.aprime-fluide.fr"
+const SITE = "https://www.aprime-fluides.fr"
 
 function extractHrefs(html: string): string[] {
   const out: string[] = []

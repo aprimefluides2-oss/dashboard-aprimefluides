@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
 
   // URL avis Google : priorité table parametres > env var > fallback recherche Maps
   let reviewUrl = process.env.GOOGLE_REVIEW_URL
-    || 'https://www.google.com/maps/place/Les+Techniciens+du+Débouchage'
+    || 'https://maps.app.goo.gl/v8VgJWcGobLg9Gg66'
   try {
     const { data: paramRow } = await sb
       .from('parametres')
@@ -275,7 +275,7 @@ function emailCombine({ clientNom, technicienNom, ville, dateIntervention, refer
         <p style="margin-top:30px;font-size:13px;color:#666">Cordialement,<br><strong>${tn}</strong> — Expert en assainissement<br>Aprime fluides</p>
       </td></tr>
       <tr><td style="background:#0e2a52;color:#a0c0ff;padding:18px;text-align:center;font-size:11px">
-        Aprime fluides · ${escapeHtml(tel)} · www.aprime-fluide.fr
+        Aprime fluides · ${escapeHtml(tel)} · www.aprime-fluides.fr
       </td></tr>
     </table>
   </td></tr>

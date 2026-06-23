@@ -24,12 +24,12 @@ export function escapeHtml(s: unknown): string {
  * Adresse expéditeur effective :
  * - RESEND_FROM_EMAIL si défini (domaine vérifié) ;
  * - sinon onboarding@resend.dev en mode test ;
- * - sinon contact@www.aprime-fluide.fr (peut échouer si domaine non vérifié).
+ * - sinon contact@aprime-fluides.fr (peut échouer si domaine non vérifié).
  */
 export function getResendFromEmail(): string {
   return (
     process.env.RESEND_FROM_EMAIL
-    || (process.env.RESEND_TEST_EMAIL ? 'onboarding@resend.dev' : 'contact@www.aprime-fluide.fr')
+    || (process.env.RESEND_TEST_EMAIL ? 'onboarding@resend.dev' : 'contact@aprime-fluides.fr')
   )
 }
 

@@ -184,7 +184,7 @@ export async function buildVideoMetadata(opts: {
     "",
     "🔧 Aprime fluides — Var (83) — 24h/24, 7j/7",
     `📞 ${tel}`,
-    "🌐 https://www.aprime-fluide.fr",
+    "🌐 https://www.aprime-fluides.fr",
     "📍 Toulon, Hyères, Fréjus, Draguignan, Brignoles et tout le Var",
     "",
     "Tarif débouchage à partir de 99€ TTC.",

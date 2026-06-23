@@ -1114,7 +1114,7 @@ export default function NouveauPage() {
             <h2 className="text-2xl font-black text-emerald-700">Réalisation publiée !</h2>
             <p className="text-slate-600">La page est en ligne sur le site.</p>
             <a
-              href={`https://www.aprime-fluide.fr/nos-realisations/${publishedSlug}`}
+              href={`https://www.aprime-fluides.fr/nos-realisations/${publishedSlug}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block bg-[#0e2a52] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#1a3a6b] transition-colors"

@@ -22,7 +22,7 @@ export default function InterventionActionsHub({
   clientEmail,
   publieSlug,
   onCreateFacture,
-  publicBaseUrl = 'https://www.aprime-fluide.fr/nos-realisations',
+  publicBaseUrl = 'https://www.aprime-fluides.fr/nos-realisations',
 }: InterventionActionsHubProps) {
   const router = useRouter()
   const [sendOpen, setSendOpen] = useState(false)

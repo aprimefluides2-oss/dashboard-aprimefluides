@@ -293,7 +293,7 @@ export default function HistoriquePage() {
                       </td>
                       <td className="px-4 py-3">
                         {i.publie_slug ? (
-                          <a href={`https://www.aprime-fluide.fr/nos-realisations/${i.publie_slug}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-semibold text-xs">
+                          <a href={`https://www.aprime-fluides.fr/nos-realisations/${i.publie_slug}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-semibold text-xs">
                             voir →
                           </a>
                         ) : (
