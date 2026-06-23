@@ -1,5 +1,5 @@
 /**
- * Types d'intervention LTDB — source unique de vérité.
+ * Types d'intervention Aprime fluides — source unique de vérité.
  * Utilisé par /planning (modal de création), les passerelles rapport/devis → facture
  * pour produire un libellé court et standardisé sur les factures.
  */

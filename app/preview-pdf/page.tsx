@@ -16,7 +16,7 @@ const sampleData: PDFProps = {
   typeIntervention: "Débouchage canalisation",
   technicienNom: "Julien Moreau",
   phone: TEL_PRINCIPAL_FALLBACK,
-  reference: "LTDB-20260420",
+  reference: "APR-20260420",
   photos: [],
   rapport: {
     diagnostic: "Canalisation d'évacuation EU obstruée sur environ 4,5 mètres linéaires. Présence massive de graisses figées, dépôts calcaires et résidus alimentaires dans la canalisation fonte ø100. Refoulement constaté au niveau de l'évier cuisine et remontées d'eau en sous-sol technique.",
@@ -101,7 +101,7 @@ const sampleData: PDFProps = {
       }
     ],
     devis: {
-      numero: "DV-LTDB-20260420",
+      numero: "DV-APR-20260420",
       validite_jours: 30,
       tva_taux: 10,
       lignes: [
@@ -137,7 +137,7 @@ export default function PreviewPdfPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#0f172a', color: '#e2e8f0', fontFamily: 'system-ui', padding: 40 }}>
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8, color: '#f1f5f9' }}>Preview PDF — LTDB</h1>
+        <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8, color: '#f1f5f9' }}>Preview PDF — Aprime fluides</h1>
         <p style={{ color: '#94a3b8', marginBottom: 32, fontSize: 15 }}>
           Rapport de test avec données complètes (diagnostic, phases, avis technique, devis)
         </p>

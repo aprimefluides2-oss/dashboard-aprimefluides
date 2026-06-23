@@ -170,7 +170,7 @@ export async function buildVideoMetadata(opts: {
   const type = opts.typeIntervention || "Intervention plomberie"
   const ville = opts.ville || "Île-de-France"
   const ref = opts.reference ? ` · Réf ${opts.reference}` : ""
-  const title = `${type} à ${ville} — LTDB Plombier 24h/24${ref}`
+  const title = `${type} à ${ville} — Aprime fluides Plombier 24h/24${ref}`
 
   const summary =
     opts.rapport?.resume_court ||

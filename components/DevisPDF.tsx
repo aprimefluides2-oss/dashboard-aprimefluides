@@ -341,7 +341,7 @@ function groupBySection(lines: DevisLineData[]): { section: string; items: Devis
 const Header = ({ emetteur, phone }: { emetteur: EmetteurData; phone?: string }) => (
   <View style={s.headerTop} fixed>
     <View style={s.brandRow}>
-      <Text style={s.brandName}>LTDB</Text>
+      <Text style={s.brandName}>Aprime fluides</Text>
       <Text style={s.brandTag}>Assainissement · Débouchage · Pompage · Inspection caméra</Text>
     </View>
     <Text style={s.headerPhone}>Tél. {phone || emetteur.telephone}</Text>

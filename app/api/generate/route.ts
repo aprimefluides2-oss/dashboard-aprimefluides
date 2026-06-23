@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
   const seq = String(today.getHours()).padStart(2, '0') + String(today.getMinutes()).padStart(2, '0') + String(today.getSeconds()).padStart(2, '0')
   // Slug inclut l'heure → unique même si 2 interventions/jour sur même ville/type
   const realisationSlug = `${typeSlug}-${villeSlug}-${dateSlug}-${seq}`
-  const reference = `LTDB-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}-${seq}`
+  const reference = `APR-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}-${seq}`
 
   // === APPEL 1 — RAPPORT TECHNIQUE COMPLET (pour PDF détaillé) ===
   const rapportPrompt = `Tu es un rédacteur expert de rapports d'intervention de plomberie/assainissement professionnels (style bureau d'études, rapport d'expertise BTP). À partir d'une dictée vocale d'un technicien, tu produis un document détaillé et exhaustif destiné à un client professionnel (syndic, bailleur, gestionnaire de copropriété).
@@ -398,8 +398,8 @@ sont placés avant pour ne jamais être perdus si la réponse est longue.
         }],
         "aggregateRating": {
           "@type": "AggregateRating",
-          "ratingValue": process.env.LTDB_RATING_VALUE || "4.9",
-          "reviewCount": process.env.LTDB_REVIEW_COUNT || "127",
+          "ratingValue": process.env.APRIME_RATING_VALUE || "4.7",
+          "reviewCount": process.env.APRIME_REVIEW_COUNT || "102",
           "bestRating": "5",
           "worstRating": "1"
         },

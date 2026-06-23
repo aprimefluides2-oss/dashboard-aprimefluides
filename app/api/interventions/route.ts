@@ -54,7 +54,7 @@ function buildReference(date_prevue?: string | null, heure_prevue?: string | nul
     timePart = `${hh}${mi}`
   }
 
-  return `LTDB-${datePart}-${timePart}`
+  return `APR-${datePart}-${timePart}`
 }
 
 export async function GET(req: NextRequest) {

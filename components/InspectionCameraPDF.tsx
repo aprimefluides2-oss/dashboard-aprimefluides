@@ -270,7 +270,7 @@ const Header = () => (
 const Footer = ({ numero }: { numero: string }) => (
   <View style={s.footer} fixed>
     <View>
-      <Text style={s.footerL}>LTDB · Rapport ITV {numero}</Text>
+      <Text style={s.footerL}>Aprime fluides · Rapport ITV {numero}</Text>
       <Text style={s.footerL}>contact@aprime-fluides.fr · {TEL_PRINCIPAL_FALLBACK}</Text>
     </View>
     <Text style={s.footerR} render={({ pageNumber, totalPages }) => `Page ${pageNumber} / ${totalPages}`} />
@@ -329,7 +329,7 @@ export function InspectionDocument({ data }: InspectionPDFProps) {
             </View>
             <View style={[s.metaCell, s.metaCellLast]}>
               <Text style={s.metaLabel}>Agence</Text>
-              <Text style={s.metaValue}>{data.agence || 'LTDB'}</Text>
+              <Text style={s.metaValue}>{data.agence || 'Aprime fluides'}</Text>
             </View>
           </View>
 

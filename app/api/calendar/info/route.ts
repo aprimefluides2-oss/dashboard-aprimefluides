@@ -9,14 +9,14 @@ export const runtime = 'nodejs'
  *
  * Le secret réel est le token dans l'URL (dérivé de NEXTAUTH_SECRET) — pas
  * la connaissance de cet endpoint. Si tu veux révoquer l'accès, change la
- * variable d'environnement LTDB_CALENDAR_TOKEN (ou rotate NEXTAUTH_SECRET).
+ * variable d'environnement APRIME_CALENDAR_TOKEN (ou rotate NEXTAUTH_SECRET).
  */
 export async function GET(req: NextRequest) {
   const token = getCalendarToken()
   if (!token) {
     return NextResponse.json({
       configured: false,
-      error: 'NEXTAUTH_SECRET (ou LTDB_CALENDAR_TOKEN) non configuré côté serveur.',
+      error: 'NEXTAUTH_SECRET (ou APRIME_CALENDAR_TOKEN) non configuré côté serveur.',
     })
   }
 

@@ -107,12 +107,12 @@ Chaque ligne du JSON doit référencer sa section via le champ "section".
 - "objet" : 2-3 phrases qui décrivent ce que couvre le devis (pas un résumé ligne par ligne, une vue d'ensemble du chantier).
 - "lignes[]" : toutes les prestations, une par ligne, regroupées par section.
 - "majoration_note" : si le technicien mentionne une majoration (heures non ouvrées, week-end), formule-la courte ("100 % après 17 h, week-ends & jours fériés"). Sinon "".
-- "conditions" : remplis avec les valeurs standards LTDB SI la dictée ne contradict pas :
+- "conditions" : remplis avec les valeurs standards Aprime fluides SI la dictée ne contradict pas :
   • validite : "${body?.validite_jours || 30} jours à compter de la date d'établissement"
   • delai_execution : si mentionné dans la dictée, reprends-le ; sinon "À convenir avec le client après validation"
   • duree_chantier : si mentionnée (ex: "3 à 5 jours"), reprends ; sinon "Selon accès et météo"
   • garanties : "Garantie décennale sur ouvrages enterrés · Garantie de parfait achèvement 1 an"
-  • assurance : "RC Pro et décennale LTDB en cours de validité"
+  • assurance : "RC Pro et décennale Aprime fluides en cours de validité"
   • particulieres : reprends toute contrainte citée (accès engin, gravats, accord commune...) ; sinon ""
 - "tva_taux" : 10 si travaux d'amélioration/rénovation sur habitation de + 2 ans (par défaut), 20 si neuf ou autre. Utilise 10 par défaut sauf indication contraire.
 - "tva_reduite_attestation" : true si tva_taux=10, false sinon.

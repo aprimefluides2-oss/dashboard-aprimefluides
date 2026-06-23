@@ -281,7 +281,7 @@ export async function buildSocialMetadata(opts: {
 }): Promise<{ title: string; description: string }> {
   const type = opts.typeIntervention || "Intervention plomberie"
   const ville = opts.ville || "Île-de-France"
-  const title = `${type} à ${ville} — LTDB Plombier 24h/24`
+  const title = `${type} à ${ville} — Aprime fluides Plombier 24h/24`
 
   const summary =
     opts.rapport?.resume_court ||

@@ -36,7 +36,7 @@ export function totalLigne(ligne: { prix_unitaire: number; quantite: number }): 
 }
 
 /**
- * Totaux du devis. `tauxTVA` en pourcentage — 0 pour LTDB (franchise en base
+ * Totaux du devis. `tauxTVA` en pourcentage — 0 pour Aprime fluides (franchise en base
  * de TVA, art. 293 B du CGI : totalHT = totalTTC).
  */
 export function calculDevis(

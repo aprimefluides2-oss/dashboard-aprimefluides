@@ -235,7 +235,7 @@ function DevisPageContent() {
         delai_execution: 'À convenir avec le client après validation',
         duree_chantier: 'Selon accès et météo',
         garanties: 'Garantie décennale sur ouvrages enterrés · Garantie de parfait achèvement 1 an',
-        assurance: 'RC Pro et décennale LTDB en cours de validité',
+        assurance: 'RC Pro et décennale Aprime fluides en cours de validité',
         particulieres: '',
       },
       modalites: {

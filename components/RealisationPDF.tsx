@@ -406,7 +406,7 @@ const statutLabel = (statut: Statut): { text: string; bg: string; barColor: stri
 const Header = ({ phone }: { phone?: string }) => (
   <View style={s.headerTop} fixed>
     <View style={s.brandRow}>
-      <Text style={s.brandName}>LTDB</Text>
+      <Text style={s.brandName}>Aprime fluides</Text>
       <Text style={s.brandTag}>Débouchage · Curage · Inspection caméra · Assainissement</Text>
     </View>
     <Text style={s.headerPhone}>Tél. {phone || TEL_PRINCIPAL_FALLBACK}</Text>
@@ -452,7 +452,7 @@ export function RealisationDocument({
   clientNom, adresse, ville, codePostal, dateIntervention, typeIntervention,
   technicienNom, rapport, reference, photos, phone,
 }: PDFProps) {
-  const ref = reference || rapport.reference || `LTDB-${dateIntervention.replace(/-/g, '')}`
+  const ref = reference || rapport.reference || `APR-${dateIntervention.replace(/-/g, '')}`
   const hasPhotos = (photos?.length ?? 0) > 0
 
   /* Section numbering (stable: skip empty sections) */
@@ -702,7 +702,7 @@ export function RealisationDocument({
               {/* Signatures */}
               <View style={s.sigTable} wrap={false}>
                 <View style={[s.sigCol, s.sigColSep]}>
-                  <Text style={s.sigHead}>LTDB — Technicien intervenant</Text>
+                  <Text style={s.sigHead}>Aprime fluides — Technicien intervenant</Text>
                   <View style={s.sigBody}>
                     <Text style={s.sigLine}>Date : {fmtDateFR(dateIntervention)}</Text>
                     <Text style={s.sigLine}>Nom : {technicienNom || '—'}</Text>
@@ -818,7 +818,7 @@ export function RealisationDocument({
 
             <View style={s.sigTable} wrap={false}>
               <View style={[s.sigCol, s.sigColSep]}>
-                <Text style={s.sigHead}>Établi par — LTDB</Text>
+                <Text style={s.sigHead}>Établi par — Aprime fluides</Text>
                 <View style={s.sigBody}>
                   <Text style={s.sigLine}>Nom : {technicienNom || '—'}</Text>
                   <Text style={s.sigLine}>Date : {fmtDateFR(dateIntervention)}</Text>

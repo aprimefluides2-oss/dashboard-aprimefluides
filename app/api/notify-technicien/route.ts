@@ -197,7 +197,7 @@ function emailTechHtml(p: {
         </div>
         <p style="text-align:center;font-size:12px;color:#64748b;margin:0">Lien direct : <a href="${p.lien}" style="color:#2563eb">${p.lien}</a></p>
 
-        <p style="margin-top:30px;font-size:13px;color:#666">À bientôt sur le terrain,<br>L&rsquo;équipe LTDB</p>
+        <p style="margin-top:30px;font-size:13px;color:#666">À bientôt sur le terrain,<br>L&rsquo;équipe Aprime fluides</p>
       </td></tr>
       <tr><td style="background:#0e2a52;color:#a0c0ff;padding:18px;text-align:center;font-size:11px">
         Aprime fluides · ${escapeHtml(p.tel)} · www.aprime-fluides.fr

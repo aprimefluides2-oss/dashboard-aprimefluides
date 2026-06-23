@@ -1,7 +1,7 @@
 import { getSupabaseOrNull } from "@/lib/supabase"
 
 /**
- * Numéro de téléphone principal LTDB — source unique de vérité côté code.
+ * Numéro de téléphone principal Aprime fluides — source unique de vérité côté code.
  * La valeur de référence vit dans la table `parametres` (clé `TEL_PRINCIPAL`).
  * Cette constante sert uniquement de repli si la base est injoignable ou
  * pour les contextes synchrones (composants client / PDF).
@@ -27,7 +27,7 @@ export async function getParametre(cle: string, fallback = ''): Promise<string> 
   }
 }
 
-/** Renvoie le téléphone principal LTDB (table `parametres`, repli sur la constante). */
+/** Renvoie le téléphone principal Aprime fluides (table `parametres`, repli sur la constante). */
 export function getTelPrincipal(): Promise<string> {
   return getParametre('TEL_PRINCIPAL', TEL_PRINCIPAL_FALLBACK)
 }

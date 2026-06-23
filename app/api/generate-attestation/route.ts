@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     variante === 'fosse-septique' ? 'Raccordement à une fosse septique (assainissement non collectif)' :
     'Non-conformité du réseau d\'évacuation'
 
-  const prompt = `Tu es un rédacteur technique d'attestations d'inspection pour une société d'assainissement française (LTDB). À partir d'une dictée vocale du technicien, tu produis le contenu rédactionnel d'une attestation de conformité destinée à être jointe à un dossier notarial (vente immobilière).
+  const prompt = `Tu es un rédacteur technique d'attestations d'inspection pour une société d'assainissement française (Aprime fluides). À partir d'une dictée vocale du technicien, tu produis le contenu rédactionnel d'une attestation de conformité destinée à être jointe à un dossier notarial (vente immobilière).
 
 Type d'attestation choisi manuellement : ${varianteLibelle}
 

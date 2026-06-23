@@ -69,7 +69,7 @@ export default function CalendarSubscribePanel() {
           {info && !info.configured && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-900">
               <div className="font-bold mb-1">⚠ Configuration serveur requise</div>
-              <p className="text-xs">{info.error || "Il faut définir NEXTAUTH_SECRET (ou LTDB_CALENDAR_TOKEN) dans les variables d'environnement Vercel."}</p>
+              <p className="text-xs">{info.error || "Il faut définir NEXTAUTH_SECRET (ou APRIME_CALENDAR_TOKEN) dans les variables d'environnement Vercel."}</p>
             </div>
           )}
 

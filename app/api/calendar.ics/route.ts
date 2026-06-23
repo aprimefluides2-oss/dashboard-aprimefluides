@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
 
   if (!expected) {
     return new NextResponse(
-      'Calendar feed désactivé : NEXTAUTH_SECRET ou LTDB_CALENDAR_TOKEN manquant côté serveur.',
+      'Calendar feed désactivé : NEXTAUTH_SECRET ou APRIME_CALENDAR_TOKEN manquant côté serveur.',
       { status: 503 },
     )
   }
@@ -104,11 +104,11 @@ export async function GET(req: NextRequest) {
   const lines: string[] = []
   lines.push('BEGIN:VCALENDAR')
   lines.push('VERSION:2.0')
-  lines.push('PRODID:-//LTDB CRM//Interventions//FR')
+  lines.push('PRODID:-//Aprime fluides CRM//Interventions//FR')
   lines.push('CALSCALE:GREGORIAN')
   lines.push('METHOD:PUBLISH')
-  lines.push('X-WR-CALNAME:LTDB Interventions')
-  lines.push('X-WR-CALDESC:Planning des interventions LTDB — synchronisé depuis le CRM')
+  lines.push('X-WR-CALNAME:Aprime fluides Interventions')
+  lines.push('X-WR-CALDESC:Planning des interventions Aprime fluides — synchronisé depuis le CRM')
   lines.push('X-WR-TIMEZONE:Europe/Paris')
   lines.push('REFRESH-INTERVAL;VALUE=DURATION:PT15M')
   lines.push('X-PUBLISHED-TTL:PT15M')

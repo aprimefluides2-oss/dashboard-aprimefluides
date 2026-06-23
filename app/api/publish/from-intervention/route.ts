@@ -7,7 +7,7 @@ export const maxDuration = 60
 
 /**
  * Publication directe d'une intervention déjà saisie (avec rapport_json,
- * seo_json et photos_urls) vers le site Django LTDB.
+ * seo_json et photos_urls) vers le site Django Aprime fluides.
  *
  * Body : { interventionId: string }
  *
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
     clientCp = c?.code_postal || null
   }
 
-  // Technicien : Django LTDB exige le champ technicien_name NOT NULL en base
+  // Technicien : Django Aprime fluides exige le champ technicien_name NOT NULL en base
   // (commit Django a904cfb). Sans ça, le serializer accepte sans valeur et
   // create() écrit null → IntegrityError 500. Fallback vide si pas de tech.
   let technicienNom = ''
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
 
   // Récupère les photos depuis Storage en passant par le endpoint de transformation
   // Supabase pour les compresser. Sans ça, 2 photos iPhone ~1MB chacune dépassent
-  // la limite de taille de body côté Django LTDB (~2MB) → HTTP 500 silencieux
+  // la limite de taille de body côté Django Aprime fluides (~2MB) → HTTP 500 silencieux
   // sur l'endpoint /api/gallery/publish/. width=1280 + quality=70 ramène chaque
   // image à ~300-400KB.
   const toRenderUrl = (url: string) => {
@@ -263,7 +263,7 @@ export async function POST(req: NextRequest) {
       url: `${ltdbUrl}/api/gallery/publish/`,
     })
     const msg = data && typeof data === 'object' && 'error' in data ? String((data as { error: string }).error) : `HTTP ${djResp.status}`
-    return NextResponse.json({ error: `LTDB : ${msg}`, bodyPreview: txt.slice(0, 800), fieldSizes }, { status: djResp.status })
+    return NextResponse.json({ error: `Aprime fluides : ${msg}`, bodyPreview: txt.slice(0, 800), fieldSizes }, { status: djResp.status })
   }
 
   const slug = (data && typeof data === 'object' && 'slug' in data ? String((data as { slug: string }).slug) : '') || seo.slug || ''
