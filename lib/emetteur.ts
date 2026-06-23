@@ -12,7 +12,7 @@ export const APRIME_EMETTEUR: EmetteurData = {
   email: 'contact@aprime-fluides.fr',
   rcs: '',
   capital: '',
-  siret: '',
+  siret: '48477517600023',
 }
 
 export type FactureEmetteurDataLite = EmetteurData & { agence?: Agence | string }

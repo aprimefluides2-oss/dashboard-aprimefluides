@@ -185,7 +185,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Nom du fichier
-  const SIREN = process.env.APRIME_SIREN || ''
+  const SIREN = process.env.APRIME_SIREN || '484775176'
   const dateFin = (to || from || new Date().toISOString().slice(0, 10)).replace(/-/g, '')
   const filename = `${SIREN}FEC${dateFin}.txt`
 

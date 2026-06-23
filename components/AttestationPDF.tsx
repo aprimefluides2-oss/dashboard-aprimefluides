@@ -29,7 +29,7 @@ const FIRM = {
   tel: TEL_PRINCIPAL_FALLBACK,
   email: 'contact@aprime-fluides.fr',
   site: 'www.aprime-fluides.fr',
-  siret: process.env.NEXT_PUBLIC_APRIME_SIRET || '________________',
+  siret: process.env.NEXT_PUBLIC_APRIME_SIRET || '48477517600023',
   rcPro: process.env.NEXT_PUBLIC_APRIME_RC_PRO || '__________',
 }
 
