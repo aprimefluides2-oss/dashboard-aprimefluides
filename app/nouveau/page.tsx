@@ -734,7 +734,7 @@ export default function NouveauPage() {
       <nav className="bg-[#0e2a52] text-white px-4 py-3 sm:px-6 sm:py-4 shadow-lg sticky top-0 z-30">
         <div className="max-w-3xl mx-auto flex justify-between items-center gap-3">
           <div>
-            <div className="font-black text-base sm:text-lg leading-tight">Aprime fluides</div>
+            <span className="inline-flex items-center rounded-lg bg-white px-2 py-1 shadow-sm ring-1 ring-black/5 mb-1"><img src="/logo.png" alt="Aprime Fluides" className="h-7 w-auto" /></span>
             <div className="text-[11px] opacity-70">Nouvelle réalisation</div>
           </div>
           <div className="text-right flex items-center gap-2">

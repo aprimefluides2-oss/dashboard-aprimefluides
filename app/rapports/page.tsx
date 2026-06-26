@@ -151,7 +151,7 @@ export default function RapportsPage() {
       <header className="bg-[#0e2a52] text-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between gap-4">
           <div className="flex items-baseline gap-3">
-            <Link href="/" className="text-xl font-black tracking-tight hover:opacity-80">Aprime fluides</Link>
+            <Link href="/" className="inline-flex items-center rounded-lg bg-white px-2 py-1 shadow-sm ring-1 ring-black/5 hover:opacity-90"><img src="/logo.png" alt="Aprime Fluides" className="h-7 w-auto" /></Link>
             <span className="text-[10px] uppercase tracking-[0.25em] text-white/60 font-semibold">Rapports</span>
           </div>
           <Link href="/" className="text-xs text-white/70 hover:text-white">← Accueil</Link>
