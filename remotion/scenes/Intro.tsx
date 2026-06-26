@@ -47,9 +47,9 @@ export const Intro: React.FC<{ format: VideoFormat }> = ({ format }) => {
           lineHeight: 1.05,
         }}
       >
-        Les Techniciens
+        Aprime
         <br />
-        du Débouchage
+        Fluides
       </div>
     </AbsoluteFill>
   )
