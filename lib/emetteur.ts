@@ -7,7 +7,7 @@ import { TEL_PRINCIPAL_FALLBACK } from "@/lib/parametres"
  */
 export const APRIME_EMETTEUR: EmetteurData = {
   raisonSociale: 'Aprime fluides',
-  adresseLignes: ['1, rue Jean Carasso', '95000 Bezons'],
+  adresseLignes: ['1, rue Jean Carasso', '95870 Bezons'],
   telephone: TEL_PRINCIPAL_FALLBACK,
   email: 'contact@aprime-fluides.fr',
   rcs: '',

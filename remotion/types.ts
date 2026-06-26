@@ -38,7 +38,7 @@ export const BRAND = {
   white: "#FFFFFF",
   yellow: "#FFC83D",
   slogan: "Débouchage Var 24h/24 dès 99€ TTC",
-  tel: "07 83 63 68 35",
+  tel: "01 39 47 17 09",
   site: "www.aprime-fluide.fr",
   zone: "Tout le Var (83)",
   logoUrl: "https://www.aprime-fluide.fr/icons/icon-1024x1024.png",
