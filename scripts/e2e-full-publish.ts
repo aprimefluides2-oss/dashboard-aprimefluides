@@ -37,10 +37,10 @@ function apiHeaders(extra?: Record<string, string>): Record<string, string> {
 }
 
 const SEED_PHOTOS = [
-  "https://www.aprime-fluide.fr/media/gallery/before/IMG_6988.jpeg",
-  "https://www.aprime-fluide.fr/media/gallery/after/IMG_6990.jpeg",
-  "https://www.aprime-fluide.fr/media/gallery/before/IMG_7002.jpeg",
-  "https://www.aprime-fluide.fr/media/gallery/after/IMG_7001.jpeg",
+  "https://www.aprime-fluides.fr/media/gallery/before/argenteuil-wc-bouche-avant.webp",
+  "https://www.aprime-fluides.fr/media/gallery/after/argenteuil-wc-bouche-apres.webp",
+  "https://www.aprime-fluides.fr/media/gallery/before/alfortville-pompe-avant.webp",
+  "https://www.aprime-fluides.fr/media/gallery/after/alfortville-pompe-apres.webp",
 ]
 
 const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
