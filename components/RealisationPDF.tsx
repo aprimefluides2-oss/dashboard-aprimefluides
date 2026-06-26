@@ -2,6 +2,10 @@
 import React from "react"
 import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from "@react-pdf/renderer"
 import { TEL_PRINCIPAL_FALLBACK } from "@/lib/parametres"
+import { LOGO_DATA_URI } from "@/lib/logo-base64"
+
+/* Logo embarque en data URI : @react-pdf l'affiche sans requete reseau (fiable). */
+const LOGO_SRC = LOGO_DATA_URI
 
 /* ============ CHARTE FRANCE-ADPT-LIKE ============ */
 const C = {
@@ -40,12 +44,13 @@ const s = StyleSheet.create({
     backgroundColor: C.white,
     borderBottomWidth: 2, borderBottomColor: C.red,
   },
-  brandRow: { flexDirection: 'row', alignItems: 'baseline' },
+  brandRow: { flexDirection: 'row', alignItems: 'center' },
+  headerLogo: { width: 55, height: 26, objectFit: 'contain' },
   brandName: {
     color: C.navy, fontSize: 11, fontFamily: 'Helvetica-Bold',
     letterSpacing: 0.4, marginRight: 8,
   },
-  brandTag: { color: C.muted, fontSize: 8 },
+  brandTag: { color: C.muted, fontSize: 8, marginLeft: 8 },
   headerPhone: { color: C.text, fontSize: 8.5 },
 
   /* Content container */
@@ -406,7 +411,8 @@ const statutLabel = (statut: Statut): { text: string; bg: string; barColor: stri
 const Header = ({ phone }: { phone?: string }) => (
   <View style={s.headerTop} fixed>
     <View style={s.brandRow}>
-      <Text style={s.brandName}>Aprime fluides</Text>
+      {/* eslint-disable-next-line jsx-a11y/alt-text */}
+      <Image src={LOGO_SRC} style={s.headerLogo} />
       <Text style={s.brandTag}>Débouchage · Curage · Inspection caméra · Assainissement</Text>
     </View>
     <Text style={s.headerPhone}>Tél. {phone || TEL_PRINCIPAL_FALLBACK}</Text>
