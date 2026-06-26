@@ -1,6 +1,6 @@
 # Spec — Optimisation SEO/GEO du module Réalisations (côté Django)
 
-> Document de contrat entre le **back-office Next.js** (`app-realisations-ltdb`)
+> Document de contrat entre le **back-office Next.js** (`dashboard-aprimefluides`)
 > et le **site Django** (`www.aprime-fluides.fr`).
 > Rédigé pour l'agent qui implémente les 4 optimisations du module réalisations.
 
@@ -50,7 +50,7 @@ Champs `multipart/form-data` reçus par `/api/gallery/publish/` :
 | `before_image` | fichier | Photo 1 (JPEG, 1280px) |
 | `after_image` | fichier | Photo 2 (ou copie de la 1 si une seule) |
 | `extra_image_0..N` | fichier | Photos suivantes |
-| **`photos_nom_base`** | texte | **NOUVEAU** — base de nommage SEO : `<service>-<ville>` slugifié, ex. `debouchage-wc-toulon` |
+| **`photos_nom_base`** | texte | **NOUVEAU** — base de nommage SEO : `<service>-<ville>` slugifié, ex. `debouchage-wc-argenteuil` |
 | **`photos_json`** | JSON | **NOUVEAU** — métadonnées par photo, cf. §3.4 |
 
 ### Structure de `seo_json`
@@ -83,9 +83,9 @@ Construire un `@graph` à partir du payload :
   `caption` dérivés de `photos_json[].legende` + service + ville.
 - **Le service rendu** : `Service` — `name` = `service_type`,
   `areaServed` = la ville (`location` + `postal_code`),
-  `provider` = le `LocalBusiness` LTDB.
+  `provider` = le `LocalBusiness` Aprime fluides.
 - **Le lieu** : `Place` / `PostalAddress` (`addressLocality` = `location`,
-  `postalCode` = `postal_code`, `addressRegion` = « Var », `addressCountry` = « FR »).
+  `postalCode` = `postal_code`, `addressRegion` = « Île-de-France », `addressCountry` = « FR »).
   ⚠️ Le back-office **n'envoie pas** de coordonnées géo → Django doit géocoder la
   ville (ou réutiliser les coordonnées de ses pages villes existantes) pour
   ajouter `geo` (`GeoCoordinates`).
@@ -109,7 +109,7 @@ Construire un `@graph` à partir du payload :
 
 Servir `/llms.txt` (Markdown) à la racine du site. Sections recommandées :
 
-- Présentation LTDB (activité, zone : Var, téléphone).
+- Présentation Aprime fluides (activité, zone : Île-de-France, téléphone).
 - Liste des services, avec l'URL de chaque page service.
 - Liste des villes couvertes, avec l'URL de chaque page ville.
 - **Section « Réalisations »** : une entrée par réalisation publiée —
@@ -125,13 +125,13 @@ Le back-office envoie désormais :
 
 ```jsonc
 // photos_nom_base
-"debouchage-wc-toulon"
+"debouchage-wc-argenteuil"
 
 // photos_json — une entrée par fichier réellement envoyé
 [
-  { "field": "before_image",   "ordre": 0, "filename": "debouchage-wc-toulon-1.jpg", "legende": "avant" },
-  { "field": "after_image",    "ordre": 1, "filename": "debouchage-wc-toulon-2.jpg", "legende": "après" },
-  { "field": "extra_image_0",  "ordre": 2, "filename": "debouchage-wc-toulon-3.jpg", "legende": "Photo 3" }
+  { "field": "before_image",   "ordre": 0, "filename": "debouchage-wc-argenteuil-1.jpg", "legende": "avant" },
+  { "field": "after_image",    "ordre": 1, "filename": "debouchage-wc-argenteuil-2.jpg", "legende": "après" },
+  { "field": "extra_image_0",  "ordre": 2, "filename": "debouchage-wc-argenteuil-3.jpg", "legende": "Photo 3" }
 ]
 ```
 
@@ -141,7 +141,7 @@ Django doit, pour chaque fichier (matché par `field`) :
 2. **Convertir en WebP** (le back-office envoie du JPEG 1280px ; WebP ≈ -30 %).
 3. Écrire l'**`alt`** : `{service_type} à {location}` + la `legende` si elle est
    parlante (ignorer les légendes génériques type « Photo 3 »).
-   Ex. `alt="Débouchage WC à Toulon — avant"`.
+   Ex. `alt="Débouchage WC à Argenteuil — avant"`.
 4. Reporter ces valeurs dans les `ImageObject` du JSON-LD (§3.1).
 
 ## 4. Contraintes connues

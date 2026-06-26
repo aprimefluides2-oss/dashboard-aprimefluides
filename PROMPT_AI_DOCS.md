@@ -2,7 +2,7 @@
 
 ## Contexte projet (à lire avant de coder)
 
-**Repo :** `app-realisations-ltdb` — outil interne Next.js 14 App Router qui transforme la dictée vocale d'un technicien plombier (LTDB, Var) en :
+**Repo :** `dashboard-aprimefluides` — outil interne Next.js 14 App Router qui transforme la dictée vocale d'un technicien plombier (Aprime fluides, Île-de-France) en :
 1. Un rapport d'intervention (PDF + page de réalisation SEO publiée sur www.aprime-fluides.fr).
 2. Optionnellement un devis et une attestation envoyés par email (Resend).
 
@@ -14,7 +14,7 @@
 - Déploiement Vercel (`vercel.json` à la racine)
 
 **Pipeline existant (à NE PAS recréer) :**
-- `app/api/transcribe/route.ts` → Whisper (`whisper-1`, langue `fr`, vocabulaire métier débouchage/Var)
+- `app/api/transcribe/route.ts` → Whisper (`whisper-1`, langue `fr`, vocabulaire métier débouchage/Île-de-France)
 - `app/api/extract/route.ts` → Haiku 4.5 (`claude-haiku-4-5-20251001` hardcodé) — extrait JSON depuis dictée
 - `app/api/generate/route.ts` → **actuellement Sonnet 4.5** (`process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5"`) — génère rapport + page SEO en parallèle
 
@@ -33,10 +33,10 @@ Trois chantiers, pas de scope creep :
 - Pas de refactor des prompts métier (rapport, SEO, extract) au-delà du strict nécessaire pour la migration Haiku.
 - Pas de modification du flow Resend ni des PDF (`@react-pdf/renderer`).
 
-## Règles non-négociables (LTDB)
+## Règles non-négociables (Aprime fluides)
 
 1. **Modèle Claude :** UNIQUEMENT `claude-haiku-4-5-20251001`. Hardcodé dans `lib/anthropic.ts`. **Aucune autre `messages.create()` n'a le droit d'exister ailleurs dans le repo après cette mission** — tout passe par le wrapper.
-2. **Téléphone :** s'il apparaît dans du code, doit être `+33 7 83 63 68 35` (variable d'env `LTDB_PHONE` si possible). Ne pas inventer.
+2. **Téléphone :** s'il apparaît dans du code, doit être `+33 1 39 47 17 09` (variable d'env `APRIME_PHONE` si possible, sinon `Parametre.TEL_PRINCIPAL`). Ne pas inventer.
 3. **Prix :** ne jamais hardcoder. Les placeholders `{PRIX_MIN}` / `{PRIX_MAX}` dans les prompts existants restent en place.
 4. **Site web :** `https://www.aprime-fluides.fr` (constante `SITE` dans `generate/route.ts`).
 5. **TypeScript strict.** Pas de `any` non justifié. Pas de `// @ts-ignore`.
@@ -215,7 +215,7 @@ export async function getAiLogs(opts: {
 - Échec Redis (timeout, 503, env vars manquantes) → `console.warn('[ai-log] Upstash unavailable:', err.message)` et return silencieux. **Ne jamais throw — le wrapper `askHaiku` doit continuer à fonctionner même si le store est down.**
 
 **Note sur les performances :**
-- Quotas Upstash free tier : 10K commandes / jour, 256 MB. Pour LTDB (~50-200 calls IA / jour estimés), c'est largement suffisant.
+- Quotas Upstash free tier : 10K commandes / jour, 256 MB. Pour Aprime fluides (~50-200 calls IA / jour estimés), c'est largement suffisant.
 - Une commande par appel IA (zadd) + occasionnellement une purge (zremrangebyscore) + les query du dashboard.
 
 ---
@@ -286,7 +286,7 @@ npm run lint
 **Test fonctionnel local (`npm run dev`) :**
 
 1. Aller sur la page de dictée (chercher dans `app/*` la page qui consomme `/api/transcribe`).
-2. Enregistrer/uploader une dictée test (~30 sec, mentionnant : "débouchage WC à La Seyne, Mme Durand, intervention de 1h").
+2. Enregistrer/uploader une dictée test (~30 sec, mentionnant : "débouchage WC à Bezons, Mme Durand, intervention de 1h").
 3. Vérifier que la chaîne complète fonctionne : transcribe → extract → generate.
 4. Ouvrir `/admin/ai-cost` → vérifier que **3 entrées** apparaissent dans "Recent calls" : `extract`, `generate-rapport`, `generate-seo`.
 5. Vérifier que `model` = `claude-haiku-4-5-20251001` partout.

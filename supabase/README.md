@@ -1,8 +1,8 @@
-# Setup Supabase — LTDB CRM
+# Setup Supabase — Aprime fluides CRM
 
 ## 1. Créer le projet
 1. https://supabase.com → Sign up.
-2. `New project` → `ltdb-crm` → région **Europe (West) Paris** → mot de passe DB (note-le).
+2. `New project` → `aprimefluides-crm` → région **Europe (West) Paris** → mot de passe DB (note-le).
 3. Attendre ~2 min que le projet soit provisionné.
 
 ## 2. Exécuter le schéma

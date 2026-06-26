@@ -1,4 +1,4 @@
-# Maquette — page de réalisation LTDB
+# Maquette — page de réalisation Aprime fluides
 
 Maquette du design des pages publiées sur `www.aprime-fluides.fr/nos-realisations/<slug>`.
 

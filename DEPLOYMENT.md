@@ -1,10 +1,10 @@
-# Deployment Guide - app-realisations
+# Deployment Guide - dashboard-aprimefluides
 
-This guide explains how to deploy the app-realisations application to Vercel.
+This guide explains how to deploy the dashboard-aprimefluides application to Vercel.
 
 ## Prerequisites
 
-1. GitHub account and repo created for app-realisations
+1. GitHub account and repo created for dashboard-aprimefluides
 2. Vercel account (free tier is sufficient)
 3. API keys for OpenAI and Anthropic
 4. CLIENT_PUBLISH_TOKEN from Django backend
@@ -12,10 +12,10 @@ This guide explains how to deploy the app-realisations application to Vercel.
 ## Step 1: Push to GitHub
 
 ```bash
-cd /home/ubuntu/app-realisations
+cd /home/ubuntu/dashboard-aprimefluides
 
 # If remote not set up yet:
-git remote add origin https://github.com/YOUR_USERNAME/app-realisations.git
+git remote add origin https://github.com/YOUR_USERNAME/dashboard-aprimefluides.git
 git branch -M main
 git push -u origin main
 ```
@@ -26,12 +26,12 @@ Option A - Via Vercel Dashboard:
 1. Go to https://vercel.com/dashboard
 2. Click "Add New..." → "Project"
 3. Select "Import Git Repository"
-4. Choose the app-realisations repo from GitHub
+4. Choose the dashboard-aprimefluides repo from GitHub
 5. Click "Import"
 
 Option B - Via CLI:
 ```bash
-cd /home/ubuntu/app-realisations
+cd /home/ubuntu/dashboard-aprimefluides
 npx vercel --prod
 ```
 
@@ -43,7 +43,7 @@ This will prompt you to:
 
 ### Via Vercel Dashboard
 
-1. Go to your project settings: https://vercel.com/dashboard/projects/app-realisations
+1. Go to your project settings: https://vercel.com/dashboard/projects/dashboard-aprimefluides
 2. Navigate to "Settings" → "Environment Variables"
 3. Add the following variables for **Production**:
 
@@ -59,12 +59,12 @@ CLIENT_API_URL=https://www.aprime-fluides.fr
 CLIENT_PUBLISH_TOKEN=ruiQvAxSn5VL075j9WfTEL7ftvykTXkEgqBvbfFQfsw
 ```
 
-Replace `[PROJECT_NAME]` with your actual Vercel project name (e.g., app-realisations-ltdb).
+Replace `[PROJECT_NAME]` with your actual Vercel project name (e.g., dashboard-aprimefluides).
 
 ### Via CLI
 
 ```bash
-cd /home/ubuntu/app-realisations
+cd /home/ubuntu/dashboard-aprimefluides
 
 npx vercel env add NEXTAUTH_SECRET production
 # Paste: lVyP34V694lLsEwqxIPvrjQntbuPX22EyxZZFgzVVh0=

@@ -43,8 +43,8 @@
 ## Deployment Steps
 
 ### Step 1: GitHub Push
-- [ ] Create private GitHub repo: `app-realisations`
-- [ ] Add remote: `git remote add origin https://github.com/USER/app-realisations.git`
+- [ ] Create private GitHub repo: `dashboard-aprimefluides`
+- [ ] Add remote: `git remote add origin https://github.com/USER/dashboard-aprimefluides.git`
 - [ ] Push to main: `git push -u origin main`
 - [ ] Verify repo is private and accessible
 
@@ -52,7 +52,7 @@
 - [ ] Go to https://vercel.com/dashboard
 - [ ] Click "Add New" → "Project"
 - [ ] Select "Import Git Repository"
-- [ ] Choose `app-realisations` from GitHub
+- [ ] Choose `dashboard-aprimefluides` from GitHub
 - [ ] Click "Import"
 - [ ] Wait for auto-detection (should show Next.js)
 
@@ -81,7 +81,7 @@ NextAuth:
 
 Option A - Manual redeploy:
 - [ ] Go to Vercel Dashboard
-- [ ] Select app-realisations project
+- [ ] Select dashboard-aprimefluides project
 - [ ] Click "Deployments" tab
 - [ ] Click "Redeploy" on latest deployment
 - [ ] Wait for "Ready" status
@@ -94,7 +94,7 @@ Option B - Push commit:
 ### Step 5: Deployment Verification
 
 - [ ] Check Vercel Dashboard shows "Ready" ✓
-- [ ] Get deployment URL: `https://app-realisations-[random].vercel.app`
+- [ ] Get deployment URL: `https://dashboard-aprimefluides-[random].vercel.app`
 
 ## Post-Deployment Testing
 
@@ -118,7 +118,7 @@ Option B - Push commit:
 - [ ] Fill form:
   - Type: `Débouchage`
   - Date: today
-  - Ville: `Toulon`
+  - Ville: `Argenteuil`
   - Transcription (text): `Débouchage tuyauterie cuisine` (or use voice)
 - [ ] Click "Générer rapport + SEO"
 
@@ -138,13 +138,13 @@ Option B - Push commit:
   - Page 1: Report content
   - Page 2: Images/metadata
 
-### Test 6: LTDB Publishing
+### Test 6: Aprime fluides Publishing
 - [ ] Click "Publier sur le site"
 - [ ] Should show "Publishing..." state
-- [ ] If LTDB is accessible:
+- [ ] If Aprime fluides is accessible:
   - Should return success with new URL
   - URL should point to www.aprime-fluides.fr
-- [ ] If LTDB not accessible:
+- [ ] If Aprime fluides not accessible:
   - Should show appropriate error message
   - Check network tab in DevTools for 400/401/500 errors
 
@@ -176,14 +176,14 @@ Option B - Push commit:
 - [ ] Check Vercel runtime logs for API errors
 - [ ] For Whisper: verify OPENAI_API_KEY is set
 - [ ] For Claude: verify ANTHROPIC_API_KEY is set
-- [ ] For LTDB publish: verify CLIENT_PUBLISH_TOKEN matches Django config
+- [ ] For Aprime fluides publish: verify CLIENT_PUBLISH_TOKEN matches Django config
 
-### LTDB Integration Issues
+### Aprime fluides Integration Issues
 - [ ] Verify CLIENT_API_URL is accessible: curl https://www.aprime-fluides.fr
 - [ ] Check Django backend is running
 - [ ] Verify CLIENT_PUBLISH_TOKEN matches exactly (check for spaces/typos)
 - [ ] Check Django /api/gallery/publish/ endpoint is implemented
-- [ ] Monitor server logs on LTDB backend for POST requests
+- [ ] Monitor server logs on Aprime fluides backend for POST requests
 
 ## Success Criteria
 
@@ -195,7 +195,7 @@ All of these should be true:
 - [ ] Can submit form
 - [ ] Claude generates report without errors
 - [ ] Can download PDF
-- [ ] Can publish to LTDB (or see appropriate error if backend unavailable)
+- [ ] Can publish to Aprime fluides (or see appropriate error if backend unavailable)
 
 ## Post-Success
 

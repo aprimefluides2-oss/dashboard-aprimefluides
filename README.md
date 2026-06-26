@@ -24,4 +24,4 @@ npm run dev -- -p 3333
 
 ## Déploiement
 
-Dépôt cible : [app-aprimefluides](https://github.com/3snv83136-coder/app-aprimefluides.git) — Vercel recommandé.
+Dépôt cible : [dashboard-aprimefluides](https://github.com/aprimefluides2-oss/dashboard-aprimefluides.git) — Vercel recommandé.
