@@ -2,6 +2,7 @@
 import React from "react"
 import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from "@react-pdf/renderer"
 import { TEL_PRINCIPAL_FALLBACK } from "@/lib/parametres"
+import { APRIME_EMETTEUR } from "@/lib/emetteur"
 import { LOGO_DATA_URI } from "@/lib/logo-base64"
 
 /* Logo embarque en data URI : @react-pdf l'affiche sans requete reseau (fiable). */
@@ -262,6 +263,8 @@ const s = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between',
     backgroundColor: C.white,
   },
+  footerCol: { flexShrink: 1, paddingRight: 12 },
+  footerStrong: { color: C.navy, fontSize: 7.5, fontFamily: 'Helvetica-Bold', lineHeight: 1.4 },
   footerL: { color: C.muted, fontSize: 7.5, lineHeight: 1.4 },
   footerR: { color: C.muted, fontSize: 7.5, textAlign: 'right' },
 
@@ -419,19 +422,32 @@ const Header = ({ phone }: { phone?: string }) => (
   </View>
 )
 
-const Footer = () => (
-  <View style={s.footer} fixed>
-    <View>
-      <Text style={s.footerL}>
-        Aprime fluides · Intervention et assainissement en Île-de-France
-      </Text>
-      <Text style={s.footerL}>
-        Tél. {TEL_PRINCIPAL_FALLBACK} · contact@aprime-fluides.fr · www.aprime-fluides.fr
-      </Text>
+const Footer = ({ phone }: { phone?: string }) => {
+  const tel = (phone || APRIME_EMETTEUR.telephone || TEL_PRINCIPAL_FALLBACK).trim()
+  const contact = [
+    tel && `Tél. ${tel}`,
+    APRIME_EMETTEUR.email,
+    'www.aprime-fluides.fr',
+  ].filter(Boolean).join(' · ')
+  const legal = [
+    APRIME_EMETTEUR.siret && `SIRET ${APRIME_EMETTEUR.siret}`,
+    APRIME_EMETTEUR.rcs && `RCS ${APRIME_EMETTEUR.rcs}`,
+    APRIME_EMETTEUR.capital && `Capital ${APRIME_EMETTEUR.capital}`,
+  ].filter(Boolean).join(' · ')
+  return (
+    <View style={s.footer} fixed>
+      <View style={s.footerCol}>
+        <Text style={s.footerStrong}>
+          Aprime fluides — Intervention et assainissement en Île-de-France
+        </Text>
+        <Text style={s.footerL}>Siège : {APRIME_EMETTEUR.adresseLignes.join(', ')}</Text>
+        <Text style={s.footerL}>{contact}</Text>
+        {legal ? <Text style={s.footerL}>{legal}</Text> : null}
+      </View>
+      <Text style={s.footerR} render={({ pageNumber, totalPages }) => `Page ${pageNumber} / ${totalPages}`} />
     </View>
-    <Text style={s.footerR} render={({ pageNumber, totalPages }) => `Page ${pageNumber} / ${totalPages}`} />
-  </View>
-)
+  )
+}
 
 const SectionBand = ({
   num, title, variant,
@@ -728,7 +744,7 @@ export function RealisationDocument({
           )}
         </View>
 
-        <Footer />
+        <Footer phone={phone} />
       </Page>
 
       {/* ============ DEVIS (page dédiée si présent) ============ */}
@@ -842,7 +858,7 @@ export function RealisationDocument({
             </View>
           </View>
 
-          <Footer />
+          <Footer phone={phone} />
         </Page>
       )}
     </Document>
