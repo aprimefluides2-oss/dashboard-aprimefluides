@@ -45,7 +45,7 @@ const s = StyleSheet.create({
     borderBottomWidth: 2, borderBottomColor: C.red,
   },
   brandRow: { flexDirection: 'row', alignItems: 'center' },
-  headerLogo: { width: 55, height: 26, objectFit: 'contain' },
+  headerLogo: { width: 92, height: 30, objectFit: 'contain' },
   brandName: {
     color: C.navy, fontSize: 11, fontFamily: 'Helvetica-Bold',
     letterSpacing: 0.4, marginRight: 8,
