@@ -1,6 +1,6 @@
 # Maquette — page de réalisation LTDB
 
-Maquette du design des pages publiées sur `www.aprime-fluide.fr/nos-realisations/<slug>`.
+Maquette du design des pages publiées sur `www.aprime-fluides.fr/nos-realisations/<slug>`.
 
 ## Fichier
 

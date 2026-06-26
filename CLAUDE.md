@@ -4,9 +4,9 @@
 
 - **Nom commercial** : Aprime fluides
 - **Acronyme** : LTDB
-- **Site** : www.aprime-fluide.fr
+- **Site** : www.aprime-fluides.fr
 - **Métier** : Débouchage de canalisations, assainissement, plomberie d'urgence
-- **Zone** : Var (83), France
+- **Zone** : Île-de-France (siège : Bezons, 95)
 - **Propriétaire** : MONDOR
 
 ## Règles ABSOLUES (jamais violer)

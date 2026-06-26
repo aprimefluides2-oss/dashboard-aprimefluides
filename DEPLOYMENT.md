@@ -55,7 +55,7 @@ AUTH_USER_2=technicien2:$2b$10$2YvOz/Dzt2kmzQub7sJM1.Zd0CnL6r58TMzcEcuunak0haLNn
 AUTH_USER_3=technicien3:$2b$10$OOBA3VaDlolM.GF8RxrZuu/tc/363cYESvHAhnzKESgQLEJCK1EmO
 OPENAI_API_KEY=sk-[YOUR_OPENAI_KEY]
 ANTHROPIC_API_KEY=sk-ant-[YOUR_ANTHROPIC_KEY]
-CLIENT_API_URL=https://www.aprime-fluide.fr
+CLIENT_API_URL=https://www.aprime-fluides.fr
 CLIENT_PUBLISH_TOKEN=ruiQvAxSn5VL075j9WfTEL7ftvykTXkEgqBvbfFQfsw
 ```
 
@@ -88,7 +88,7 @@ npx vercel env add ANTHROPIC_API_KEY production
 # Paste: sk-ant-[YOUR_ANTHROPIC_KEY]
 
 npx vercel env add CLIENT_API_URL production
-# Paste: https://www.aprime-fluide.fr
+# Paste: https://www.aprime-fluides.fr
 
 npx vercel env add CLIENT_PUBLISH_TOKEN production
 # Paste: ruiQvAxSn5VL075j9WfTEL7ftvykTXkEgqBvbfFQfsw

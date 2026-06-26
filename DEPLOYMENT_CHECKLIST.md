@@ -71,7 +71,7 @@ Auth users:
 - [ ] AUTH_USER_3 = `technicien3:$2b$10$OOBA3VaDlolM.GF8RxrZuu/tc/363cYESvHAhnzKESgQLEJCK1EmO`
 
 API integration:
-- [ ] CLIENT_API_URL = `https://www.aprime-fluide.fr`
+- [ ] CLIENT_API_URL = `https://www.aprime-fluides.fr`
 - [ ] CLIENT_PUBLISH_TOKEN = `ruiQvAxSn5VL075j9WfTEL7ftvykTXkEgqBvbfFQfsw`
 
 NextAuth:
@@ -143,7 +143,7 @@ Option B - Push commit:
 - [ ] Should show "Publishing..." state
 - [ ] If LTDB is accessible:
   - Should return success with new URL
-  - URL should point to www.aprime-fluide.fr
+  - URL should point to www.aprime-fluides.fr
 - [ ] If LTDB not accessible:
   - Should show appropriate error message
   - Check network tab in DevTools for 400/401/500 errors
@@ -179,7 +179,7 @@ Option B - Push commit:
 - [ ] For LTDB publish: verify CLIENT_PUBLISH_TOKEN matches Django config
 
 ### LTDB Integration Issues
-- [ ] Verify CLIENT_API_URL is accessible: curl https://www.aprime-fluide.fr
+- [ ] Verify CLIENT_API_URL is accessible: curl https://www.aprime-fluides.fr
 - [ ] Check Django backend is running
 - [ ] Verify CLIENT_PUBLISH_TOKEN matches exactly (check for spaces/typos)
 - [ ] Check Django /api/gallery/publish/ endpoint is implemented

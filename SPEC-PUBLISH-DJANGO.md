@@ -1,7 +1,7 @@
 # Spec — Optimisation SEO/GEO du module Réalisations (côté Django)
 
 > Document de contrat entre le **back-office Next.js** (`app-realisations-ltdb`)
-> et le **site Django** (`www.aprime-fluide.fr`).
+> et le **site Django** (`www.aprime-fluides.fr`).
 > Rédigé pour l'agent qui implémente les 4 optimisations du module réalisations.
 
 ## 1. Contexte

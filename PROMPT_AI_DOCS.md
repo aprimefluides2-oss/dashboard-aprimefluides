@@ -3,7 +3,7 @@
 ## Contexte projet (à lire avant de coder)
 
 **Repo :** `app-realisations-ltdb` — outil interne Next.js 14 App Router qui transforme la dictée vocale d'un technicien plombier (LTDB, Var) en :
-1. Un rapport d'intervention (PDF + page de réalisation SEO publiée sur www.aprime-fluide.fr).
+1. Un rapport d'intervention (PDF + page de réalisation SEO publiée sur www.aprime-fluides.fr).
 2. Optionnellement un devis et une attestation envoyés par email (Resend).
 
 **Stack réel :**
@@ -38,7 +38,7 @@ Trois chantiers, pas de scope creep :
 1. **Modèle Claude :** UNIQUEMENT `claude-haiku-4-5-20251001`. Hardcodé dans `lib/anthropic.ts`. **Aucune autre `messages.create()` n'a le droit d'exister ailleurs dans le repo après cette mission** — tout passe par le wrapper.
 2. **Téléphone :** s'il apparaît dans du code, doit être `+33 7 83 63 68 35` (variable d'env `LTDB_PHONE` si possible). Ne pas inventer.
 3. **Prix :** ne jamais hardcoder. Les placeholders `{PRIX_MIN}` / `{PRIX_MAX}` dans les prompts existants restent en place.
-4. **Site web :** `https://www.aprime-fluide.fr` (constante `SITE` dans `generate/route.ts`).
+4. **Site web :** `https://www.aprime-fluides.fr` (constante `SITE` dans `generate/route.ts`).
 5. **TypeScript strict.** Pas de `any` non justifié. Pas de `// @ts-ignore`.
 6. **Pas de Tailwind CSS custom inline.** Composants serveur par défaut (App Router).
 
