@@ -6,7 +6,7 @@ import { getSupabaseOrNull } from "@/lib/supabase"
  * Cette constante sert uniquement de repli si la base est injoignable ou
  * pour les contextes synchrones (composants client / PDF).
  */
-export const TEL_PRINCIPAL_FALLBACK = ''
+export const TEL_PRINCIPAL_FALLBACK = '01 39 47 17 09'
 
 /**
  * Lit un paramètre depuis la table `parametres`. Best-effort : en cas d'erreur
