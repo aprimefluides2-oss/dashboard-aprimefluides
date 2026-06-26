@@ -45,6 +45,6 @@ export const BRAND = {
   zone: "Toute l'Île-de-France",
   logoUrl: staticFile("logo-1024.png"),
   logoSmallUrl: staticFile("logo-512.png"),
-  camionUrl: staticFile("camion.webp"),
+  camionUrl: staticFile("hero.webp"),
   musicUrl: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3",
 } as const
