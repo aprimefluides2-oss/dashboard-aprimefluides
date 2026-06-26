@@ -1,3 +1,5 @@
+import { staticFile } from "remotion"
+
 export type VideoFormat = "vertical" | "horizontal" | "square"
 
 export type PhotoItem = {
@@ -37,13 +39,12 @@ export const BRAND = {
   red: "#D63A3A",
   white: "#FFFFFF",
   yellow: "#FFC83D",
-  slogan: "Débouchage Var 24h/24 dès 99€ TTC",
+  slogan: "Débouchage Île-de-France 24h/24 dès 99€ TTC",
   tel: "01 39 47 17 09",
-  site: "www.aprime-fluide.fr",
-  zone: "Tout le Var (83)",
-  logoUrl: "https://www.aprime-fluide.fr/icons/icon-1024x1024.png",
-  logoSmallUrl: "https://www.aprime-fluide.fr/icons/icon-512x512.png",
-  camionUrl:
-    "https://www.aprime-fluide.fr/images/le-plombier-deboucheur-des-techniciens-du-debouchage.webp",
+  site: "www.aprime-fluides.fr",
+  zone: "Toute l'Île-de-France",
+  logoUrl: staticFile("logo-1024.png"),
+  logoSmallUrl: staticFile("logo-512.png"),
+  camionUrl: staticFile("camion.webp"),
   musicUrl: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3",
 } as const

@@ -38,7 +38,7 @@ function Doc() {
       // Fixed header (flow, pas absolute)
       createElement(View, { style: s.header, fixed: true } as any,
         createElement(Text, {}, 'LTDB header'),
-        createElement(Text, {}, 'Tél. 07 83 63 68 35'),
+        createElement(Text, {}, 'Tél. 01 39 47 17 09'),
       ),
       // Content
       createElement(View, { style: s.content },

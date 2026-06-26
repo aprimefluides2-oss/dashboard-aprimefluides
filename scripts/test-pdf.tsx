@@ -64,7 +64,7 @@ const devisProps: DevisPDFProps = {
   emetteur: {
     raisonSociale: "Aprime fluides",
     adresseLignes: ["700 Avenue du 15ème Corps", "83000 Toulon"],
-    telephone: "07 83 63 68 35",
+    telephone: "01 39 47 17 09",
     email: "contact@www.aprime-fluide.fr",
   },
   client: {
@@ -106,14 +106,14 @@ const factureProps: FacturePDFProps = {
   emetteur: {
     raisonSociale: 'Aprime fluides',
     adresseLignes: ['700 Avenue du 15ème Corps', '83000 Toulon'],
-    telephone: '07 83 63 68 35',
+    telephone: '01 39 47 17 09',
     email: 'contact@www.aprime-fluide.fr',
   },
   client: {
     nom: 'SCI Exemple',
     adresseLignes: ['12 rue des Lilas', '83100 Toulon'],
   },
-  phone: '07 83 63 68 35',
+  phone: '01 39 47 17 09',
   facture: {
     numero: 'FA-20260429-2008',
     date_facture: '2026-04-29',
