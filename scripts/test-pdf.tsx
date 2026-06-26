@@ -14,7 +14,7 @@ const rapportProps: PDFProps = {
   typeIntervention: "Débouchage canalisation",
   technicienNom: "Julien Moreau",
   phone: "06 42 18 55 03",
-  reference: "LTDB-20260420",
+  reference: "APR-20260420",
   photos: [],
   rapport: {
     diagnostic: "Canalisation d'évacuation EU obstruée sur environ 4,5 mètres linéaires. Présence massive de graisses figées.",
@@ -63,9 +63,9 @@ const rapportProps: PDFProps = {
 const devisProps: DevisPDFProps = {
   emetteur: {
     raisonSociale: "Aprime fluides",
-    adresseLignes: ["700 Avenue du 15ème Corps", "83000 Toulon"],
+    adresseLignes: ["1, rue Jean Carasso", "95870 Bezons"],
     telephone: "01 39 47 17 09",
-    email: "contact@www.aprime-fluide.fr",
+    email: "contact@aprime-fluides.fr",
   },
   client: {
     nom: "M. EDREI",
@@ -92,7 +92,7 @@ const devisProps: DevisPDFProps = {
       delai_execution: "À convenir avec le client — sous 2 à 4 semaines après validation",
       duree_chantier: "3 à 5 jours ouvrés selon accès et météo",
       garanties: "Garantie décennale sur ouvrages enterrés · Garantie de parfait achèvement 1 an",
-      assurance: "RC Pro et décennale LTDB en cours de validité",
+      assurance: "RC Pro et décennale Aprime fluides en cours de validité",
       particulieres: "Accès engin et zone de stockage à assurer par le client",
     },
     modalites: {
@@ -105,13 +105,13 @@ const devisProps: DevisPDFProps = {
 const factureProps: FacturePDFProps = {
   emetteur: {
     raisonSociale: 'Aprime fluides',
-    adresseLignes: ['700 Avenue du 15ème Corps', '83000 Toulon'],
+    adresseLignes: ['1, rue Jean Carasso', '95870 Bezons'],
     telephone: '01 39 47 17 09',
-    email: 'contact@www.aprime-fluide.fr',
+    email: 'contact@aprime-fluides.fr',
   },
   client: {
     nom: 'SCI Exemple',
-    adresseLignes: ['12 rue des Lilas', '83100 Toulon'],
+    adresseLignes: ['12 rue des Lilas', '95100 Argenteuil'],
   },
   phone: '01 39 47 17 09',
   facture: {
@@ -119,7 +119,7 @@ const factureProps: FacturePDFProps = {
     date_facture: '2026-04-29',
     echeance: 'Réglée',
     objet: 'Débouchage et curage colonne EU — immeuble collectif',
-    reference_dossier: 'Rapport LTDB-20260420',
+    reference_dossier: 'Rapport APR-20260420',
     tva_taux: 10,
     mode_reglement: 'Réglé par virement le 28/04/2026.',
     observations: 'Écoulement rétabli, contrôle caméra OK sur 12 m.',

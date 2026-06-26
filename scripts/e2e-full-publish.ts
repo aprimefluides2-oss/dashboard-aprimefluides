@@ -111,7 +111,7 @@ function makeTestPdf(title: string): Buffer {
 async function uploadPdf(interventionId: string, kind: "rapport" | "facture") {
   const fd = new FormData()
   fd.append("kind", kind)
-  fd.append("pdf", new Blob([makeTestPdf(`LTDB E2E ${kind}`)], { type: "application/pdf" }), `${kind}.pdf`)
+  fd.append("pdf", new Blob([makeTestPdf(`Aprime E2E ${kind}`)], { type: "application/pdf" }), `${kind}.pdf`)
   const res = await fetch(`${BASE}/api/interventions/${interventionId}/store-pdf`, {
     method: "POST",
     headers: apiHeaders(),
@@ -144,8 +144,8 @@ async function main() {
         },
         type_intervention: "Débouchage canalisation",
         adresse_chantier: "15 avenue du Test",
-        ville: "La Seyne-sur-Mer",
-        code_postal: "83500",
+        ville: "Bezons",
+        code_postal: "95870",
         date_prevue: new Date().toISOString().slice(0, 10),
         prix_prevu: 280,
         notes_internes: `Intervention test automatisée ${ref}`,
@@ -167,7 +167,7 @@ async function main() {
       .update({ photos_urls: SEED_PHOTOS })
       .eq("id", interventionId)
     if (error) ko("Photos seed", error.message)
-    else ok("photos_urls", `${SEED_PHOTOS.length} images LTDB`)
+    else ok("photos_urls", `${SEED_PHOTOS.length} images Aprime`)
   }
 
   step("3 — Terrain : démarrer + fin chrono")
@@ -200,12 +200,12 @@ async function main() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           transcription:
-            "Débouchage colonne eaux usées immeuble à La Seyne. Bouchon graisses au regard RDC. " +
+            "Débouchage colonne eaux usées immeuble à Bezons. Bouchon graisses au regard RDC. " +
             "Furet électrique puis hydrocurage 150 bars. Écoulement rétabli. " +
             "Canalisation fonte en état correct après nettoyage. Forfait intervention 280 euros HT.",
           type_intervention: "Débouchage canalisation",
-          ville: "La Seyne-sur-Mer",
-          code_postal: "83500",
+          ville: "Bezons",
+          code_postal: "95870",
         }),
       },
       180_000,

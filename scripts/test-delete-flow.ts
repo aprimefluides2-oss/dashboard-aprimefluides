@@ -39,7 +39,7 @@ async function main() {
   const { data: interv } = await sb.from("interventions")
     .insert({
       type_intervention: "Débouchage canalisation",
-      ville: "Toulon", code_postal: "83000",
+      ville: "Argenteuil", code_postal: "95100",
       client_id: clientId, statut: "terminee",
       rapport_json: { objet: "Rapport test suppression", diagnostic: "test" },
     })

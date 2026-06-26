@@ -63,7 +63,7 @@ async function main() {
   const inputProps = {
     format: "horizontal" as const,
     photos: [{ url: "https://picsum.photos/1280/720" }],
-    ville: "Toulon",
+    ville: "Argenteuil",
     typeIntervention: "Débouchage",
     enableMusic: false,
   }

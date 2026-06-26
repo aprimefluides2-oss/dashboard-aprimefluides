@@ -37,7 +37,7 @@ function Doc() {
     createElement(Page, { size: 'A4', style: s.page },
       // Fixed header (flow, pas absolute)
       createElement(View, { style: s.header, fixed: true } as any,
-        createElement(Text, {}, 'LTDB header'),
+        createElement(Text, {}, 'Aprime header'),
         createElement(Text, {}, 'Tél. 01 39 47 17 09'),
       ),
       // Content
@@ -53,7 +53,7 @@ function Doc() {
       ),
       // Fixed footer (flow, pas absolute)
       createElement(View, { style: s.footer, fixed: true } as any,
-        createElement(Text, { style: s.footerL }, 'Footer LTDB'),
+        createElement(Text, { style: s.footerL }, 'Footer Aprime'),
         createElement(Text, {
           style: s.footerL,
           render: (({ pageNumber, totalPages }: any) => `${pageNumber}/${totalPages}`) as any,

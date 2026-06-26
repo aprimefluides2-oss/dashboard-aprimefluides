@@ -78,7 +78,7 @@ function makeTestPdf(title: string): Buffer {
 }
 
 async function uploadPdf(interventionId: string, kind: "rapport" | "facture") {
-  const pdf = makeTestPdf(`LTDB — PDF ${kind} test E2E`)
+  const pdf = makeTestPdf(`Aprime — PDF ${kind} test E2E`)
   const fd = new FormData()
   fd.append("kind", kind)
   fd.append("pdf", new Blob([pdf], { type: "application/pdf" }), `${kind}-test.pdf`)
@@ -119,8 +119,8 @@ async function main() {
         client: { nom: "Client Test E2E", email: TEST_EMAIL, telephone: "0600000000" },
         type_intervention: "Débouchage canalisation",
         adresse_chantier: "12 rue du Test",
-        ville: "Toulon",
-        code_postal: "83000",
+        ville: "Argenteuil",
+        code_postal: "95100",
         date_prevue: new Date().toISOString().slice(0, 10),
         prix_prevu: 250,
       }),
@@ -193,8 +193,8 @@ async function main() {
           "J'ai utilisé le furet électrique puis un hydrocurage haute pression pour nettoyer toute la colonne. " +
           "L'écoulement est maintenant parfait. Je recommande un entretien annuel. Forfait débouchage 250 euros.",
         type_intervention: "Débouchage canalisation",
-        ville: "Toulon",
-        code_postal: "83000",
+        ville: "Argenteuil",
+        code_postal: "95100",
       }),
     })
     if (status === 200 && body?.rapport) {

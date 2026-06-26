@@ -10,7 +10,7 @@ const s = StyleSheet.create({
 const Doc = () =>
   createElement(Document, {},
     createElement(Page, { size: 'A4', style: s.page },
-      createElement(Text, { style: s.title }, 'HELLO LTDB'),
+      createElement(Text, { style: s.title }, 'HELLO Aprime'),
       createElement(Text, { style: s.para }, 'Ceci est un test minimal de rendu PDF avec @react-pdf/renderer.'),
       createElement(View, { style: { marginTop: 20, padding: 12, backgroundColor: '#1e3a6f' } },
         createElement(Text, { style: { color: 'white', fontSize: 14, fontFamily: 'Helvetica-Bold' } }, 'Bloc bleu marine avec texte blanc')

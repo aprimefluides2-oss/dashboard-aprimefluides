@@ -65,7 +65,7 @@ function Doc() {
     return createElement(Document, {},
       createElement(Page, pageProps,
         createElement(View, { style: s.headerTop, fixed: true } as any,
-          createElement(Text, {}, 'LTDB header')
+          createElement(Text, {}, 'Aprime header')
         ),
         createElement(View, { style: s.headerRule, fixed: true } as any),
         ...children,

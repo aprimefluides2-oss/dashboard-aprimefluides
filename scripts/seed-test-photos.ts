@@ -48,7 +48,7 @@ async function main() {
     process.exit(1)
   }
 
-  console.log(`\n✅ Photos seedées (${SEED_PHOTOS.length} URLs publiques LTDB)`)
+  console.log(`\n✅ Photos seedées (${SEED_PHOTOS.length} URLs publiques Aprime)`)
   console.log(`\n🎬 Va tester ici :`)
   console.log(`   http://localhost:3000/intervention/${latest.id}`)
   console.log(`\n   Tu devrais voir la card "Vidéo réseaux sociaux" avec un bouton "Générer la vidéo".`)

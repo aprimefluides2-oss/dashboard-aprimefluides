@@ -22,9 +22,9 @@ async function main() {
   // Check if the buttons are visible
   const btn1 = await page.locator('a[href="/nouveau"]').isVisible().catch(() => false)
   const btn2 = await page.locator('a[href="/devis"]').isVisible().catch(() => false)
-  const ltdbText = await page.locator('h1:has-text("LTDB")').isVisible().catch(() => false)
+  const ltdbText = await page.locator('h1:has-text("Aprime")').isVisible().catch(() => false)
 
-  console.log('LTDB h1 visible:', ltdbText)
+  console.log('Aprime h1 visible:', ltdbText)
   console.log('Rapport button visible:', btn1)
   console.log('Devis button visible:', btn2)
 
