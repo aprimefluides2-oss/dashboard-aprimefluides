@@ -168,8 +168,12 @@ export default function Home() {
     <main className="relative flex flex-col h-dvh max-h-dvh overflow-hidden bg-[#0a1f3d] text-slate-100">
       <header className="shrink-0 bg-[#0e2a52] text-white border-b border-white/10">
         <div className="px-3 sm:px-5 py-3 sm:py-4 flex items-center justify-between gap-4">
-          <div className={`flex items-baseline gap-3 ${skipAnimation ? '' : 'ltdb-drop'}`}>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-none">Aprime fluides</h1>
+          <div className={`flex items-center gap-3 sm:gap-4 ${skipAnimation ? '' : 'ltdb-drop'}`}>
+            <span className="inline-flex items-center rounded-xl bg-white px-2.5 py-1.5 shadow-sm ring-1 ring-black/5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="Aprime Fluides — débouchage de canalisations" className="h-9 sm:h-11 w-auto" />
+            </span>
+            <h1 className="sr-only">Aprime fluides</h1>
             <div className="hidden sm:block text-[10px] uppercase tracking-[0.25em] text-white/60 font-semibold">
               1, rue Jean Carasso · 95000 Bezons
             </div>
