@@ -1,6 +1,6 @@
 /**
  * CSS embarqué dans le `content` HTML envoyé à Django pour rendre les pages
- * /nos-realisations/<slug> identiques à l'aperçu page web (mockup validé
+ * /etudes-de-cas/<slug> identiques à l'aperçu page web (mockup validé
  * `mockups/realisation-demo.html`).
  *
  * Le template Django ne porte pas (encore) ces styles : pour ne pas dépendre

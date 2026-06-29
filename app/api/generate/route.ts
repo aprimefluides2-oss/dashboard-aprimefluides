@@ -190,7 +190,7 @@ PAGE VILLE DE DESTINATION (OBLIGATOIRE) :
 - Page locale "${ville}" → ${cityUrl}
 - Page débouchage (hub) → ${SITE}/debouchage-canalisation
 
-URL FINALE : ${SITE}/nos-realisations/${realisationSlug}
+URL FINALE : ${SITE}/etudes-de-cas/${realisationSlug}
 
 ⛔ NE PAS INVENTER D'ACTIONS TECHNIQUES absentes de la dictée.
 - Interdit d'écrire qu'on a utilisé furet, hydrocurage, caméra, etc. si la dictée ne le dit pas.
@@ -358,7 +358,7 @@ sont placés avant pour ne jamais être perdus si la réponse est longue.
   rapport.reference = reference
   seo.resume_rich_snippet = seo.resume_rich_snippet || seo.meta_description || ''
 
-  const pageUrl = `${SITE}/nos-realisations/${realisationSlug}`
+  const pageUrl = `${SITE}/etudes-de-cas/${realisationSlug}`
   const datePublished = today.toISOString()
 
   seo.jsonld = {
@@ -441,7 +441,7 @@ sont placés avant pour ne jamais être perdus si la réponse est longue.
         "@id": `${pageUrl}#breadcrumb`,
         "itemListElement": [
           { "@type": "ListItem", "position": 1, "name": "Accueil", "item": SITE },
-          { "@type": "ListItem", "position": 2, "name": "Nos réalisations", "item": `${SITE}/nos-realisations` },
+          { "@type": "ListItem", "position": 2, "name": "Nos réalisations", "item": `${SITE}/etudes-de-cas` },
           { "@type": "ListItem", "position": 3, "name": ville, "item": cityUrl },
           { "@type": "ListItem", "position": 4, "name": seo.titre_h1, "item": pageUrl }
         ]

@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   const photos: string[] = Array.isArray(interv.photos_urls) ? interv.photos_urls : []
   const photoUrl = photos[0] || null
   const ctaUrl = interv.publie_slug
-    ? `${SITE}/nos-realisations/${interv.publie_slug}`
+    ? `${SITE}/etudes-de-cas/${interv.publie_slug}`
     : SITE
 
   try {

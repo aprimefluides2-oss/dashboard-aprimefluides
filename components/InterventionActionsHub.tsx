@@ -11,7 +11,7 @@ export type InterventionActionsHubProps = {
   publieSlug: string | null
   /** Pré-rempli pour le bouton Aller à la facture si la facture n'existe pas encore. */
   onCreateFacture?: () => void
-  /** Slug public configurable, par défaut /nos-realisations/. */
+  /** Slug public configurable, par défaut /etudes-de-cas/. */
   publicBaseUrl?: string
 }
 
@@ -22,7 +22,7 @@ export default function InterventionActionsHub({
   clientEmail,
   publieSlug,
   onCreateFacture,
-  publicBaseUrl = 'https://www.aprime-fluides.fr/nos-realisations',
+  publicBaseUrl = 'https://www.aprime-fluides.fr/etudes-de-cas',
 }: InterventionActionsHubProps) {
   const router = useRouter()
   const [sendOpen, setSendOpen] = useState(false)
@@ -129,7 +129,7 @@ export default function InterventionActionsHub({
         <ActionTile
           icon="🌐"
           title={publieSlug ? 'Voir sur le site' : 'Publier sur le site'}
-          desc={publieSlug ? `nos-realisations/${publieSlug}` : 'Publier publiquement la réalisation'}
+          desc={publieSlug ? `etudes-de-cas/${publieSlug}` : 'Publier publiquement la réalisation'}
           accent="sky"
           disabled={!hasRapport}
           {...(publieSlug
