@@ -234,7 +234,7 @@ Les 3 champs "titre_h1", "meta_description" et "resume_rich_snippet" doivent pou
 - Conteneurs HTML à utiliser : <section class=\\"content-block\\">, <div class=\\"info-box\\"> (pour un point-clé ou conseil), <div class=\\"checklist-box\\"> (pour une liste d'étapes).
 - MAILLAGE INTERNE : ≥ 3 liens vers les SERVICES + ≥ 2 liens vers la page ville (${cityUrl}) + 1 lien vers le hub débouchage. Les liens doivent apparaître naturellement dans une phrase, pas collés en fin de paragraphe comme une liste SEO.
 - Prix : placeholders {PRIX_MIN}/{PRIX_MAX} uniquement si un tarif est mentionné par le technicien.
-- FAQ : 6 questions que de VRAIS clients se posent à ${ville} (longue traîne). Réponses courtes, honnêtes, sans langue de bois. Pas de "contactez-nous vite !" en fin de réponse.
+- FAQ : 6 questions que de VRAIS clients se posent à ${ville} (longue traîne). Chaque réponse est AUTO-PORTANTE et ANSWER-FIRST : la 1ʳᵉ phrase donne directement le fait/la solution (une IA doit pouvoir la citer telle quelle, hors contexte, sans lire le reste de la page), puis 1 phrase de précision si utile. 40 à 320 caractères, ton factuel, honnête, sans langue de bois. Pas de "contactez-nous vite !" ni de renvoi promo en fin de réponse.
 - 8-12 mots-clés longue traîne, vrais termes de recherche humains.
 - GEO / citabilité IA : phrases courtes, vérifiables, ancrage local précis, style factuel.
 
@@ -399,7 +399,7 @@ sont placés avant pour ne jamais être perdus si la réponse est longue.
         "aggregateRating": {
           "@type": "AggregateRating",
           "ratingValue": process.env.APRIME_RATING_VALUE || "4.7",
-          "reviewCount": process.env.APRIME_REVIEW_COUNT || "102",
+          "reviewCount": process.env.APRIME_REVIEW_COUNT || "112",
           "bestRating": "5",
           "worstRating": "1"
         },
