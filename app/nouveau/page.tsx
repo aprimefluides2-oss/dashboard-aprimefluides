@@ -156,6 +156,7 @@ export default function NouveauPage() {
   const [publishedSlug, setPublishedSlug] = useState('')
   const [emailSent, setEmailSent] = useState(false)
   const [emailSending, setEmailSending] = useState(false)
+  const [askReview, setAskReview] = useState(true)
   const [showPdfPreview, setShowPdfPreview] = useState(false)
   const [showSitePreview, setShowSitePreview] = useState(false)
   const [savedFlash, setSavedFlash] = useState(false)
@@ -446,7 +447,7 @@ export default function NouveauPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           clientEmail, clientNom, technicienNom: tech, ville, dateIntervention,
-          pdfBase64, pdfFilename,
+          pdfBase64, pdfFilename, skipReviews: !askReview,
         }),
       })
       if (!res.ok) {
@@ -1083,6 +1084,23 @@ export default function NouveauPage() {
                   </div>
 
                   {/* Actions */}
+                  <label className="flex items-start gap-2 cursor-pointer select-none bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
+                    <input
+                      type="checkbox"
+                      checked={askReview}
+                      onChange={e => setAskReview(e.target.checked)}
+                      className="mt-0.5 w-5 h-5 accent-amber-500"
+                    />
+                    <span className="text-sm text-slate-700">
+                      <span className="font-bold">⭐ Demander un avis Google au client</span>
+                      <span className="block text-xs text-slate-500">
+                        {askReview
+                          ? 'Bloc avis dans le mail + relances auto J+2, J+4, J+6.'
+                          : 'Décoché : email sans demande d\'avis (client habitué).'}
+                      </span>
+                    </span>
+                  </label>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       onClick={handleSendToClient}

@@ -27,6 +27,7 @@ export default function InterventionActionsHub({
   const router = useRouter()
   const [sendOpen, setSendOpen] = useState(false)
   const [email, setEmail] = useState(clientEmail || '')
+  const [askReview, setAskReview] = useState(true)
   const [sending, setSending] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
   const [gmbBusy, setGmbBusy] = useState(false)
@@ -42,13 +43,15 @@ export default function InterventionActionsHub({
       const res = await fetch('/api/notify-rapport-facture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ interventionId, clientEmail: email }),
+        body: JSON.stringify({ interventionId, clientEmail: email, skipReviews: !askReview }),
       })
       const j = await res.json()
       if (!res.ok || j.error) {
         setStatus(j.error || 'Erreur envoi')
       } else {
-        setStatus(`Envoyé ✓ (relances avis programmées J+2/J+4/J+6)`)
+        setStatus(askReview
+          ? `Envoyé ✓ (relances avis programmées J+2/J+4/J+6)`
+          : `Envoyé ✓ (sans demande d'avis)`)
       }
     } catch (e) {
       setStatus(e instanceof Error ? e.message : 'Erreur réseau')
@@ -167,7 +170,7 @@ export default function InterventionActionsHub({
               <button onClick={() => { setSendOpen(false); setStatus(null) }} className="text-slate-400 hover:text-slate-700 text-xl leading-none">×</button>
             </div>
             <p className="text-xs text-slate-500 mb-3">
-              Un seul email avec les 2 PDFs en pièces jointes. Les <strong>relances avis Google</strong> sont programmées automatiquement à J+2, J+4 et J+6.
+              Un seul email avec les 2 PDFs en pièces jointes.
             </p>
             <label className="block text-xs font-medium text-slate-600 mb-1">Email destinataire</label>
             <input
@@ -178,6 +181,23 @@ export default function InterventionActionsHub({
               className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#0e2a52] outline-none text-sm"
               disabled={sending}
             />
+            <label className="mt-3 flex items-start gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={askReview}
+                onChange={e => { setAskReview(e.target.checked); setStatus(null) }}
+                disabled={sending}
+                className="mt-0.5 w-4 h-4 accent-amber-500"
+              />
+              <span className="text-xs text-slate-600">
+                <span className="font-semibold text-slate-700">⭐ Demander un avis Google</span>
+                <span className="block text-[11px] text-slate-400">
+                  {askReview
+                    ? 'Bloc avis dans l\'email + relances auto J+2 / J+4 / J+6.'
+                    : 'Aucune demande d\'avis ni relance (idéal pour un client habitué).'}
+                </span>
+              </span>
+            </label>
             {status && (
               <div className={`mt-3 text-sm ${status.startsWith('Envoyé') ? 'text-emerald-600' : 'text-red-600'}`}>{status}</div>
             )}

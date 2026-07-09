@@ -188,6 +188,7 @@ export async function POST(req: NextRequest) {
     html: emailCombine({
       clientNom, technicienNom, ville, dateIntervention: dateInterv,
       reference, factureNumero: factureNum, totalTTC, reviewUrl, stopUrl, tel,
+      includeReview: !skipReviews,
     }),
     attachments: [
       { filename: `rapport-${reference}.pdf`, content: rapportB64 },
@@ -233,9 +234,10 @@ function relanceSubject(jour: number, prenom: string) {
   return `Dernière chance — partagez votre expérience`
 }
 
-function emailCombine({ clientNom, technicienNom, ville, dateIntervention, reference, factureNumero, totalTTC, reviewUrl, stopUrl, tel }: {
+function emailCombine({ clientNom, technicienNom, ville, dateIntervention, reference, factureNumero, totalTTC, reviewUrl, stopUrl, tel, includeReview }: {
   clientNom: string; technicienNom: string; ville: string; dateIntervention: string;
   reference: string; factureNumero: string; totalTTC: number | null; reviewUrl: string; stopUrl: string; tel: string;
+  includeReview: boolean;
 }) {
   const cn = escapeHtml(clientNom || 'Madame, Monsieur')
   const tn = escapeHtml(technicienNom)
@@ -265,12 +267,12 @@ function emailCombine({ clientNom, technicienNom, ville, dateIntervention, refer
         </ul>
         <p>Pour tout règlement ou question : <strong>${escapeHtml(tel)}</strong>.</p>
 
-        <div style="margin:30px 0;padding:20px;background:#fef0e0;border-left:4px solid #e67e22;border-radius:4px">
+        ${includeReview ? `<div style="margin:30px 0;padding:20px;background:#fef0e0;border-left:4px solid #e67e22;border-radius:4px">
           <p style="margin:0 0 10px;font-weight:bold;color:#a04e09">Votre avis compte</p>
           <p style="margin:0 0 14px;font-size:14px">Si vous êtes satisfait, prenez 30 secondes pour laisser un avis Google.</p>
           <a href="${ru}" style="display:inline-block;background:#e67e22;color:#fff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:bold">⭐ Laisser un avis Google</a>
           ${su ? `<p style="margin:12px 0 0;font-size:12px;color:#6b7280">Vous avez déjà laissé un avis ? <a href="${su}" style="color:#2c5fa8">Cliquez ici pour ne plus recevoir de relance</a>.</p>` : ''}
-        </div>
+        </div>` : ''}
 
         <p style="margin-top:30px;font-size:13px;color:#666">Cordialement,<br><strong>${tn}</strong> — Expert en assainissement<br>Aprime fluides</p>
       </td></tr>

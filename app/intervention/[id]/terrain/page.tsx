@@ -1207,6 +1207,7 @@ function TerrainDiffusionPanel({ interv, client, onRefresh, onError }: {
 }) {
   const [email, setEmail] = useState(client?.email || '')
   const [nom, setNom] = useState(client?.nom || '')
+  const [askReview, setAskReview] = useState(true)
   const [busy, setBusy] = useState<DiffusionAction>(null)
   const [progress, setProgress] = useState('')
   const [gmbOk, setGmbOk] = useState(false)
@@ -1375,6 +1376,7 @@ function TerrainDiffusionPanel({ interv, client, onRefresh, onError }: {
         body: JSON.stringify({
           interventionId: interv.id,
           clientEmail: email,
+          skipReviews: !askReview,
         }),
         retries: 3,
         timeoutMs: 90_000,
@@ -1530,9 +1532,24 @@ function TerrainDiffusionPanel({ interv, client, onRefresh, onError }: {
         <div className="text-sm text-slate-700 space-y-1 pt-2">
           <div>📄 Rapport d&apos;intervention (PDF)</div>
           <div>🧾 Facture (PDF)</div>
-          <div>⭐ Demande d&apos;avis Google</div>
-          <div className="text-xs text-slate-500 pt-1">+ relances auto J+2, J+4, J+6 si pas d&apos;avis</div>
         </div>
+
+        <label className="flex items-start gap-3 pt-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={askReview}
+            onChange={e => setAskReview(e.target.checked)}
+            className="mt-0.5 w-5 h-5 accent-amber-500"
+          />
+          <span className="text-sm text-slate-700">
+            <span className="font-bold">⭐ Demander un avis Google</span>
+            <span className="block text-xs text-slate-500">
+              {askReview
+                ? 'Bloc avis dans le mail + relances auto J+2, J+4, J+6.'
+                : 'Décoché : aucune demande d\'avis (client habitué).'}
+            </span>
+          </span>
+        </label>
       </div>
 
       {progress && (

@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'JSON invalide' }, { status: 400 })
   }
   const { clientEmail, clientNom, technicienNom, ville, dateIntervention, pdfBase64, pdfFilename } = body
+  const skipReviews = !!body.skipReviews
 
   if (!clientEmail || typeof clientEmail !== 'string' || !EMAIL_RE.test(clientEmail)) {
     return NextResponse.json({ error: 'Email client invalide' }, { status: 400 })
@@ -51,9 +52,9 @@ export async function POST(req: NextRequest) {
 
   const tel = await getTelPrincipal()
 
-  // 1) Relances avis Google tous les 2 jours (J+2, J+4, J+6)
+  // 1) Relances avis Google tous les 2 jours (J+2, J+4, J+6) — sautées si skipReviews
   const days = [2, 4, 6]
-  const followUps = await Promise.all(
+  const followUps = skipReviews ? [] : await Promise.all(
     days.map((d) => {
       const scheduledAt = new Date(Date.now() + d * 24 * 60 * 60 * 1000).toISOString()
       return resend.emails.send({
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
     from: `Aprime fluides <${fromEmail}>`,
     to: recipient,
     subject: `Votre rapport d'intervention — ${ville}`,
-    html: emailRapport({ clientNom, technicienNom: tech, ville, dateIntervention, reviewUrl, stopUrl, tel }),
+    html: emailRapport({ clientNom, technicienNom: tech, ville, dateIntervention, reviewUrl, stopUrl, tel, includeReview: !skipReviews }),
     attachments,
   })
 
@@ -111,7 +112,7 @@ function relanceSubject(jour: number, prenom: string) {
   return `Dernière chance — partagez votre expérience`
 }
 
-function emailRapport({ clientNom, technicienNom, ville, dateIntervention, reviewUrl, stopUrl, tel }: { clientNom: string; technicienNom: string; ville: string; dateIntervention: string; reviewUrl: string; stopUrl: string; tel: string }) {
+function emailRapport({ clientNom, technicienNom, ville, dateIntervention, reviewUrl, stopUrl, tel, includeReview }: { clientNom: string; technicienNom: string; ville: string; dateIntervention: string; reviewUrl: string; stopUrl: string; tel: string; includeReview: boolean }) {
   const cn = escapeHtml(clientNom || 'Madame, Monsieur')
   const tn = escapeHtml(technicienNom)
   const v = escapeHtml(ville)
@@ -131,12 +132,12 @@ function emailRapport({ clientNom, technicienNom, ville, dateIntervention, revie
         <p>Bonjour ${cn},</p>
         <p>Suite à notre intervention du <strong>${di}</strong> à <strong>${v}</strong>, vous trouverez ci-joint votre <strong>rapport d'intervention détaillé</strong>.</p>
         <p>Pour toute question, n'hésitez pas à nous contacter au <strong>${escapeHtml(tel)}</strong>.</p>
-        <div style="margin:30px 0;padding:20px;background:#fef0e0;border-left:4px solid #e67e22;border-radius:4px">
+        ${includeReview ? `<div style="margin:30px 0;padding:20px;background:#fef0e0;border-left:4px solid #e67e22;border-radius:4px">
           <p style="margin:0 0 10px;font-weight:bold;color:#a04e09">Votre avis compte</p>
           <p style="margin:0 0 14px;font-size:14px">Si vous êtes satisfait, prenez 30 secondes pour laisser un avis Google.</p>
           <a href="${ru}" style="display:inline-block;background:#e67e22;color:#fff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:bold">⭐ Laisser un avis Google</a>
           ${su ? `<p style="margin:12px 0 0;font-size:12px;color:#6b7280">Vous avez deja laisse un avis ? <a href="${su}" style="color:#2c5fa8">Cliquez ici pour ne plus recevoir de relance</a>.</p>` : ''}
-        </div>
+        </div>` : ''}
         <p style="margin-top:30px;font-size:13px;color:#666">Cordialement,<br><strong>${tn}</strong> — Expert en assainissement<br>Aprime fluides</p>
       </td></tr>
       <tr><td style="background:#0e2a52;color:#a0c0ff;padding:18px;text-align:center;font-size:11px">
