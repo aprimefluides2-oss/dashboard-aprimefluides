@@ -6,6 +6,8 @@ import VoiceRecorder from "@/components/VoiceRecorder"
 import VilleCombobox from "@/components/VilleCombobox"
 import ClientAutocomplete from "@/components/ClientAutocomplete"
 import { useUnsavedChangesWarning } from "@/lib/useUnsavedChangesWarning"
+import TechnicienSignatureField from "@/components/TechnicienSignatureField"
+import { getTechnicienSignature, setTechnicienSignature as persistTechnicienSignature } from "@/lib/technicien-signature"
 import type { AttestationData, AttestationObservation, Variante } from "@/components/AttestationPDF"
 
 const AttestationDownloadButton = dynamic(() => import("@/components/AttestationPDF"), { ssr: false })
@@ -87,6 +89,7 @@ export default function AttestationPage() {
   const [ville, setVille] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [technicienNom, setTechnicienNom] = useState('')
+  const [technicienSignature, setTechnicienSignature] = useState<string | null>(null)
   const [transcription, setTranscription] = useState('')
   const [photos, setPhotos] = useState<PhotoItem[]>([])
 
@@ -162,7 +165,13 @@ export default function AttestationPage() {
   useEffect(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem('ltdb_technicien') : null
     if (saved) setTechnicienNom(saved)
+    setTechnicienSignature(getTechnicienSignature())
   }, [])
+
+  function handleSignatureChange(v: string | null) {
+    setTechnicienSignature(v)
+    persistTechnicienSignature(v)
+  }
   useEffect(() => {
     if (technicienNom && typeof window !== 'undefined') localStorage.setItem('ltdb_technicien', technicienNom)
   }, [technicienNom])
@@ -277,7 +286,7 @@ export default function AttestationPage() {
                   dateAttestation: data.date,
                 })}
               />
-              <AttestationDownloadButton data={data} photos={photosForPdf} />
+              <AttestationDownloadButton data={data} photos={photosForPdf} technicienSignature={technicienSignature} />
             </div>
           </div>
 
@@ -451,7 +460,7 @@ export default function AttestationPage() {
           </section>
 
           <div className="flex justify-end pb-10">
-            <AttestationDownloadButton data={data} photos={photosForPdf} />
+            <AttestationDownloadButton data={data} photos={photosForPdf} technicienSignature={technicienSignature} />
           </div>
         </main>
       </div>
@@ -538,6 +547,9 @@ export default function AttestationPage() {
         <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-2">
           <h2 className="font-bold text-[#0f2e5c]">Technicien intervenant</h2>
           <Field label="Nom du technicien" value={technicienNom} onChange={setTechnicienNom} placeholder="Prénom Nom" />
+          <div className="pt-1 max-w-xs">
+            <TechnicienSignatureField value={technicienSignature} onChange={handleSignatureChange} />
+          </div>
         </section>
 
         {/* Dictée */}

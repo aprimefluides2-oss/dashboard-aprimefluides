@@ -2,6 +2,7 @@
 import React from "react"
 import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from "@react-pdf/renderer"
 import { TEL_PRINCIPAL_FALLBACK } from "@/lib/parametres"
+import { getTechnicienSignature } from "@/lib/technicien-signature"
 
 /* ============ CHARTE OFFICIELLE ============ */
 const C = {
@@ -231,6 +232,10 @@ const s = StyleSheet.create({
     height: 70, marginTop: 6,
     borderWidth: 0.5, borderColor: C.borderDark,
     backgroundColor: '#fafbfc',
+    justifyContent: 'center', alignItems: 'flex-start',
+  },
+  sigAreaImg: {
+    height: 56, width: 170, objectFit: 'contain', marginLeft: 8,
   },
 
   /* Footer */
@@ -298,6 +303,8 @@ export interface AttestationData {
 export interface AttestationPDFProps {
   data: AttestationData
   photos: { url: string; legende?: string }[]
+  /** Signature du technicien (image data URL ; défaut : localStorage device). */
+  technicienSignature?: string | null
 }
 
 /* ============ HELPERS ============ */
@@ -438,7 +445,8 @@ function attestationClause(data: AttestationData): { badge: string; wrapStyle: a
 }
 
 /* ============ DOCUMENT ============ */
-export function AttestationDocument({ data, photos }: AttestationPDFProps) {
+export function AttestationDocument({ data, photos, technicienSignature }: AttestationPDFProps) {
+  const sigImg = technicienSignature ?? getTechnicienSignature()
   const clause = attestationClause(data)
   const variantTitle = attestationLabel(data.variante)
 
@@ -626,7 +634,9 @@ export function AttestationDocument({ data, photos }: AttestationPDFProps) {
                   <Text style={s.sigLabel}>Technicien intervenant</Text>
                   <Text style={s.sigValue}>{data.technicienNom || '—'}</Text>
                   <Text style={s.sigLabel}>Cachet & signature</Text>
-                  <View style={s.sigArea} />
+                  <View style={s.sigArea}>
+                    {sigImg ? <Image src={sigImg} style={s.sigAreaImg} /> : null}
+                  </View>
                 </View>
               </View>
             </View>

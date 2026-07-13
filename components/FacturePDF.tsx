@@ -1,8 +1,9 @@
 'use client'
 import React from "react"
-import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from "@react-pdf/renderer"
+import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from "@react-pdf/renderer"
 import type { EmetteurData, ClientData } from "./DevisPDF"
 import type { Agence } from "@/lib/agences"
+import { getTechnicienSignature } from "@/lib/technicien-signature"
 
 export type { Agence } from "@/lib/agences"
 export { AGENCES } from "@/lib/agences"
@@ -186,6 +187,19 @@ const s = StyleSheet.create({
   obsText: { color: C.text, fontSize: 9.5, lineHeight: 1.55, marginBottom: 6 },
   obsStrong: { fontFamily: 'Helvetica-Bold' },
 
+  /* Signature technicien */
+  sigWrap: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 12 },
+  sigCard: { width: 220, borderWidth: 1, borderColor: C.border },
+  sigCardHead: {
+    backgroundColor: C.rowAlt, paddingVertical: 6, paddingHorizontal: 10,
+    color: C.navy, fontFamily: 'Helvetica-Bold', fontSize: 8.5,
+    borderBottomWidth: 1, borderBottomColor: C.border,
+  },
+  sigCardBody: { paddingVertical: 8, paddingHorizontal: 10, minHeight: 62 },
+  sigCardName: { color: C.text, fontSize: 8.5, marginBottom: 3 },
+  sigCardLabel: { color: C.muted, fontSize: 8, marginBottom: 2 },
+  sigCardImg: { height: 40, width: 120, objectFit: 'contain', marginTop: 2 },
+
   /* Coordonnées bancaires (bleu) */
   ribBox: {
     backgroundColor: '#eef4fc',
@@ -254,6 +268,10 @@ export interface FacturePDFProps {
   client: ClientData
   facture: FactureData
   phone?: string
+  /** Nom du technicien (défaut : localStorage `ltdb_technicien`). */
+  technicienNom?: string
+  /** Signature du technicien (image data URL ; défaut : localStorage device). */
+  technicienSignature?: string | null
 }
 
 /* ============ HELPERS ============ */
@@ -313,7 +331,10 @@ const Footer = ({ emetteur }: { emetteur: FactureEmetteurData }) => {
 }
 
 /* ============ DOCUMENT ============ */
-export function FactureDocument({ emetteur, client, facture, phone }: FacturePDFProps) {
+export function FactureDocument({ emetteur, client, facture, phone, technicienNom, technicienSignature }: FacturePDFProps) {
+  const sigImg = technicienSignature ?? getTechnicienSignature()
+  const sigName = technicienNom
+    ?? (typeof window !== 'undefined' ? (localStorage.getItem('ltdb_technicien') || '') : '')
   const dateFmt = fmtDateFR(facture.date_facture)
   const tvaTaux = facture.tva_taux ?? 10
   const echeanceVal = facture.echeance || 'À réception'
@@ -486,6 +507,20 @@ export function FactureDocument({ emetteur, client, facture, phone }: FacturePDF
                   {facture.recommandation}
                 </Text>
               ) : null}
+            </View>
+          ) : null}
+
+          {/* ===== Signature technicien ===== */}
+          {(sigImg || sigName) ? (
+            <View style={s.sigWrap} wrap={false}>
+              <View style={s.sigCard}>
+                <Text style={s.sigCardHead}>Établi par — {emetteur.raisonSociale}</Text>
+                <View style={s.sigCardBody}>
+                  {sigName ? <Text style={s.sigCardName}>Technicien : {sigName}</Text> : null}
+                  <Text style={s.sigCardLabel}>Signature :</Text>
+                  {sigImg ? <Image style={s.sigCardImg} src={sigImg} /> : null}
+                </View>
+              </View>
             </View>
           ) : null}
         </View>
