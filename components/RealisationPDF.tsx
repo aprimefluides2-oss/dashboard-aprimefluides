@@ -255,6 +255,9 @@ const s = StyleSheet.create({
   sigLine: {
     color: C.muted, fontSize: 8.5, marginBottom: 10,
   },
+  sigImg: {
+    marginTop: 2, height: 42, width: 130, objectFit: 'contain',
+  },
 
   /* Footer (flow-placed + fixed) */
   footer: {
@@ -383,6 +386,8 @@ export interface PDFProps {
   dateIntervention: string
   typeIntervention: string
   technicienNom: string
+  /** Signature du technicien (image data URL PNG). Rendue dans le bloc signature si présente. */
+  technicienSignature?: string | null
   rapport: RapportData
   phone?: string
   reference?: string
@@ -472,7 +477,7 @@ const SectionBand = ({
 /* ============ DOCUMENT ============ */
 export function RealisationDocument({
   clientNom, adresse, ville, codePostal, dateIntervention, typeIntervention,
-  technicienNom, rapport, reference, photos, phone,
+  technicienNom, technicienSignature, rapport, reference, photos, phone,
 }: PDFProps) {
   const ref = reference || rapport.reference || `APR-${dateIntervention.replace(/-/g, '')}`
   const hasPhotos = (photos?.length ?? 0) > 0
@@ -729,6 +734,7 @@ export function RealisationDocument({
                     <Text style={s.sigLine}>Date : {fmtDateFR(dateIntervention)}</Text>
                     <Text style={s.sigLine}>Nom : {technicienNom || '—'}</Text>
                     <Text style={s.sigLine}>Signature :</Text>
+                    {technicienSignature ? <Image style={s.sigImg} src={technicienSignature} /> : null}
                   </View>
                 </View>
                 <View style={s.sigCol}>
@@ -845,6 +851,7 @@ export function RealisationDocument({
                   <Text style={s.sigLine}>Nom : {technicienNom || '—'}</Text>
                   <Text style={s.sigLine}>Date : {fmtDateFR(dateIntervention)}</Text>
                   <Text style={s.sigLine}>Signature :</Text>
+                  {technicienSignature ? <Image style={s.sigImg} src={technicienSignature} /> : null}
                 </View>
               </View>
               <View style={s.sigCol}>

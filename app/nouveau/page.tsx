@@ -7,6 +7,8 @@ import AppTabs from "@/components/AppTabs"
 import RapportTabs from "@/components/RapportTabs"
 import dynamic from "next/dynamic"
 import { AGENCES } from "@/lib/agences"
+import TechnicienSignatureField from "@/components/TechnicienSignatureField"
+import { getTechnicienSignature, setTechnicienSignature as persistTechnicienSignature } from "@/lib/technicien-signature"
 import { useUnsavedChangesWarning } from "@/lib/useUnsavedChangesWarning"
 import { REALISATION_PAGE_STYLE } from "@/lib/realisationPageCss"
 
@@ -64,10 +66,18 @@ const TYPES = [
   { v: 'Débouchage WC', icon: '🚽' },
   { v: 'Débouchage évier', icon: '🍽' },
   { v: 'Débouchage douche', icon: '🚿' },
+  { v: 'Débouchage colonne', icon: '🏢' },
+  { v: 'Débouchage regard', icon: '🕳' },
+  { v: 'Débouchage gouttière', icon: '🌧' },
   { v: 'Hydrocurage', icon: '💦' },
+  { v: 'Curage canalisation', icon: '⚙' },
   { v: 'Inspection caméra', icon: '📹' },
   { v: 'Vidange fosse septique', icon: '🛢' },
-  { v: 'Curage canalisation', icon: '⚙' },
+  { v: 'Vidange bac à graisse', icon: '🧈' },
+  { v: 'Pompe de relevage', icon: '🚰' },
+  { v: 'Pompage poste de relevage', icon: '💧' },
+  { v: 'Chemisage', icon: '🧵' },
+  { v: 'Sanibroyeur', icon: '🔩' },
 ]
 
 const STEPPER_STEPS = [
@@ -102,6 +112,7 @@ export default function NouveauPage() {
   const [clientEmail, setClientEmail] = useState('')
   const [technicienNom, setTechnicienNom] = useState('')
   const [editTech, setEditTech] = useState(false)
+  const [technicienSignature, setTechnicienSignature] = useState<string | null>(null)
   const [interventionId, setInterventionId] = useState<string | null>(null)
   type PhotoItem = { file: File; dataUrl: string; preview: string; legende: string }
   const [photos, setPhotos] = useState<PhotoItem[]>([])
@@ -192,7 +203,14 @@ export default function NouveauPage() {
     const saved = typeof window !== 'undefined' ? localStorage.getItem('ltdb_technicien') : null
     if (saved) setTechnicienNom(saved)
     else setEditTech(true)
+    setTechnicienSignature(getTechnicienSignature())
   }, [])
+
+  // Persistance signature (mémorisée sur l'appareil, réutilisée sur les PDF)
+  function handleSignatureChange(v: string | null) {
+    setTechnicienSignature(v)
+    persistTechnicienSignature(v)
+  }
   useEffect(() => {
     if (technicienNom && typeof window !== 'undefined') localStorage.setItem('ltdb_technicien', technicienNom)
   }, [technicienNom])
@@ -749,22 +767,33 @@ export default function NouveauPage() {
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
               <span className="hidden sm:inline">Historique</span>
             </button>
-            {editTech ? (
-              <input
-                autoFocus
-                value={technicienNom}
-                onChange={e => setTechnicienNom(e.target.value)}
-                onBlur={() => technicienNom && setEditTech(false)}
-                onKeyDown={e => { if (e.key === 'Enter' && technicienNom) setEditTech(false) }}
-                placeholder="Ton nom"
-                className="bg-white/20 placeholder:text-white/60 text-white text-sm font-semibold px-3 py-1.5 rounded-lg outline-none border border-white/30 focus:border-white"
-              />
-            ) : technicienNom ? (
-              <button onClick={() => setEditTech(true)} className="text-right group">
+            <div className="relative">
+              <button onClick={() => setEditTech(v => !v)} className="text-right group">
                 <div className="text-[10px] opacity-60 group-hover:opacity-100">Technicien ✎</div>
-                <div className="text-sm font-semibold">{technicienNom}</div>
+                <div className="text-sm font-semibold">{technicienNom || 'Ton nom'}</div>
               </button>
-            ) : null}
+              {editTech && (
+                <div className="absolute right-0 top-full mt-2 w-72 bg-white text-slate-800 rounded-xl shadow-xl ring-1 ring-black/10 p-3 z-40 text-left">
+                  <label className="block text-[11px] font-semibold text-slate-500 mb-1">Nom du technicien</label>
+                  <input
+                    autoFocus
+                    value={technicienNom}
+                    onChange={e => setTechnicienNom(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && technicienNom) setEditTech(false) }}
+                    placeholder="Prénom Nom"
+                    className="w-full text-sm font-semibold px-3 py-2 rounded-lg border border-slate-300 outline-none focus:border-[#0e2a52] mb-3"
+                  />
+                  <TechnicienSignatureField value={technicienSignature} onChange={handleSignatureChange} />
+                  <button
+                    type="button"
+                    onClick={() => setEditTech(false)}
+                    className="mt-3 w-full bg-[#0e2a52] text-white text-sm font-semibold rounded-lg py-2 hover:bg-[#0a1f3d]"
+                  >
+                    Terminé
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </nav>
@@ -1061,6 +1090,7 @@ export default function NouveauPage() {
               const pdfProps = {
                 clientNom, adresse, ville, codePostal, dateIntervention, typeIntervention,
                 technicienNom: technicienNom || 'Technicien',
+                technicienSignature: technicienSignature || null,
                 rapport,
                 photos: photos.map(p => ({ url: p.dataUrl, legende: p.legende })),
               }
