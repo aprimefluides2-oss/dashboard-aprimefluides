@@ -297,7 +297,7 @@ export async function buildSocialMetadata(opts: {
     `📞 ${tel} · www.aprime-fluides.fr`,
     "📍 Paris, Argenteuil, Cergy, Versailles, Beauvais et toute l'Île-de-France",
     "",
-    "#debouchage #plomberie #var #ltdb #urgence",
+    "#debouchage #plomberie #assainissement #IledeFrance #urgence #AprimeFluides",
   ].join("\n")
 
   return { title, description }
