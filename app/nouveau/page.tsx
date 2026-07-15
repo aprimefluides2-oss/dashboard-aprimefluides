@@ -11,6 +11,7 @@ import TechnicienSignatureField from "@/components/TechnicienSignatureField"
 import { getTechnicienSignature, setTechnicienSignature as persistTechnicienSignature } from "@/lib/technicien-signature"
 import { useUnsavedChangesWarning } from "@/lib/useUnsavedChangesWarning"
 import { REALISATION_PAGE_STYLE } from "@/lib/realisationPageCss"
+import { proxyImageUrl } from "@/lib/proxyImageUrl"
 
 const PDFDownloadButton = dynamic(() => import("@/components/RealisationPDF"), { ssr: false })
 const PDFPreviewModal = dynamic(() => import("@/components/PDFPreviewModal"), { ssr: false })
@@ -116,6 +117,10 @@ export default function NouveauPage() {
   const [interventionId, setInterventionId] = useState<string | null>(null)
   type PhotoItem = { file: File; dataUrl: string; preview: string; legende: string }
   const [photos, setPhotos] = useState<PhotoItem[]>([])
+  const [photosRestoring, setPhotosRestoring] = useState(false)
+  // Id du rapport dont on recharge les photos : évite qu'un chargement lent
+  // n'écrase les photos d'un rapport ouvert entre-temps.
+  const photoLoadTokenRef = useRef<string | null>(null)
 
   // Pré-remplissage depuis Planning (sessionStorage 'ltdb_intervention_prefill')
   // ou chargement direct d'un rapport existant pour édition (sessionStorage 'ltdb_load_rapport_id').
@@ -624,6 +629,7 @@ export default function NouveauPage() {
       setTranscription('')
       setRapport(null); setSeo(null)
       setClientNom(''); setClientEmail(''); setAdresse(''); setVille(''); setCodePostal('')
+      photoLoadTokenRef.current = null; setPhotosRestoring(false)
       setPhotos([])
       setEmailSent(false)
       setInterventionId(null)
@@ -655,6 +661,47 @@ export default function NouveauPage() {
     }
   }
 
+  /**
+   * Re-télécharge les photos d'une intervention (Supabase Storage) pour les
+   * remettre dans le formulaire. Elles ne sont pas perdues en base : seul le
+   * state local est vide au chargement. Le proxy contourne le CORS (le bucket
+   * ne sert pas Access-Control-Allow-Origin), et on reconstruit un File car
+   * publication, PDF et compteur de poids en dépendent.
+   */
+  async function restorePhotosFromUrls(id: string, urls: string[], legendes: string[]) {
+    setPhotosRestoring(true)
+    try {
+      const restored = await Promise.all(
+        urls.map(async (url, idx) => {
+          try {
+            const res = await fetch(proxyImageUrl(url))
+            if (!res.ok) return null
+            const blob = await res.blob()
+            const name = url.split('/').pop()?.split('?')[0] || `photo-${idx + 1}.jpg`
+            const file = new File([blob], name, { type: blob.type || 'image/jpeg' })
+            return {
+              file,
+              dataUrl: await fileToDataUrl(file),
+              preview: URL.createObjectURL(file),
+              legende: legendes[idx] || defaultLegende(idx),
+            }
+          } catch {
+            return null
+          }
+        })
+      )
+      // Un autre rapport a été ouvert entre-temps → ne pas écraser son state.
+      if (photoLoadTokenRef.current !== id) return
+      const ok = restored.filter(Boolean) as PhotoItem[]
+      setPhotos(ok)
+      if (ok.length < urls.length) {
+        setError(`${urls.length - ok.length} photo(s) sur ${urls.length} n'ont pas pu être rechargées.`)
+      }
+    } finally {
+      if (photoLoadTokenRef.current === id) setPhotosRestoring(false)
+    }
+  }
+
   async function loadRapportForEdit(id: string) {
     setLoadingEditId(id); setHistoryError(''); setError('')
     try {
@@ -683,6 +730,14 @@ export default function NouveauPage() {
       // Si rapport existant → preview directe ; sinon repart en validation
       setStep(i.rapport_json && Object.keys(i.rapport_json || {}).length > 0 ? 'preview' : 'validate')
       setShowHistoryModal(false)
+
+      // Photos rechargées en arrière-plan : elles pèsent lourd et ne doivent pas
+      // retarder l'affichage du rapport.
+      photoLoadTokenRef.current = id
+      const urls: string[] = Array.isArray(i.photos_urls) ? i.photos_urls : []
+      const legendes: string[] = Array.isArray(i.photos_legendes) ? i.photos_legendes : []
+      setPhotosRestoring(urls.length > 0)
+      if (urls.length > 0) void restorePhotosFromUrls(id, urls, legendes)
     } catch (e: any) {
       setHistoryError(`Chargement impossible : ${e.message}`)
     } finally {
@@ -756,6 +811,7 @@ export default function NouveauPage() {
     setStep('capture')
     setTranscription(''); setRapport(null); setSeo(null); setError('')
     setClientNom(''); setClientEmail(''); setAdresse(''); setVille(''); setCodePostal('')
+    photoLoadTokenRef.current = null; setPhotosRestoring(false)
     setPhotos([])
     setEmailSent(false); setPublishedSlug('')
     setInterventionId(null)
@@ -912,6 +968,7 @@ export default function NouveauPage() {
                   <p className="text-sm text-slate-500">Optionnelles — requises pour publier sur le site</p>
                 </div>
                 <div className="flex items-center gap-2">
+                  {photosRestoring && <span className="text-[11px] text-slate-500">Rechargement des photos…</span>}
                   <span className="bg-[#0e2a52] text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center">{photos.length}</span>
                   {photos.length > 0 && <span className="text-[11px] text-slate-400">{totalMb.toFixed(1)} MB</span>}
                 </div>
