@@ -348,6 +348,22 @@ export default function NouveauPage() {
     })
   }
 
+  // Le PDF envoyé par email est ré-encodé plus léger que les photos affichées :
+  // au-delà de ~4.5 MB de corps de requête, Vercel renvoie un 413 avant même
+  // d'atteindre /api/notify-client. 1280 px suffisent pour une lecture à l'écran.
+  async function photosForEmailPdf(): Promise<{ url: string; legende: string }[]> {
+    return Promise.all(
+      photos.map(async p => {
+        try {
+          const light = await compressImage(p.file, 1280, 0.7)
+          return { url: await fileToDataUrl(light), legende: p.legende }
+        } catch {
+          return { url: p.dataUrl, legende: p.legende }
+        }
+      })
+    )
+  }
+
   function defaultLegende(index: number) {
     if (index === 0) return 'Photo avant intervention'
     if (index === 1) return 'Photo après intervention'
@@ -444,14 +460,14 @@ export default function NouveauPage() {
     if (!rapport) { setError('Rapport indisponible.'); return }
     setEmailSending(true); setError('')
     try {
-      const photosForPdf = photos.map(p => ({ url: p.dataUrl, legende: p.legende }))
+      const photosForPdf = await photosForEmailPdf()
       const tech = technicienNom || 'Technicien'
-      const [{ RealisationDocument }, { pdfDocumentToBase64 }, React] = await Promise.all([
+      const [{ RealisationDocument }, { pdfElementToBlob }, React] = await Promise.all([
         import('@/components/RealisationPDF'),
         import('@/lib/pdfToBase64'),
         import('react'),
       ])
-      const pdfBase64 = await pdfDocumentToBase64(
+      const pdfBlob = await pdfElementToBlob(
         React.createElement(RealisationDocument, {
           clientNom, adresse, ville, codePostal, dateIntervention, typeIntervention,
           technicienNom: tech,
@@ -460,14 +476,23 @@ export default function NouveauPage() {
         })
       )
       const pdfFilename = `rapport-${(ville || 'intervention').toLowerCase()}-${dateIntervention}.pdf`.replace(/\s+/g, '-')
-      const res = await fetch('/api/notify-client', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          clientEmail, clientNom, technicienNom: tech, ville, dateIntervention,
-          pdfBase64, pdfFilename, skipReviews: !askReview,
-        }),
-      })
+      // Vercel coupe le corps de requête à ~4.5 MB, multipart compris : au-delà
+      // le 413 arrive sans message exploitable, autant l'annoncer ici.
+      if (pdfBlob.size > 4 * 1024 * 1024) {
+        throw new Error(
+          `Le rapport pèse ${(pdfBlob.size / 1024 / 1024).toFixed(1)} Mo, au-dessus de la limite d'envoi de 4 Mo. Retire quelques photos et réessaie.`
+        )
+      }
+      const form = new FormData()
+      form.append('clientEmail', clientEmail)
+      form.append('clientNom', clientNom)
+      form.append('technicienNom', tech)
+      form.append('ville', ville)
+      form.append('dateIntervention', dateIntervention)
+      form.append('skipReviews', String(!askReview))
+      form.append('pdfFilename', pdfFilename)
+      form.append('pdf', pdfBlob, pdfFilename)
+      const res = await fetch('/api/notify-client', { method: 'POST', body: form })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
         throw new Error(data.error || `HTTP ${res.status}`)

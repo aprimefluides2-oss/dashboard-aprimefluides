@@ -16,12 +16,42 @@ function signStopPayload(payload: string, exp: number, secret: string): string {
   return crypto.createHmac("sha256", secret).update(`${payload}.${exp}`).digest("hex")
 }
 
+/**
+ * Accepte le PDF en multipart/form-data (champ `pdf`) ou, en repli, en base64
+ * dans du JSON. Le multipart évite la limite ~4.5 MB du body sur Vercel : en
+ * base64 un PDF de 3,5 MB pèse 4,7 MB sur le réseau et le 413 tombe avant même
+ * d'atteindre cette fonction (cf. /api/interventions/[id]/store-pdf).
+ */
+async function readPayload(req: NextRequest): Promise<any> {
+  const contentType = req.headers.get('content-type') || ''
+  if (!contentType.includes('multipart/form-data')) return req.json()
+
+  const form = await req.formData()
+  const text = (key: string) => {
+    const v = form.get(key)
+    return typeof v === 'string' ? v : undefined
+  }
+  const file = form.get('pdf')
+  const hasPdf = file instanceof File && file.size > 0
+
+  return {
+    clientEmail: text('clientEmail'),
+    clientNom: text('clientNom'),
+    technicienNom: text('technicienNom'),
+    ville: text('ville'),
+    dateIntervention: text('dateIntervention'),
+    skipReviews: text('skipReviews') === 'true',
+    pdfBase64: hasPdf ? Buffer.from(await (file as File).arrayBuffer()).toString('base64') : undefined,
+    pdfFilename: hasPdf ? (text('pdfFilename') || (file as File).name || 'rapport.pdf') : undefined,
+  }
+}
+
 export async function POST(req: NextRequest) {
   let body: any
   try {
-    body = await req.json()
+    body = await readPayload(req)
   } catch {
-    return NextResponse.json({ error: 'JSON invalide' }, { status: 400 })
+    return NextResponse.json({ error: 'Requête invalide (JSON ou multipart/form-data attendu)' }, { status: 400 })
   }
   const { clientEmail, clientNom, technicienNom, ville, dateIntervention, pdfBase64, pdfFilename } = body
   const skipReviews = !!body.skipReviews
