@@ -1,12 +1,11 @@
 import { Resend } from "resend"
+import { APRIME_EMETTEUR } from "@/lib/emetteur"
 
 /**
  * Helpers partagés par toutes les routes /api/notify-* :
  * - validation d'email
  * - escape HTML pour les templates
- * - configuration Resend (clé API + adresse expéditeur, avec fallback automatique
- *   sur le domaine `onboarding@resend.dev` quand le domaine de prod n'est pas
- *   encore vérifié).
+ * - configuration Resend (clé API + adresse expéditeur société)
  */
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
@@ -21,16 +20,13 @@ export function escapeHtml(s: unknown): string {
 }
 
 /**
- * Adresse expéditeur effective :
- * - RESEND_FROM_EMAIL si défini (domaine vérifié) ;
- * - sinon onboarding@resend.dev en mode test ;
- * - sinon contact@aprime-fluides.fr (peut échouer si domaine non vérifié).
+ * Adresse expéditeur de tous les envois (rapports, devis, factures, relances) :
+ * toujours l'adresse société de `APRIME_EMETTEUR`, dont le domaine est vérifié
+ * sur Resend. Aucune variable d'env ne peut la détourner : RESEND_TEST_EMAIL ne
+ * redirige que le DESTINATAIRE (cf. getResendRecipient), jamais l'expéditeur.
  */
 export function getResendFromEmail(): string {
-  return (
-    process.env.RESEND_FROM_EMAIL
-    || (process.env.RESEND_TEST_EMAIL ? 'onboarding@resend.dev' : 'contact@aprime-fluides.fr')
-  )
+  return APRIME_EMETTEUR.email
 }
 
 /** Destinataire effectif : si RESEND_TEST_EMAIL est défini il prime sur le client. */

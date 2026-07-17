@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { deepseek } from '@/lib/deepseek'
+import { getResendFromEmail } from '@/lib/email-utils'
 
 export const maxDuration = 30
 export const dynamic = 'force-dynamic'
@@ -39,8 +40,7 @@ async function checkResend(): Promise<Check> {
   const key = process.env.RESEND_API_KEY
   if (!key) return { ok: false, detail: 'RESEND_API_KEY missing' }
 
-  const fromEmail = process.env.RESEND_FROM_EMAIL
-    || (process.env.RESEND_TEST_EMAIL ? 'onboarding@resend.dev' : 'contact@aprime-fluides.fr')
+  const fromEmail = getResendFromEmail()
   const fromDomain = fromEmail.split('@')[1]
 
   const start = Date.now()
@@ -54,10 +54,6 @@ async function checkResend(): Promise<Check> {
       return { ok: false, latencyMs: Date.now() - start, detail: `auth rejected (HTTP ${res.status})` }
     }
     if (!res.ok) return { ok: false, latencyMs: Date.now() - start, detail: `HTTP ${res.status}` }
-
-    if (fromDomain === 'resend.dev') {
-      return { ok: true, latencyMs: Date.now() - start, detail: 'test mode via resend.dev (RESEND_TEST_EMAIL set)' }
-    }
 
     const body = await res.json().catch(() => null) as { data?: Array<{ name: string; status: string }> } | null
     const verified = body?.data?.find(d => d.name === fromDomain && d.status === 'verified')
@@ -96,6 +92,8 @@ export async function GET() {
       ok,
       service: 'app-aprimefluides',
       timestamp: new Date().toISOString(),
+      email_from: getResendFromEmail(),
+      email_test_redirect: process.env.RESEND_TEST_EMAIL ? 'actif' : 'inactif',
       commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || 'unknown',
       region: process.env.VERCEL_REGION || 'unknown',
       checks,
