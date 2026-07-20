@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
   // undefined = ne pas toucher aux photos ; array = remplacer.
   let photosUrls: string[] | undefined
   let photosLegendes: string[] | undefined
+  let debugUploadErrors: string[] = []
 
   if (contentType.includes('multipart/form-data')) {
     let formData: FormData
@@ -68,6 +69,7 @@ export async function POST(req: NextRequest) {
       const stamp = Date.now()
       const urls: string[] = []
       const legendes: string[] = []
+      const uploadErrors: string[] = []
       let uploadIdx = 0
       for (const entry of manifest) {
         const legende = (entry?.legende || '').slice(0, 200)
@@ -78,7 +80,7 @@ export async function POST(req: NextRequest) {
         }
         if (!entry?.fileKey) continue
         const f = formData.get(entry.fileKey)
-        if (!(f instanceof File) || f.size === 0) continue
+        if (!(f instanceof File) || f.size === 0) { uploadErrors.push(`${entry.fileKey}: fichier absent/vide`); continue }
         const ext = (f.name.match(/\.[a-zA-Z0-9]+$/)?.[0] || '.jpg').toLowerCase()
         const path = `${folderKey}/${stamp}-${uploadIdx}${ext}`
         const buf = Buffer.from(await f.arrayBuffer())
@@ -86,7 +88,8 @@ export async function POST(req: NextRequest) {
           .from(PHOTOS_BUCKET)
           .upload(path, buf, { contentType: f.type || 'image/jpeg', upsert: true })
         if (error) {
-          console.error('[save-rapport upload photo]', { path, error: error.message })
+          console.error('[save-rapport upload photo]', { path, bucket: PHOTOS_BUCKET, error: error.message })
+          uploadErrors.push(`${path}: ${error.message}`)
           continue
         }
         const { data } = sb.storage.from(PHOTOS_BUCKET).getPublicUrl(path)
@@ -98,6 +101,7 @@ export async function POST(req: NextRequest) {
       }
       photosUrls = urls
       photosLegendes = legendes
+      debugUploadErrors = uploadErrors
     }
   } else {
     try {
@@ -136,5 +140,6 @@ export async function POST(req: NextRequest) {
     mode: result.mode,
     photos_urls: photosUrls ?? null,
     photos_legendes: photosLegendes ?? null,
+    debug_upload_errors: debugUploadErrors,
   })
 }
