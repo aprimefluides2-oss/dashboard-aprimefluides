@@ -2,8 +2,14 @@
 import React, { useState } from "react"
 
 type SaveButtonProps = {
-  endpoint: string
-  body: () => any
+  /** Requis si `action` n'est pas fourni : POST JSON classique. */
+  endpoint?: string
+  body?: () => any
+  /**
+   * Action de sauvegarde personnalisée (ex: envoi multipart avec photos).
+   * Doit renvoyer l'id du document enregistré. Prioritaire sur endpoint/body.
+   */
+  action?: () => Promise<string>
   className?: string
   label?: string
   disabled?: boolean
@@ -11,7 +17,7 @@ type SaveButtonProps = {
 }
 
 export default function SaveDocumentButton({
-  endpoint, body, className, label, disabled, onSaved,
+  endpoint, body, action, className, label, disabled, onSaved,
 }: SaveButtonProps) {
   const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [error, setError] = useState('')
@@ -21,16 +27,22 @@ export default function SaveDocumentButton({
     if (state === 'saving') return
     setState('saving'); setError('')
     try {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body()),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
-      setSavedId(data.id || '')
+      let id = ''
+      if (action) {
+        id = await action()
+      } else {
+        const res = await fetch(endpoint as string, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body ? body() : {}),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
+        id = data.id || ''
+      }
+      setSavedId(id)
       setState('saved')
-      onSaved?.(data.id || '')
+      onSaved?.(id)
     } catch (e: any) {
       setError(e?.message || 'Erreur de sauvegarde')
       setState('error')

@@ -115,7 +115,9 @@ export default function NouveauPage() {
   const [editTech, setEditTech] = useState(false)
   const [technicienSignature, setTechnicienSignature] = useState<string | null>(null)
   const [interventionId, setInterventionId] = useState<string | null>(null)
-  type PhotoItem = { file: File; dataUrl: string; preview: string; legende: string }
+  // `storedUrl` : défini si la photo provient déjà de Supabase Storage (rapport
+  // rechargé depuis l'historique) → évite de la ré-uploader à chaque sauvegarde.
+  type PhotoItem = { file: File; dataUrl: string; preview: string; legende: string; storedUrl?: string }
   const [photos, setPhotos] = useState<PhotoItem[]>([])
   const [photosRestoring, setPhotosRestoring] = useState(false)
   // Id du rapport dont on recharge les photos : évite qu'un chargement lent
@@ -684,6 +686,7 @@ export default function NouveauPage() {
               dataUrl: await fileToDataUrl(file),
               preview: URL.createObjectURL(file),
               legende: legendes[idx] || defaultLegende(idx),
+              storedUrl: url,
             }
           } catch {
             return null
@@ -775,30 +778,82 @@ export default function NouveauPage() {
     }
   }
 
+  /**
+   * Construit la requête multipart de sauvegarde historique : métadonnées du
+   * rapport + manifeste ordonné des photos. Chaque photo est soit déjà stockée
+   * (storedUrl → réutilisée telle quelle), soit nouvelle (fichier joint). Renvoie
+   * aussi le poids des nouvelles photos pour le garde-fou de taille Vercel.
+   */
+  function buildSaveRapportForm(): { form: FormData; newBytes: number } {
+    const form = new FormData()
+    form.append('meta', JSON.stringify({
+      interventionId,
+      clientNom, clientEmail,
+      clientAdresse: adresse,
+      ville, codePostal,
+      typeIntervention,
+      dateIntervention,
+      transcription,
+      rapport, seo,
+      technicienNom: technicienNom || '',
+    }))
+    const manifest: { storedUrl?: string; legende: string; fileKey?: string }[] = []
+    let newIdx = 0
+    let newBytes = 0
+    photos.forEach(p => {
+      if (p.storedUrl) {
+        manifest.push({ storedUrl: p.storedUrl, legende: p.legende || '' })
+      } else {
+        const key = `photo_${newIdx++}`
+        form.append(key, p.file, p.file.name || `${key}.jpg`)
+        newBytes += p.file.size
+        manifest.push({ legende: p.legende || '', fileKey: key })
+      }
+    })
+    form.append('photosManifest', JSON.stringify(manifest))
+    return { form, newBytes }
+  }
+
+  /**
+   * Enregistre le rapport dans l'historique EN CONSERVANT les photos : les
+   * nouvelles photos sont uploadées vers Supabase Storage et liées à
+   * l'intervention (photos_urls), donc rechargées à la réouverture depuis
+   * l'historique. Renvoie l'id de l'intervention. Adopte l'id créé et marque les
+   * photos comme stockées pour éviter un ré-upload aux sauvegardes suivantes.
+   */
+  async function saveRapportToHistory(): Promise<string> {
+    if (!rapport) throw new Error('Rapport indisponible.')
+    const { form, newBytes } = buildSaveRapportForm()
+    // Vercel coupe le corps de requête à ~4,5 Mo (multipart compris).
+    if (newBytes > 4 * 1024 * 1024) {
+      throw new Error(
+        `Les nouvelles photos pèsent ${(newBytes / 1024 / 1024).toFixed(1)} Mo, au-dessus de la limite de 4 Mo. Retire ou allège quelques photos et réessaie.`
+      )
+    }
+    const res = await fetch('/api/save-rapport', { method: 'POST', body: form })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
+    // Insert → on adopte l'id pour que les prochaines sauvegardes updatent la
+    // même intervention (et que les photos y restent liées).
+    if (data.id && data.id !== interventionId) setInterventionId(data.id)
+    // Marque les photos désormais persistées comme "stockées" (évite un
+    // ré-upload au prochain enregistrement). On ne remappe que si tout a bien
+    // été persisté dans le même ordre (sinon on laisse un prochain save réessayer).
+    const savedUrls: string[] = Array.isArray(data.photos_urls) ? data.photos_urls : []
+    if (savedUrls.length === photos.length && savedUrls.length > 0) {
+      setPhotos(prev => prev.map((p, idx) => ({ ...p, storedUrl: savedUrls[idx] })))
+    }
+    setHistoryLoaded(false)
+    return data.id || ''
+  }
+
   /** Enregistre le rapport courant à la place de l'intervention chargée (update). */
   async function handleSaveInPlace() {
     if (!rapport || !interventionId) return
     setError(''); setSavingInPlace(true); setSavedFlash(false)
     try {
-      const res = await fetch('/api/save-rapport', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          interventionId,
-          clientNom, clientEmail,
-          clientAdresse: adresse,
-          ville, codePostal,
-          typeIntervention,
-          dateIntervention,
-          transcription,
-          rapport, seo,
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
+      await saveRapportToHistory()
       setSavedFlash(true)
-      // Remet à jour la liste historique en arrière-plan
-      setHistoryLoaded(false)
       setTimeout(() => setSavedFlash(false), 2500)
     } catch (e: any) {
       setError(`Erreur enregistrement : ${e.message}`)
@@ -1230,23 +1285,7 @@ export default function NouveauPage() {
                     </button>
                   </div>
 
-                  <SaveDocumentButton
-                    endpoint="/api/save-rapport"
-                    body={() => ({
-                      interventionId,
-                      clientNom,
-                      clientEmail,
-                      clientAdresse: adresse,
-                      ville,
-                      codePostal,
-                      typeIntervention,
-                      dateIntervention,
-                      transcription,
-                      rapport,
-                      seo,
-                      technicienNom: technicienNom || '',
-                    })}
-                  />
+                  <SaveDocumentButton action={saveRapportToHistory} />
 
                   <button
                     onClick={handleCreateFacture}

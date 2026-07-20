@@ -144,6 +144,14 @@ export interface PersistRapportInput extends Common {
   publishedSlug?: string | null
   /** Si fourni → update au lieu d'insert. */
   interventionId?: string | null
+  /**
+   * URLs publiques des photos (Supabase Storage) déjà uploadées par l'appelant.
+   * `undefined` → on ne touche PAS aux photos existantes (ex: flux Mode Terrain
+   * qui gère ses photos via /api/interventions/[id]/photo). `[]` → efface.
+   */
+  photosUrls?: string[] | null
+  /** Légendes alignées sur photosUrls (même ordre). */
+  photosLegendes?: string[] | null
 }
 
 export type PersistRapportResult =
@@ -187,6 +195,10 @@ export async function persistRapport(p: PersistRapportInput): Promise<PersistRap
     if (p.clientAdresse) update.adresse_chantier = p.clientAdresse
     if (p.ville) update.ville = p.ville
     if (p.codePostal) update.code_postal = p.codePostal
+    // Photos : seulement si l'appelant les a fournies (le flux Mode Terrain
+    // ne les envoie pas ici → on préserve les photos déjà en base).
+    if (p.photosUrls !== undefined) update.photos_urls = p.photosUrls
+    if (p.photosLegendes !== undefined) update.photos_legendes = p.photosLegendes
     // client_id : uniquement si un client a pu être résolu depuis des infos
     // explicitement fournies — sinon on conserve le lien existant.
     if (p.clientNom && p.clientNom.trim()) {
@@ -229,6 +241,8 @@ export async function persistRapport(p: PersistRapportInput): Promise<PersistRap
     rapport_json: p.rapport,
     seo_json: p.seo || null,
     publie_slug: p.publishedSlug || null,
+    photos_urls: p.photosUrls !== undefined ? p.photosUrls : null,
+    photos_legendes: p.photosLegendes !== undefined ? p.photosLegendes : null,
   }
 
   const baseRef: string | null = (p.rapport as any)?.reference || null
