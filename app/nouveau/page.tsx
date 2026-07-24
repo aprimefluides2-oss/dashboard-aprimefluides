@@ -79,6 +79,7 @@ const TYPES = [
   { v: 'Pompage poste de relevage', icon: '💧' },
   { v: 'Chemisage', icon: '🧵' },
   { v: 'Sanibroyeur', icon: '🔩' },
+  { v: 'Recherche de fuite', icon: '🔍' },
 ]
 
 const STEPPER_STEPS = [
