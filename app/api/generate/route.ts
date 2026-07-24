@@ -14,6 +14,7 @@ const SERVICES = [
   { slug: 'debouchage/debouchage-wc', label: 'Débouchage WC' },
   { slug: 'debouchage/debouchage-evier-douche', label: 'Débouchage évier / douche' },
   { slug: 'debouchage/vidange-fosse-septique', label: 'Vidange fosse septique' },
+  { slug: 'recherche-de-fuite', label: 'Recherche de fuite' },
   { slug: 'urgence-debouchage', label: 'Urgence débouchage 24/7' },
   { slug: 'tarifs', label: 'Nos tarifs' },
 ]

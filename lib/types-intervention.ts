@@ -20,6 +20,7 @@ export const TYPES_INTERVENTION = [
   'Pompage poste de relevage',
   'Chemisage',
   'Sanibroyeur',
+  'Recherche de fuite',
   'Devis',
 ] as const
 
@@ -54,6 +55,7 @@ export function detectTypeIntervention(text: string | null | undefined): TypeInt
   if (/d[ée]bouchage.*colonne|colonne.*(eu|ev|montante|bouch)|d[ée]boucher.*colonne/.test(t)) return 'Débouchage colonne'
   if (/d[ée]bouchage.*regard|regard.*bouch|d[ée]boucher.*regard/.test(t)) return 'Débouchage regard'
   if (/d[ée]bouchage.*goutti[èe]re|goutti[èe]re.*bouch|d[ée]boucher.*goutti[èe]re|descente.*eaux.*pluviales/.test(t)) return 'Débouchage gouttière'
+  if (/recherche.*fuite|d[ée]tection.*fuite|localisation.*fuite|recherche.*infiltration/.test(t)) return 'Recherche de fuite'
   if (/curage/.test(t)) return 'Curage canalisation'
   if (/d[ée]bouchage.*wc|wc.*bouch/.test(t)) return 'Débouchage WC'
   if (/d[ée]bouchage.*[ée]vier|[ée]vier.*bouch/.test(t)) return 'Débouchage évier'
