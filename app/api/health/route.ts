@@ -76,6 +76,13 @@ export async function GET() {
     env_ltdb_api_url: { ok: !!process.env.CLIENT_API_URL } as Check,
     env_nextauth_secret: { ok: !!process.env.NEXTAUTH_SECRET } as Check,
     env_resend_key: { ok: !!process.env.RESEND_API_KEY } as Check,
+    // Whisper (dictée vocale du rapport). Ajouté 2026-07-29 : la clé manquait en
+    // production et la seule façon de s'en apercevoir était d'échouer une dictée
+    // sur le terrain — /api/health l'ignorait complètement.
+    env_openai_key: {
+      ok: !!process.env.OPENAI_API_KEY,
+      detail: process.env.OPENAI_API_KEY ? undefined : 'dictée vocale indisponible (/api/transcribe)',
+    } as Check,
     anthropic_api: deepseekCheck,
     backend_api: backend,
     resend_api: resend,

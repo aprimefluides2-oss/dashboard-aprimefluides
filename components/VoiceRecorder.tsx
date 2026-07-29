@@ -57,8 +57,17 @@ export default function VoiceRecorder({ onTranscription }: VoiceRecorderProps) {
           const formData = new FormData()
           formData.append('audio', blob, `dictee.${ext}`)
           const res = await fetch('/api/transcribe', { method: 'POST', body: formData })
-          const data = await res.json()
-          if (!res.ok) throw new Error(data.error || 'Transcription échouée')
+          const data = await res.json().catch(() => ({} as any))
+          if (!res.ok) {
+            // Le serveur rédige déjà un message compréhensible par le technicien
+            // (ex. configuration manquante) : on l'affiche tel quel, sans préfixe
+            // technique. Le préfixe est réservé aux erreurs imprévues ci-dessous.
+            setError(
+              data.error ||
+                "Transcription indisponible pour le moment. Réessayez, ou tapez le rapport.",
+            )
+            return
+          }
           onTranscription(data.text)
         } catch (e: any) {
           setError(`Erreur transcription : ${e.message}`)

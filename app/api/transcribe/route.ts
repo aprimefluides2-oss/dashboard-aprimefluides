@@ -2,8 +2,18 @@ import { NextRequest, NextResponse } from "next/server"
 import OpenAI from "openai"
 
 export async function POST(req: NextRequest) {
+  // Message destiné au technicien sur le terrain, pas à un développeur : il doit
+  // comprendre que ça ne vient pas de lui et qu'il peut continuer en tapant.
+  // Le `code` reste exploitable pour le diagnostic (cf. /api/health → env_openai_key).
   if (!process.env.OPENAI_API_KEY) {
-    return NextResponse.json({ error: 'OPENAI_API_KEY non configurée' }, { status: 500 })
+    return NextResponse.json(
+      {
+        error:
+          "Dictée vocale indisponible : la transcription n'est pas configurée sur le serveur. Prévenez l'administrateur — en attendant, vous pouvez taper le rapport.",
+        code: 'MISSING_OPENAI_KEY',
+      },
+      { status: 503 },
+    )
   }
   const formData = await req.formData()
   const audioFile = formData.get('audio') as File
