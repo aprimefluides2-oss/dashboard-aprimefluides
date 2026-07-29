@@ -88,9 +88,20 @@ export async function GET() {
     resend_api: resend,
   }
 
+  // Sondes NON bloquantes : leur échec n'empêche pas le service de fonctionner et
+  // ne doit donc pas faire tomber le `ok` global. `resend_api` interroge /domains,
+  // inaccessible à une clé Resend de type « Sending access » → 401 permanent alors
+  // que l'envoi d'e-mails marche. Sans cette distinction, `ok` valait toujours
+  // false et l'endpoint était inexploitable pour du monitoring automatique.
+  const NON_BLOCKING = new Set(['resend_api'])
+
   const failures: string[] = []
+  const warnings: string[] = []
   for (const [name, r] of Object.entries(checks)) {
-    if (!r.ok) failures.push(`${name}: ${r.detail || 'failed'}`)
+    if (r.ok) continue
+    const line = `${name}: ${r.detail || 'failed'}`
+    if (NON_BLOCKING.has(name)) warnings.push(line)
+    else failures.push(line)
   }
 
   const ok = failures.length === 0
@@ -105,6 +116,7 @@ export async function GET() {
       region: process.env.VERCEL_REGION || 'unknown',
       checks,
       failures,
+      warnings,
     },
     { status: ok ? 200 : 503 },
   )

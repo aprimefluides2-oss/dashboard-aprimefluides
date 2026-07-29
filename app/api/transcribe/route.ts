@@ -15,7 +15,22 @@ export async function POST(req: NextRequest) {
       { status: 503 },
     )
   }
-  const formData = await req.formData()
+  // `req.formData()` était hors du try : une requête malformée (corps vide, mauvais
+  // content-type, upload interrompu par une coupure réseau sur le terrain) remontait
+  // en 500 SANS corps JSON, et le client affichait une erreur brute incompréhensible.
+  let formData: FormData
+  try {
+    formData = await req.formData()
+  } catch {
+    return NextResponse.json(
+      {
+        error: "L'enregistrement n'a pas pu être envoyé. Vérifiez votre connexion et réessayez.",
+        code: 'INVALID_FORM_DATA',
+      },
+      { status: 400 },
+    )
+  }
+
   const audioFile = formData.get('audio') as File
   if (!audioFile) return NextResponse.json({ error: 'Fichier audio manquant' }, { status: 400 })
 
