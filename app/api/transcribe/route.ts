@@ -44,6 +44,41 @@ export async function POST(req: NextRequest) {
     })
     return NextResponse.json({ text: transcription.text })
   } catch (e: any) {
-    return NextResponse.json({ error: `OpenAI : ${e.message || e.toString()}` }, { status: 500 })
+    // Le technicien lisait « OpenAI : 429 insufficient_quota… ». On traduit les
+    // pannes courantes en consignes actionnables ; le détail technique part dans
+    // `detail`/`code` (diagnostic) et dans les logs Vercel, jamais à l'écran.
+    const status: number | undefined = e?.status
+    const code: string | undefined = e?.code || e?.error?.code
+    const detail = String(e?.message || e).slice(0, 300)
+    console.error('[transcribe] échec OpenAI', { status, code, detail })
+
+    // Un crédit épuisé remonte en 429 avec le code `insufficient_quota` : ce cas
+    // doit être testé AVANT le 429 générique, sinon on conseille d'attendre alors
+    // qu'il faut recharger le compte.
+    let error =
+      "La transcription a échoué. Réessayez, ou tapez le rapport si le problème persiste."
+    let httpStatus = 502
+
+    if (status === 401 || code === 'invalid_api_key') {
+      error =
+        "Dictée indisponible : la clé de transcription est refusée par le service. Prévenez l'administrateur — en attendant, vous pouvez taper le rapport."
+      httpStatus = 503
+    } else if (code === 'insufficient_quota' || status === 402) {
+      error =
+        "Dictée indisponible : le crédit du service de transcription est épuisé. Prévenez l'administrateur — en attendant, vous pouvez taper le rapport."
+      httpStatus = 503
+    } else if (status === 429) {
+      error = 'Trop de dictées en même temps. Patientez quelques secondes puis réessayez.'
+      httpStatus = 429
+    } else if (status === 413 || code === 'file_too_large') {
+      error =
+        'Enregistrement trop long pour être transcrit. Découpez votre dictée en plusieurs passages plus courts.'
+      httpStatus = 413
+    }
+
+    return NextResponse.json(
+      { error, code: code || (status ? `HTTP_${status}` : 'UNKNOWN'), detail },
+      { status: httpStatus },
+    )
   }
 }
