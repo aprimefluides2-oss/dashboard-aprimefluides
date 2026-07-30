@@ -15,32 +15,43 @@
  *  - `fixGeneratedText` : filet de sécurité sur les textes produits, applicable
  *    à du HTML (ne touche jamais aux balises ni aux attributs).
  *
- * Règle : on ne corrige QUE des formes qui n'existent pas en français. Aucune
- * réécriture de style, aucun mot ajouté — la fidélité à la dictée reste la règle.
+ * ⚠ PIÈGE `\b` + ACCENTS (vécu : « eaux usées » → « eaux uséeses »).
+ * En JS, `é` n'est PAS un caractère de mot : `\b` place donc une frontière
+ * ENTRE « usé » et « es », si bien que /us[ée]s?\b/ matche « usé » au milieu de
+ * « usées » et la réécriture duplique la fin du mot. On n'utilise donc JAMAIS
+ * `\b` en fin de motif ici : on borne avec FIN (lookahead « aucune lettre
+ * ensuite ») et DEB (lookbehind), qui connaissent les accents.
+ *
+ * INVARIANT NON NÉGOCIABLE : un texte déjà correct doit ressortir IDENTIQUE
+ * (idempotence). Toute règle ajoutée doit être couverte dans
+ * `scripts/test-fix-transcription.ts` (cas à corriger + cas témoins intacts).
  */
+
+/** Bornes de mot conscientes des accents (≠ \b, cf. en-tête). */
+const DEB = '(?<![A-Za-zÀ-ÖØ-öø-ÿ])'
+const FIN = '(?![A-Za-zÀ-ÖØ-öø-ÿ])'
+
+/** Construit /DEB + corps + FIN/gi. */
+function motif(corps: string): RegExp {
+  return new RegExp(`${DEB}(?:${corps})${FIN}`, 'gi')
+}
 
 /**
  * Mots inexistants observés en sortie de transcription → forme correcte.
- * Clé = motif insensible à la casse et aux limites de mot.
+ * On ne liste QUE des formes fausses en français : jamais un motif qui pourrait
+ * matcher une orthographe déjà valide.
  */
 const GLOSSAIRE: Array<[RegExp, string]> = [
   // Observés en prod
-  [/\bapparuits?\b/gi, 'appareils'],
-  [/\bappar[ée]ils?\s+sanitaires?\b/gi, 'appareils sanitaires'],
-  // Vocabulaire métier fréquemment mal transcrit
-  [/\bsani\s*-?\s*broyeur/gi, 'sanibroyeur'],
-  [/\bsanibroyeurs?\s+broyeur/gi, 'sanibroyeur'],
-  [/\bsanni?broyeur/gi, 'sanibroyeur'],
-  [/\bhydro\s*-?\s*curage/gi, 'hydrocurage'],
-  [/\bsyphon/gi, 'siphon'],
-  [/\bcanalisations?\s+bouch[ée]s\b/gi, 'canalisations bouchées'],
-  [/\bfosse\s+toute\s+eaux?\b/gi, 'fosse toutes eaux'],
-  [/\bbac\s+[àa]\s+graisses\b/gi, 'bac à graisse'],
-  [/\bpompe\s+de\s+relevement\b/gi, 'pompe de relevage'],
-  [/\beaux?\s+us[ée]s?\b/gi, 'eaux usées'],
-  [/\bregard\s+de\s+visites?\b/gi, 'regard de visite'],
-  [/\bcolonne\s+e\.?\s?u\.?\b/gi, 'colonne EU'],
-  [/\bdisjoncteurs?\s+diff[ée]rentiels?\b/gi, 'disjoncteur différentiel'],
+  [motif('apparuits?'), 'appareils'],
+  // Vocabulaire métier fréquemment mal transcrit (formes fausses uniquement)
+  [motif('sani\\s+broyeurs?|sani-broyeurs?|sannibroyeurs?|sanibroyeurs?\\s+broyeurs?'), 'sanibroyeur'],
+  [motif('hydro\\s+curages?|hydro-curages?'), 'hydrocurage'],
+  [motif('syphons?'), 'siphon'],
+  [motif('fosses?\\s+toute\\s+eaux?'), 'fosse toutes eaux'],
+  [motif('bacs?\\s+[àa]\\s+graisses'), 'bac à graisse'],
+  [motif('pompes?\\s+de\\s+relevement'), 'pompe de relevage'],
+  [motif('regards?\\s+de\\s+visites'), 'regard de visite'],
 ]
 
 /**
@@ -56,16 +67,21 @@ const RADICAUX_COUPES = [
   '[ée]vacu',
   'raccord',
   'fonctionn',
-  'branch',
   'colmat',
   'obstru',
-  'curag',
-  'vidang',
 ]
-const TERMINAISONS =
-  '(?:e|es|ent|é|ée|és|ées|er|ez|ait|aient|era|eront|age|ages|ement|ements|tion|tions|teur|teurs)'
+/**
+ * Terminaisons triées du plus long au plus court : la borne FIN interdit déjà un
+ * match partiel (« ation » dans « ations » échoue faute de fin de mot), mais
+ * l'ordre garde le motif lisible et robuste si FIN évolue.
+ */
+const TERMINAISONS = [
+  'ements', 'ations', 'aient', 'ement', 'ation', 'eront', 'tions', 'teurs',
+  'ants', 'ents', 'ages', 'tion', 'teur', 'tent', 'ant', 'ent', 'ées', 'era',
+  'age', 'ait', 'tes', 'és', 'ée', 'té', 'es', 'er', 'ez', 'te', 'e',
+].join('|')
 const MOTS_COUPES = new RegExp(
-  `\\b(${RADICAUX_COUPES.join('|')})\\s+(${TERMINAISONS})\\b`,
+  `${DEB}(${RADICAUX_COUPES.join('|')})\\s+(${TERMINAISONS})${FIN}`,
   'gi',
 )
 
@@ -73,9 +89,10 @@ const MOTS_COUPES = new RegExp(
 function corrigerTexte(texte: string): string {
   let out = texte
   out = out.replace(MOTS_COUPES, (_m, radical, fin) => `${radical}${fin}`)
-  for (const [motif, remplacement] of GLOSSAIRE) out = out.replace(motif, remplacement)
-  // Espaces parasites avant ponctuation faible + espaces doublés
-  out = out.replace(/\s+([,.;:!?])/g, '$1').replace(/[ \t]{2,}/g, ' ')
+  for (const [m, remplacement] of GLOSSAIRE) out = out.replace(m, remplacement)
+  // Espace parasite avant virgule / point SEULEMENT : en typographie française,
+  // « ; : ! ? » prennent au contraire une espace avant — ne pas y toucher.
+  out = out.replace(/[ \t]+([,.])(\s|$)/g, '$1$2').replace(/[ \t]{2,}/g, ' ')
   return out
 }
 
