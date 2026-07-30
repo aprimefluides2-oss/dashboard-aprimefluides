@@ -1,19 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { deepseek } from "@/lib/deepseek"
 import { VILLES_VAR, findVilleByName, searchVilles } from "@/lib/villes-var"
+import { TYPES_INTERVENTION, isDevisIntervention } from "@/lib/types-intervention"
 
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6"
 
-const TYPES = [
-  'Débouchage canalisation',
-  'Débouchage WC',
-  'Débouchage évier',
-  'Débouchage douche',
-  'Hydrocurage',
-  'Inspection caméra',
-  'Vidange fosse septique',
-  'Curage canalisation',
-]
+// Liste alignée sur la source unique (lib/types-intervention.ts) : sinon les types
+// ajoutés au sélecteur restent invisibles pour l'IA de dictée. « Devis » exclu :
+// la dictée décrit toujours une intervention réalisée.
+const TYPES: readonly string[] = TYPES_INTERVENTION.filter(t => !isDevisIntervention(t))
 
 async function callWithRetry<T>(fn: () => Promise<T>, maxAttempts = 5): Promise<T> {
   let lastErr: any

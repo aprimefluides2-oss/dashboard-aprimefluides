@@ -7,9 +7,11 @@ export const TYPES_INTERVENTION = [
   'Débouchage canalisation',
   'Débouchage WC',
   'Débouchage évier',
+  'Débouchage lavabo',
   'Débouchage douche',
   'Débouchage colonne',
   'Débouchage regard',
+  'Pompage de regard',
   'Débouchage gouttière',
   'Hydrocurage',
   'Curage canalisation',
@@ -54,11 +56,13 @@ export function detectTypeIntervention(text: string | null | undefined): TypeInt
   if (/vidange.*fosse|fosse.*septique/.test(t)) return 'Vidange fosse septique'
   if (/d[ée]bouchage.*colonne|colonne.*(eu|ev|montante|bouch)|d[ée]boucher.*colonne/.test(t)) return 'Débouchage colonne'
   if (/d[ée]bouchage.*regard|regard.*bouch|d[ée]boucher.*regard/.test(t)) return 'Débouchage regard'
+  if (/pompage.*regard|regard.*pomp|pomper.*regard/.test(t)) return 'Pompage de regard'
   if (/d[ée]bouchage.*goutti[èe]re|goutti[èe]re.*bouch|d[ée]boucher.*goutti[èe]re|descente.*eaux.*pluviales/.test(t)) return 'Débouchage gouttière'
   if (/recherche.*fuite|d[ée]tection.*fuite|localisation.*fuite|recherche.*infiltration/.test(t)) return 'Recherche de fuite'
   if (/curage/.test(t)) return 'Curage canalisation'
   if (/d[ée]bouchage.*wc|wc.*bouch/.test(t)) return 'Débouchage WC'
   if (/d[ée]bouchage.*[ée]vier|[ée]vier.*bouch/.test(t)) return 'Débouchage évier'
+  if (/d[ée]bouchage.*lavabo|lavabo.*bouch|d[ée]boucher.*lavabo|vasque.*bouch/.test(t)) return 'Débouchage lavabo'
   if (/d[ée]bouchage.*douche|douche.*bouch/.test(t)) return 'Débouchage douche'
   if (/d[ée]bouchage|bouchon|d[ée]boucher/.test(t)) return 'Débouchage canalisation'
 
