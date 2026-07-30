@@ -602,9 +602,15 @@ export default function NouveauPage() {
     formData.append('agence', agence)
     formData.append('intervention_date', dateIntervention)
     formData.append('description', truncate(seo.meta_description || '', 195))
+    // Title SERP dédié (≠ H1, sans suffixe de marque) : sans lui, le site
+    // retombait sur « {service} {ville} {CP} », un title de 24 caractères.
+    formData.append('meta_title', truncate(seo.meta_title || '', 118))
     formData.append('meta_keywords', (seo.meta_keywords || []).join(', '))
     formData.append('content', contentWithContainers)
     formData.append('faq_json', JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", "mainEntity": (Array.isArray(seo?.faq) ? seo.faq : []).map((f: any) => ({ "@type": "Question", "name": f?.question || '', "acceptedAnswer": { "@type": "Answer", "text": f?.reponse || '' } })) }))
+    // HowTo (étapes réelles) : le site ne l'émet que si les étapes sont aussi
+    // rendues visiblement — elles le sont, via le <ol> du contenu.
+    if (seo.howto_json) formData.append('howto_json', seo.howto_json)
     formData.append('jsonld', JSON.stringify(seo.jsonld || {}))
     formData.append('related_services_json', JSON.stringify(seo.related_services || []))
     formData.append('is_published', 'true')

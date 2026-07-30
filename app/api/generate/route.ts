@@ -1,23 +1,21 @@
 import { NextRequest, NextResponse } from "next/server"
 import { deepseek } from "@/lib/deepseek"
 import { parseAiJson } from "@/lib/parseAiJson"
+import { fixTranscription, fixGeneratedText } from "@/lib/fix-transcription"
+import {
+  SITE,
+  SERVICE_LINKS,
+  HUB_DEBOUCHAGE,
+  absolute,
+  citySlug,
+  isReachable,
+  pillarForType,
+  resolveCityPath,
+} from "@/lib/site-links"
 
 export const maxDuration = 60
 
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6"
-const SITE = 'https://www.aprime-fluides.fr'
-
-const SERVICES = [
-  { slug: 'debouchage/debouchage-canalisations', label: 'Débouchage de canalisations' },
-  { slug: 'debouchage/curage-canalisation', label: 'Curage de canalisation' },
-  { slug: 'debouchage/inspection-camera', label: 'Inspection caméra' },
-  { slug: 'debouchage/debouchage-wc', label: 'Débouchage WC' },
-  { slug: 'debouchage/debouchage-evier-douche', label: 'Débouchage évier / douche' },
-  { slug: 'debouchage/vidange-fosse-septique', label: 'Vidange fosse septique' },
-  { slug: 'recherche-de-fuite', label: 'Recherche de fuite' },
-  { slug: 'urgence-debouchage', label: 'Urgence débouchage 24/7' },
-  { slug: 'tarifs', label: 'Nos tarifs' },
-]
 
 function slugify(s: string) {
   return s.toLowerCase()
@@ -52,28 +50,56 @@ function extractText(msg: { content: { type: string; text?: string }[] }): strin
     .join("")
 }
 
+/**
+ * Le slug publié ne doit PAS porter d'horodatage (URL sale, non canonique à
+ * l'œil). Mais `gallery/publish` fait un upsert PAR SLUG : deux interventions
+ * même jour / même ville / même type écraseraient la première. On vérifie donc
+ * l'existence côté site et on suffixe `-2`, `-3`… uniquement en cas de collision.
+ * Réseau KO → on rend le slug de base (le risque d'écrasement reste
+ * théorique : 2 fois le même service, la même ville, le même jour).
+ */
+async function slugDisponible(slug: string): Promise<string> {
+  for (let i = 1; i <= 5; i++) {
+    const candidat = i === 1 ? slug : `${slug}-${i}`
+    const existe = await isReachable(`/api/gallery/${candidat}/`)
+    if (!existe) return candidat
+  }
+  return `${slug}-${Date.now().toString().slice(-4)}`
+}
+
 export async function POST(req: NextRequest) {
-  const { transcription, type_intervention, ville, code_postal } = await req.json()
-  if (!transcription || !type_intervention || !ville) {
+  const { transcription: transcriptionBrute, type_intervention, ville, code_postal } = await req.json()
+  if (!transcriptionBrute || !type_intervention || !ville) {
     return NextResponse.json({ error: 'Champs manquants' }, { status: 400 })
   }
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json({ error: 'ANTHROPIC_API_KEY non configurée' }, { status: 500 })
   }
 
+  // Dictée nettoyée des mots inexistants / coupés par la transcription vocale :
+  // le LLM reçoit le bon mot et le réutilise partout (cf. lib/fix-transcription).
+  const transcription = fixTranscription(transcriptionBrute)
+
   // Pré-calculs (utilisés par les 2 prompts en parallèle)
-  const villeSlug = slugify(ville)
+  const villeSlug = citySlug(ville)
   const cp = code_postal || '95870'
-  const cityUrl = `${SITE}/${villeSlug}-${cp}`
   const typeSlug = slugify(type_intervention)
   const today = new Date()
   const dateSlug = String(today.getDate()).padStart(2, '0') + String(today.getMonth() + 1).padStart(2, '0') + today.getFullYear()
-  // Numérotation séquentielle basée sur l'heure (évite collisions même jour)
-  // Inclut HHMMSS pour éviter les collisions sur la table interventions (ref unique).
+  // Numérotation séquentielle basée sur l'heure : garde la `ref` interne unique
+  // (table interventions) — mais elle ne pollue PLUS le slug public.
   const seq = String(today.getHours()).padStart(2, '0') + String(today.getMinutes()).padStart(2, '0') + String(today.getSeconds()).padStart(2, '0')
-  // Slug inclut l'heure → unique même si 2 interventions/jour sur même ville/type
-  const realisationSlug = `${typeSlug}-${villeSlug}-${dateSlug}-${seq}`
   const reference = `APR-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}-${seq}`
+
+  // Liens internes RÉELS (200 sans redirection) + page pilier du type.
+  // Avant : URLs codées en dur et périmées → 1 lien ville 404 + 6 liens 308 sur
+  // chaque réalisation publiée (audit 2026-07-30).
+  const pilier = pillarForType(type_intervention)
+  const [cityPath, realisationSlug] = await Promise.all([
+    resolveCityPath(ville, cp),
+    slugDisponible(`${typeSlug}-${villeSlug}-${cp}-${dateSlug}`),
+  ])
+  const cityUrl = absolute(cityPath)
 
   // === APPEL 1 — RAPPORT TECHNIQUE COMPLET (pour PDF détaillé) ===
   const rapportPrompt = `Tu es un rédacteur expert de rapports d'intervention de plomberie/assainissement professionnels (style bureau d'études, rapport d'expertise BTP). À partir d'une dictée vocale d'un technicien, tu produis un document détaillé et exhaustif destiné à un client professionnel (syndic, bailleur, gestionnaire de copropriété).
@@ -89,6 +115,7 @@ Date: ${today.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year:
 - Si le technicien ne dit pas « furet » → n'écris JAMAIS « furet ». Idem pour hydrocurage, caméra, mécanique, pression en bars, durée, etc.
 - N'invente AUCUN fait, action, mesure, prix explicite, matériel, durée qui n'est pas dans la dictée.
 - Tu peux REFORMULER en langage professionnel UNIQUEMENT ce qui est déjà dit — pas compléter par déduction métier.
+- ✍ ORTHOGRAPHE : la dictée est une transcription vocale automatique. Si un mot est manifestement mal transcrit (ex. « apparuits » = « appareils ») ou coupé en deux (ex. « disjonc te » = « disjoncte »), écris la forme française correcte. Corriger une coquille n'est PAS inventer un fait — mais ne change ni le sens, ni le vocabulaire technique choisi par le technicien.
 - "materiel_utilise" : UNIQUEMENT les outils/matériels nommés explicitement dans la dictée, sinon [].
 - "phases" : une phase par étape RÉELLEMENT décrite ; pas de phase inventée pour « faire joli ».
 - "analyse_table" : une ligne par problème/constat EXPLICITE ; pas de ligne pour combler.
@@ -167,6 +194,7 @@ Règles de ton :
 - Pas d'urgence agressive type "APPELEZ MAINTENANT 24H/24 !!". La crédibilité fait le travail.
 - Si la dictée nomme un repère local (rue, quartier), reprends-le — ça ancre la page.
 - Reste factuel : si la dictée ne dit pas combien de temps ça a pris, ne l'invente pas.
+- ZÉRO COQUILLE : la dictée vient d'une transcription vocale. Un mot manifestement mal transcrit (« apparuits » → « appareils ») ou coupé en deux (« disjonc te » → « disjoncte ») doit être écrit correctement. Une faute visible sur la page détruit la confiance du lecteur ET la valeur de la page comme source citable.
 
 Exemples d'ouvertures correctes :
 - "Appel en fin de matinée : un client de ${ville} a son évier qui ne s'évacue plus depuis la veille."
@@ -184,12 +212,20 @@ ${transcription}
 Intervention : ${type_intervention} à ${ville} (${cp})
 Référence unique : ${reference}
 
-SERVICES DU SITE (pour maillage interne) :
-${SERVICES.map(s => `- ${s.label} → ${SITE}/${s.slug}`).join('\n')}
+⛔ URLS AUTORISÉES — LISTE FERMÉE ⛔
+N'écris JAMAIS une URL absente de cette liste (pas de /debouchage/…, pas de
+/${villeSlug}-${cp}, pas de /urgence-debouchage, pas de /tarifs). Toute autre URL
+est un 404 sur le site. Copie-les caractère pour caractère.
 
-PAGE VILLE DE DESTINATION (OBLIGATOIRE) :
-- Page locale "${ville}" → ${cityUrl}
-- Page débouchage (hub) → ${SITE}/debouchage-canalisation
+PAGE PILIER DU SERVICE (à lier au moins 1 fois, c'est le lien le plus pertinent) :
+- ${pilier.label} → ${absolute(pilier.path)}
+
+AUTRES PAGES SERVICE (pour maillage interne) :
+${SERVICE_LINKS.filter(s => s.path !== pilier.path).map(s => `- ${s.label} → ${absolute(s.path)}`).join('\n')}
+
+PAGE LOCALE DE DESTINATION (OBLIGATOIRE) :
+- Page "${ville}" → ${cityUrl}
+- Page débouchage (hub) → ${absolute(HUB_DEBOUCHAGE.path)}
 
 URL FINALE : ${SITE}/etudes-de-cas/${realisationSlug}
 
@@ -230,7 +266,23 @@ Les 3 champs "titre_h1", "meta_description" et "resume_rich_snippet" doivent pou
   Inclure si la dictée le permet : 1 mesure (durée, pression, longueur, niveau d'étage), 1 lieu précis, 1 nom de méthode technique exact.
   Ton de bulletin local, pas de promo, pas de "nous", style "rapport bref" à la 3ᵉ personne ou "on" sobre.
   ✅ "Intervention sur une colonne d'eaux usées d'un immeuble collectif à ${ville}. Hydrocurage haute pression à 200 bars puis inspection vidéo du réseau ; le bouchon de lingettes situé au niveau du 3ᵉ étage a été retiré et l'évacuation rétablie en moins de deux heures."
+- Meta title (champ "meta_title") : 45 à 58 caractères MAXIMUM. C'est le titre affiché dans Google, DIFFÉRENT du H1 (plus court, orienté requête).
+  N'AJOUTE JAMAIS " | Aprime Fluides" ni le nom de la marque : le site l'ajoute lui-même.
+  Construction : intention de recherche (le service tel qu'on le tape) + ${ville} + (${cp}) si ça tient dans 58 caractères.
+  ✅ "Remplacement sanibroyeur ${ville} (${cp}) — cas réel"
+  ✅ "Débouchage colonne EU ${ville} — intervention réelle"
+  ❌ "${type_intervention} ${ville} ${cp}"                (juste des mots-clés empilés, aucune intention)
+  ❌ "…| Aprime Fluides"                                  (suffixe ajouté par le site = doublon)
+  Interdits : "!", "24/7", "urgent", "pas cher", "n°1", majuscules en bloc.
 - Contenu HTML : 700-1100 mots, h2/h3 (4-6 h2 minimum), paragraphes courts (2-4 phrases), strong sur mots-clés locaux utilisés NATURELLEMENT dans la phrase, listes <ul> quand c'est pertinent (étapes, symptômes, causes).
+- ⚠ 2 H2 EN FORME DE QUESTION OBLIGATOIRES, portant sur LE problème réel de cette intervention (pas de question générique). Juste sous chaque question : la réponse en 2-3 phrases, 1ʳᵉ phrase = la réponse directe, citable hors contexte.
+  ✅ "<h2>Pourquoi un sanibroyeur fait-il disjoncter l'électricité ?</h2><p>Un sanibroyeur qui disjoncte signale presque toujours…</p>"
+  ✅ "<h2>Faut-il réparer ou remplacer un sanibroyeur qui disjoncte ?</h2><p>…</p>"
+- ⚠ ÉTAPES : une section "Étapes de l'intervention" avec un <ol> des étapes RÉELLEMENT décrites dans la dictée (3 à 6 <li>, une action par <li>). Ce <ol> doit correspondre exactement au champ "howto_steps".
+- TABLEAU COMPARATIF : si — et seulement si — cette intervention comportait un vrai arbitrage (réparer vs remplacer, curage vs chemisage, réparation ponctuelle vs rénovation), ajoute UN <table> à 3-4 colonnes (Critère / Option A / Option B / Ce qu'on a retenu) avec <thead><tr><th>… Pas d'arbitrage réel dans la dictée → PAS de tableau (aucun tableau inventé pour "faire riche").
+- DURÉE : si la dictée donne une durée, écris-la en clair (chiffre + unité) dans le résumé ET dans le corps. Si elle ne la donne pas, n'en écris aucune, même approximative.
+- PRIX : n'écris un montant QUE si le technicien a dicté un montant, et alors écris-le en clair (ex. "240 € TTC"). N'écris JAMAIS de placeholder du type {PRIX_MIN} : il serait publié tel quel sur le site. Aucun montant dicté → renvoie vers la page tarifs par un lien, sans chiffre.
+- ATTRIBUTION : parle de "notre technicien" / "nos techniciens". Ne donne JAMAIS de prénom ni de nom d'intervenant (règle interne : les intervenants terrain restent anonymes).
 - Intertitres orientés récit ou bénéfice lecteur, pas sloganesques. Ex : "Ce qu'on a trouvé sur place", "Pourquoi la canalisation s'était rebouchée", "Comment éviter que ça recommence".
 - Conteneurs HTML à utiliser : <section class=\\"content-block\\">, <div class=\\"info-box\\"> (pour un point-clé ou conseil), <div class=\\"checklist-box\\"> (pour une liste d'étapes).
 - MAILLAGE INTERNE : ≥ 3 liens vers les SERVICES + ≥ 2 liens vers la page ville (${cityUrl}) + 1 lien vers le hub débouchage. Les liens doivent apparaître naturellement dans une phrase, pas collés en fin de paragraphe comme une liste SEO.
@@ -245,6 +297,7 @@ volumineux et vient en DERNIER — les champs courts (faq, related_services)
 sont placés avant pour ne jamais être perdus si la réponse est longue.
 {
   "titre_h1": "titre unique et spécifique — ne pas copier d'autres pages",
+  "meta_title": "title SERP 45-58 car., sans le nom de la marque",
   "meta_description": "description unique avec angle distinctif",
   "resume_rich_snippet": "résumé court 2-3 phrases, factuel, citable, sans promo excessive",
   "meta_keywords": ["ville+service","longue traîne 1","longue traîne 2","..."],
@@ -257,9 +310,14 @@ sont placés avant pour ne jamais être perdus si la réponse est longue.
     {"question":"...","reponse":"..."}
   ],
   "related_services": [
-    {"label":"...","url":"${SITE}/debouchage/..."},
-    {"label":"...","url":"${SITE}/debouchage/..."},
-    {"label":"...","url":"${SITE}/debouchage/..."}
+    {"label":"${pilier.label}","url":"${absolute(pilier.path)}"},
+    {"label":"un autre label de la liste fermée","url":"une autre URL de la liste fermée"},
+    {"label":"un autre label de la liste fermée","url":"une autre URL de la liste fermée"}
+  ],
+  "howto_steps": [
+    {"nom":"Titre court de l'étape 1","texte":"1-2 phrases décrivant l'action réellement effectuée"},
+    {"nom":"Titre court de l'étape 2","texte":"..."},
+    {"nom":"Titre court de l'étape 3","texte":"..."}
   ],
   "contenu_principal": "<section class=\\"content-block\\"><h2>Contexte de l'intervention</h2><p>...</p></section><section class=\\"content-block\\"><h2>Diagnostic technique</h2><p>...<a href=\\"${SITE}/debouchage/...\\">lien</a>...</p><div class=\\"info-box\\"><strong>Point clé :</strong> ...</div></section><section class=\\"content-block\\"><h2>Travaux réalisés</h2><h3>Étape 1 — ...</h3><p>...</p><div class=\\"checklist-box\\"><ul><li>...</li></ul></div></section><section class=\\"content-block\\"><h2>Recommandations</h2><p>...</p></section>"
 }`
@@ -340,9 +398,31 @@ sont placés avant pour ne jamais être perdus si la réponse est longue.
       }))
     : []
   rapport.materiel_utilise = Array.isArray(rapport.materiel_utilise) ? rapport.materiel_utilise : []
+  // Filet anti-coquille sur les textes du PDF client (mêmes causes que le SEO).
+  for (const champ of ['objet', 'contexte', 'diagnostic', 'travaux_realises', 'recommandations', 'commentaire_technicien', 'conditions_intervention', 'duree_intervention'] as const) {
+    if (typeof rapport[champ] === 'string') rapport[champ] = fixGeneratedText(rapport[champ])
+  }
+  rapport.phases = rapport.phases.map((p: { titre: string; statut: string; contexte: string; action: string; resultat: string }) => ({
+    ...p,
+    titre: fixGeneratedText(p.titre),
+    contexte: fixGeneratedText(p.contexte),
+    action: fixGeneratedText(p.action),
+    resultat: fixGeneratedText(p.resultat),
+  }))
 
   seo = seo && typeof seo === 'object' ? seo : {}
   seo.titre_h1 = typeof seo.titre_h1 === 'string' ? seo.titre_h1 : ''
+  // Meta title : sans suffixe de marque (le site l'ajoute) et borné à 58 c.
+  // Repli sur le H1 tronqué au mot si le modèle a omis le champ.
+  const metaTitleBrut = typeof seo.meta_title === 'string' && seo.meta_title.trim()
+    ? seo.meta_title.trim()
+    : seo.titre_h1
+  seo.meta_title = metaTitleBrut
+    .replace(/\s*[—|\-–]\s*Aprime\s*[Ff]luides\s*$/i, '')
+    .trim()
+    .slice(0, 58)
+    .replace(/\s+\S*$/, '')
+    .trim()
   seo.meta_description = typeof seo.meta_description === 'string' ? seo.meta_description : ''
   seo.contenu_principal = typeof seo.contenu_principal === 'string' ? seo.contenu_principal : ''
   seo.meta_keywords = Array.isArray(seo.meta_keywords) ? seo.meta_keywords : []
@@ -353,6 +433,45 @@ sont placés avant pour ne jamais être perdus si la réponse est longue.
         reponse: typeof f.reponse === 'string' ? f.reponse : '',
       }))
     : []
+
+  // HowTo : construit à partir des étapes RÉELLES renvoyées par le modèle, qui
+  // sont aussi rendues en <ol> dans le contenu → parité DOM ↔ schema exigée par
+  // le front (`buildCaseStudyHowToJsonLd` ignore un HowTo sans `step`).
+  const howtoSteps = Array.isArray(seo.howto_steps)
+    ? seo.howto_steps
+        .filter((s: unknown) => s && typeof s === 'object')
+        .map((s: { nom?: unknown; texte?: unknown }) => ({
+          nom: typeof s.nom === 'string' ? fixGeneratedText(s.nom) : '',
+          texte: typeof s.texte === 'string' ? fixGeneratedText(s.texte) : '',
+        }))
+        .filter((s: { nom: string; texte: string }) => s.nom && s.texte)
+    : []
+  seo.howto_steps = howtoSteps
+  seo.howto_json = howtoSteps.length >= 2
+    ? JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'HowTo',
+        name: seo.titre_h1 || `${type_intervention} à ${ville}`,
+        step: howtoSteps.map((s: { nom: string; texte: string }, i: number) => ({
+          '@type': 'HowToStep',
+          position: i + 1,
+          name: s.nom,
+          text: s.texte,
+        })),
+      })
+    : ''
+
+  // Filet anti-coquille sur les textes publiés (la dictée est déjà nettoyée en
+  // amont ; ceci rattrape ce que le modèle aurait recopié ou coupé lui-même).
+  seo.titre_h1 = fixGeneratedText(seo.titre_h1)
+  seo.meta_title = fixGeneratedText(seo.meta_title)
+  seo.meta_description = fixGeneratedText(seo.meta_description)
+  seo.resume_rich_snippet = fixGeneratedText(seo.resume_rich_snippet || '')
+  seo.contenu_principal = fixGeneratedText(seo.contenu_principal)
+  seo.faq = (seo.faq || []).map((f: { question: string; reponse: string }) => ({
+    question: fixGeneratedText(f.question),
+    reponse: fixGeneratedText(f.reponse),
+  }))
 
   // Slug + référence déterministes côté serveur
   seo.slug = realisationSlug
