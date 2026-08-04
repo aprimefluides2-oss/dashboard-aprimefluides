@@ -26,6 +26,7 @@ const TOOLS: Tool[] = [
   { href: '/attestation',       emoji: '✅', label: 'Attestation',     desc: 'Raccordement / SPANC',             bg: 'bg-gradient-to-br from-[#a18249] to-[#6e5530]',     text: 'white' },
   { href: '/historique',        emoji: '📚', label: 'Historique',      desc: 'Interventions passées',            bg: 'bg-gradient-to-br from-slate-400 to-slate-600',     text: 'white' },
   { href: '/clients',           emoji: '👥', label: 'Clients',         desc: 'Annuaire, dossier, envoi',         bg: 'bg-gradient-to-br from-teal-500 to-teal-700',       text: 'white' },
+  { href: '/agents',            emoji: '🧑‍🔧', label: 'Agents',         desc: 'Secteurs par département',         bg: 'bg-gradient-to-br from-sky-600 to-blue-800',        text: 'white' },
   { href: '/statistiques',      emoji: '📊', label: 'Statistiques',    desc: 'Canaux d’acquisition',             bg: 'bg-gradient-to-br from-rose-500 to-rose-700',       text: 'white' },
   { href: '/comptabilite',      emoji: '💼', label: 'Comptabilité',    desc: 'Bilan, FEC, exports',              bg: 'bg-gradient-to-br from-violet-500 to-violet-700',   text: 'white' },
   { href: '/mail',              emoji: '📧', label: 'Mail',            desc: 'Emails envoyés',                   bg: 'bg-gradient-to-br from-cyan-500 to-cyan-700',       text: 'white' },

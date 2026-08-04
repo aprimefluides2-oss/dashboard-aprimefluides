@@ -732,7 +732,7 @@ export function RealisationDocument({
                   <Text style={s.sigHead}>Aprime fluides — Technicien intervenant</Text>
                   <View style={s.sigBody}>
                     <Text style={s.sigLine}>Date : {fmtDateFR(dateIntervention)}</Text>
-                    <Text style={s.sigLine}>Nom : {technicienNom || '—'}</Text>
+                    <Text style={s.sigLine}>Intervenant : {technicienNom || '—'}</Text>
                     <Text style={s.sigLine}>Signature :</Text>
                     {technicienSignature ? <Image style={s.sigImg} src={technicienSignature} /> : null}
                   </View>
@@ -848,7 +848,7 @@ export function RealisationDocument({
               <View style={[s.sigCol, s.sigColSep]}>
                 <Text style={s.sigHead}>Établi par — Aprime fluides</Text>
                 <View style={s.sigBody}>
-                  <Text style={s.sigLine}>Nom : {technicienNom || '—'}</Text>
+                  <Text style={s.sigLine}>Intervenant : {technicienNom || '—'}</Text>
                   <Text style={s.sigLine}>Date : {fmtDateFR(dateIntervention)}</Text>
                   <Text style={s.sigLine}>Signature :</Text>
                   {technicienSignature ? <Image style={s.sigImg} src={technicienSignature} /> : null}

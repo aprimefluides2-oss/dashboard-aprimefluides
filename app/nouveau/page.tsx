@@ -7,6 +7,15 @@ import AppTabs from "@/components/AppTabs"
 import RapportTabs from "@/components/RapportTabs"
 import dynamic from "next/dynamic"
 import { AGENCES } from "@/lib/agences"
+import {
+  departementFromCodePostal,
+  secteurForCodePostal,
+  secteurForDepartement,
+  labelSecteur,
+  libelleAgentForCodePostal,
+  estLibelleAgentSecteur,
+  LIBELLE_AGENT,
+} from "@/lib/agents-departements"
 import TechnicienSignatureField from "@/components/TechnicienSignatureField"
 import { getTechnicienSignature, setTechnicienSignature as persistTechnicienSignature } from "@/lib/technicien-signature"
 import { useUnsavedChangesWarning } from "@/lib/useUnsavedChangesWarning"
@@ -114,9 +123,15 @@ export default function NouveauPage() {
   const [dateIntervention, setDateIntervention] = useState(new Date().toISOString().split('T')[0])
   const [clientNom, setClientNom] = useState('')
   const [clientEmail, setClientEmail] = useState('')
-  const [technicienNom, setTechnicienNom] = useState('')
+  // Pas de nom d'intervenant : le rapport porte « Agent de secteur — <dept> »,
+  // posé automatiquement d'après le code postal.
+  const [technicienNom, setTechnicienNom] = useState(LIBELLE_AGENT)
   const [editTech, setEditTech] = useState(false)
   const [technicienSignature, setTechnicienSignature] = useState<string | null>(null)
+  // Agent de secteur : mémorise le dernier département traité et permet de
+  // neutraliser l'auto-affectation lors d'un chargement programmatique.
+  const dernierDeptRef = useRef<string | null>(null)
+  const skipAutoAgentRef = useRef(false)
   const [interventionId, setInterventionId] = useState<string | null>(null)
   // `storedUrl` : défini si la photo provient déjà de Supabase Storage (rapport
   // rechargé depuis l'historique) → évite de la ré-uploader à chaque sauvegarde.
@@ -162,7 +177,8 @@ export default function NouveauPage() {
       if (p.codePostal) setCodePostal(p.codePostal)
       if (p.dateIntervention) setDateIntervention(p.dateIntervention)
       if (p.typeIntervention) setTypeIntervention(p.typeIntervention)
-      if (p.technicienNom) setTechnicienNom(p.technicienNom)
+      // `p.technicienNom` (technicien du RDV planning) est volontairement ignoré :
+      // le rapport porte « Agent de secteur — <département> », pas un nom.
     } catch {
       /* ignore */
     } finally {
@@ -208,22 +224,48 @@ export default function NouveauPage() {
   // Bannière de restauration de brouillon
   const [draftRestoredAt, setDraftRestoredAt] = useState<number | null>(null)
 
-  // Persist nom technicien
+  // Signature de l'appareil (le rapport n'a pas de nom d'intervenant : on
+  // invite seulement à enregistrer la signature si elle manque).
   useEffect(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('ltdb_technicien') : null
-    if (saved) setTechnicienNom(saved)
-    else setEditTech(true)
-    setTechnicienSignature(getTechnicienSignature())
+    const signature = getTechnicienSignature()
+    setTechnicienSignature(signature)
+    if (!signature) setEditTech(true)
   }, [])
+
+  // ─── Agent de secteur : libellé posé automatiquement d'après le code postal ─
+  // Dès que le CP change de département, on repose l'agence et le libellé
+  // « Agent de secteur — <département> » porté par le rapport et le devis.
+  // `skipAutoAgentRef` neutralise l'auto pour un chargement programmatique
+  // (brouillon, prefill planning, rapport rouvert depuis l'historique) : un
+  // ancien rapport signé d'un nom d'intervenant garde ce nom.
+  useEffect(() => {
+    const dept = departementFromCodePostal(codePostal)
+    const restauration = skipAutoAgentRef.current
+    if (dept === dernierDeptRef.current) return
+    dernierDeptRef.current = dept
+    skipAutoAgentRef.current = false
+    const secteur = secteurForDepartement(dept)
+    if (secteur && !restauration) setAgence(secteur.agence)
+    if (restauration && technicienNom.trim() && !estLibelleAgentSecteur(technicienNom)) return
+    setTechnicienNom(libelleAgentForCodePostal(codePostal))
+    // `technicienNom` n'entraîne aucun effet de bord : tant que le département
+    // ne change pas, le garde ci-dessus sort immédiatement.
+  }, [codePostal, technicienNom])
+
+  // Secteur courant (dérivé du CP), pour l'affichage.
+  const secteurCourant = secteurForCodePostal(codePostal)
+
+  // Le libellé courant est mémorisé sur l'appareil : devis, facture, emails et
+  // demandes d'avis le relisent (clé historique `ltdb_technicien`).
+  useEffect(() => {
+    if (technicienNom && typeof window !== 'undefined') localStorage.setItem('ltdb_technicien', technicienNom)
+  }, [technicienNom])
 
   // Persistance signature (mémorisée sur l'appareil, réutilisée sur les PDF)
   function handleSignatureChange(v: string | null) {
     setTechnicienSignature(v)
     persistTechnicienSignature(v)
   }
-  useEffect(() => {
-    if (technicienNom && typeof window !== 'undefined') localStorage.setItem('ltdb_technicien', technicienNom)
-  }, [technicienNom])
 
   // Restauration du brouillon au mount (sauf si un prefill /planning est présent)
   useEffect(() => {
@@ -245,7 +287,7 @@ export default function NouveauPage() {
       if (d.dateIntervention) setDateIntervention(d.dateIntervention)
       if (d.clientNom) setClientNom(d.clientNom)
       if (d.clientEmail) setClientEmail(d.clientEmail)
-      if (d.technicienNom) setTechnicienNom(d.technicienNom)
+      // `d.technicienNom` ignoré : recalculé d'après le code postal restauré.
       if (d.interventionId) setInterventionId(d.interventionId)
       setDraftRestoredAt(d.savedAt)
     } catch {
@@ -412,7 +454,6 @@ export default function NouveauPage() {
 
   async function handleExtract() {
     setError('')
-    if (!technicienNom) { setError('Indique ton nom de technicien.'); return }
     if (!transcription || transcription.trim().length < 20) { setError('Dicte ou tape au moins quelques phrases sur l\'intervention.'); return }
     setStep('extracting')
     try {
@@ -723,6 +764,8 @@ export default function NouveauPage() {
       const i = data.intervention
       const c = data.client
 
+      // Rapport rouvert : garder l'agence et le technicien enregistrés dessus.
+      skipAutoAgentRef.current = true
       setInterventionId(id)
       setRapport(i.rapport_json || null)
       setSeo(i.seo_json || null)
@@ -914,20 +957,18 @@ export default function NouveauPage() {
             </button>
             <div className="relative">
               <button onClick={() => setEditTech(v => !v)} className="text-right group">
-                <div className="text-[10px] opacity-60 group-hover:opacity-100">Technicien ✎</div>
-                <div className="text-sm font-semibold">{technicienNom || 'Ton nom'}</div>
+                <div className="text-[10px] opacity-60 group-hover:opacity-100">Signature ✎</div>
+                <div className="text-sm font-semibold max-w-[13rem] truncate">{technicienNom}</div>
               </button>
               {editTech && (
                 <div className="absolute right-0 top-full mt-2 w-72 bg-white text-slate-800 rounded-xl shadow-xl ring-1 ring-black/10 p-3 z-40 text-left">
-                  <label className="block text-[11px] font-semibold text-slate-500 mb-1">Nom du technicien</label>
-                  <input
-                    autoFocus
-                    value={technicienNom}
-                    onChange={e => setTechnicienNom(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter' && technicienNom) setEditTech(false) }}
-                    placeholder="Prénom Nom"
-                    className="w-full text-sm font-semibold px-3 py-2 rounded-lg border border-slate-300 outline-none focus:border-[#0e2a52] mb-3"
-                  />
+                  <div className="mb-3 rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
+                    <div className="text-[11px] font-semibold text-slate-500">Intervenant du rapport</div>
+                    <div className="text-sm font-semibold text-[#0e2a52]">{technicienNom}</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">
+                      Posé automatiquement d’après le code postal de l’intervention.
+                    </div>
+                  </div>
                   <TechnicienSignatureField value={technicienSignature} onChange={handleSignatureChange} />
                   <button
                     type="button"
@@ -1115,7 +1156,14 @@ export default function NouveauPage() {
 
               {/* Département / Agence */}
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Département / Agence</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Département / Agence
+                  {secteurCourant && (
+                    <span className="ml-2 normal-case font-semibold text-blue-600 tracking-normal">
+                      auto : {labelSecteur(secteurCourant)}
+                    </span>
+                  )}
+                </label>
                 <div className="flex flex-wrap gap-2">
                   {AGENCES.map(a => (
                     <button key={a} type="button"
@@ -1153,6 +1201,33 @@ export default function NouveauPage() {
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Date</label>
                   <input type="date" value={dateIntervention} onChange={e => setDateIntervention(e.target.value)} className="w-full border-2 border-slate-200 focus:border-blue-500 outline-none rounded-xl px-4 py-3 text-base transition-colors" />
                 </div>
+              </div>
+
+              {/* Agent de secteur — libellé posé automatiquement d'après le code postal */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Agent de secteur</label>
+                <div className="rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-base font-semibold text-[#0e2a52]">{technicienNom}</span>
+                    {secteurCourant && (
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-blue-50 text-[#0e2a52] text-xs font-semibold px-2 py-1 ring-1 ring-blue-200">
+                        📍 {secteurCourant.agence.replace(/^Agence /, '')}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {secteurCourant
+                      ? 'Déduit du code postal — aucun nom d’intervenant n’est publié.'
+                      : departementFromCodePostal(codePostal)
+                        ? 'Département hors zones couvertes : le rapport indiquera simplement « Agent de secteur ».'
+                        : 'Saisis le code postal : le département s’ajoute automatiquement.'}
+                  </p>
+                </div>
+                <p className="mt-1.5 text-[11px] text-slate-400">
+                  {technicienSignature
+                    ? 'Signé avec la signature enregistrée sur cet appareil (rapport, devis, facture, attestation).'
+                    : '⚠ Aucune signature enregistrée sur cet appareil — ajoute-la via « Signature ✎ » en haut à droite.'}
+                </p>
               </div>
 
               {/* Adresse */}
