@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseOrNull } from "@/lib/supabase"
+import { anonymizePublishFormData } from "@/lib/anonymize-public"
 import { REALISATION_PAGE_STYLE } from "@/lib/realisationPageCss"
 
 export const dynamic = 'force-dynamic'
@@ -233,13 +234,21 @@ export async function POST(req: NextRequest) {
     ),
   )
 
+  // 🔒 Anonymisation avant envoi. Indispensable ici en particulier : une
+  // intervention saisie AVANT l'ajout de cette règle a un `seo_json` non filtré
+  // en base et peut être publiée à tout moment.
+  const { fd: fdPublique, retires } = anonymizePublishFormData(fd)
+  if (retires.length > 0) {
+    console.warn('[publish/from-intervention] données personnelles retirées', { interventionId, retires })
+  }
+
   // Forward au Django.
   let djResp: Response
   try {
     djResp = await fetch(`${ltdbUrl}/api/gallery/publish/`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
-      body: fd,
+      body: fdPublique,
     })
   } catch (e) {
     return NextResponse.json({ error: `Appel Django échoué : ${e instanceof Error ? e.message : String(e)}` }, { status: 502 })

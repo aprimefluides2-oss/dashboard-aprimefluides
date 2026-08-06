@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { anonymizePublishFormData } from "@/lib/anonymize-public"
 import { getSupabaseOrNull, upsertClient } from "@/lib/supabase"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
@@ -14,11 +15,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Configuration API client manquante' }, { status: 500 })
   }
 
+  // 🔒 Dernière barrière avant le site public : anonymise les champs visibles
+  // et n'envoie pas l'identité du client (Django ne la lit pas). Le formData
+  // d'origine reste intact pour la persistance Supabase, qui est le CRM interne
+  // et DOIT garder nom et adresse.
+  const { fd: formDataPublique, retires } = anonymizePublishFormData(formData)
+  if (retires.length > 0) {
+    console.warn('[publish] données personnelles retirées avant envoi au site', retires)
+  }
+
   try {
     const response = await fetch(`${ltdbUrl}/api/gallery/publish/`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },
-      body: formData,
+      body: formDataPublique,
     })
 
     const txt = await response.text()

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { deepseek } from "@/lib/deepseek"
 import { parseAiJson } from "@/lib/parseAiJson"
 import { fixTranscription, fixGeneratedText } from "@/lib/fix-transcription"
+import { anonymizePublicText, detectPersonalData } from "@/lib/anonymize-public"
 import {
   SITE,
   SERVICE_LINKS,
@@ -283,6 +284,7 @@ Les 3 champs "titre_h1", "meta_description" et "resume_rich_snippet" doivent pou
 - DURÉE : si la dictée donne une durée, écris-la en clair (chiffre + unité) dans le résumé ET dans le corps. Si elle ne la donne pas, n'en écris aucune, même approximative.
 - PRIX : n'écris un montant QUE si le technicien a dicté un montant, et alors écris-le en clair (ex. "240 € TTC"). N'écris JAMAIS de placeholder du type {PRIX_MIN} : il serait publié tel quel sur le site. Aucun montant dicté → renvoie vers la page tarifs par un lien, sans chiffre.
 - ATTRIBUTION : parle de "notre technicien" / "nos techniciens". Ne donne JAMAIS de prénom ni de nom d'intervenant (règle interne : les intervenants terrain restent anonymes).
+- 🔒 CLIENT ANONYME (règle absolue — cette page est PUBLIQUE) : ne reprends JAMAIS le nom, le prénom ni l'adresse du client, même dictés. Interdits : "M./Mme X", un patronyme, un numéro + nom de rue, une résidence nommée, un bâtiment/escalier/appartement, un digicode. Écris "le client", "la copropriété", "le syndic". La SEULE localisation autorisée est la VILLE (${ville}) et son département ; le code postal est autorisé, l'adresse précise jamais. Exemple : dictée "chez M. Dupont au 12 rue des Lilas à ${ville}" → écris "chez un client à ${ville}".
 - Intertitres orientés récit ou bénéfice lecteur, pas sloganesques. Ex : "Ce qu'on a trouvé sur place", "Pourquoi la canalisation s'était rebouchée", "Comment éviter que ça recommence".
 - Conteneurs HTML à utiliser : <section class=\\"content-block\\">, <div class=\\"info-box\\"> (pour un point-clé ou conseil), <div class=\\"checklist-box\\"> (pour une liste d'étapes).
 - MAILLAGE INTERNE : ≥ 3 liens vers les SERVICES + ≥ 2 liens vers la page ville (${cityUrl}) + 1 lien vers le hub débouchage. Les liens doivent apparaître naturellement dans une phrase, pas collés en fin de paragraphe comme une liste SEO.
@@ -472,6 +474,31 @@ sont placés avant pour ne jamais être perdus si la réponse est longue.
     question: fixGeneratedText(f.question),
     reponse: fixGeneratedText(f.reponse),
   }))
+
+  // 🔒 ANONYMISATION — dernière barrière avant publication publique.
+  // Le prompt interdit déjà nom et adresse du client, mais un prompt reste
+  // probabiliste : ce filtre, lui, est déterministe. Il ne s'applique QU'aux
+  // champs `seo` (page publique) — le rapport, la facture et l'attestation
+  // doivent au contraire garder l'identité du client.
+  const champsPublics: Array<keyof typeof seo> = [
+    'titre_h1', 'meta_title', 'meta_description', 'resume_rich_snippet', 'contenu_principal',
+  ]
+  const detections = new Set<string>()
+  for (const champ of champsPublics) {
+    if (typeof seo[champ] !== 'string') continue
+    detectPersonalData(seo[champ]).forEach((d) => detections.add(`${String(champ)}:${d}`))
+    seo[champ] = anonymizePublicText(seo[champ])
+  }
+  seo.faq = (seo.faq || []).map((f: { question: string; reponse: string }) => {
+    detectPersonalData(f.question).forEach((d) => detections.add(`faq.question:${d}`))
+    detectPersonalData(f.reponse).forEach((d) => detections.add(`faq.reponse:${d}`))
+    return { question: anonymizePublicText(f.question), reponse: anonymizePublicText(f.reponse) }
+  })
+  if (detections.size > 0) {
+    // Journalisé, pas bloquant : le texte est déjà nettoyé à ce stade. Sert à
+    // repérer si le modèle recommence malgré la consigne du prompt.
+    console.warn('[generate] données personnelles retirées avant publication', Array.from(detections))
+  }
 
   // Slug + référence déterministes côté serveur
   seo.slug = realisationSlug
