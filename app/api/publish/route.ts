@@ -77,8 +77,17 @@ async function persistIntervention(formData: FormData, ltdbResponse: any) {
   const typeIntervention = get('service_type') || ''
   const dateRealisee = get('intervention_date') || null
   const transcription = get('transcription') || ''
-  const rapportJson = safeParseJson(get('rapport_json'))
+  const rapportJsonBrut = safeParseJson(get('rapport_json'))
   const seoJson = safeParseJson(get('seo_json'))
+  // Le montant facturé est rangé DANS `rapport_json` plutôt que dans une colonne
+  // dédiée : pas de migration Supabase à faire, et il repart automatiquement lors
+  // d'une republication depuis l'historique (cf. publish/from-intervention).
+  const tarifBrut = get('tarif')
+  const tarifNum = tarifBrut && tarifBrut.trim() ? Number(tarifBrut.replace(',', '.')) : null
+  const rapportJson =
+    tarifNum !== null && Number.isFinite(tarifNum) && tarifNum > 0
+      ? { ...(rapportJsonBrut || {}), montant_facture_ttc: Math.round(tarifNum) }
+      : rapportJsonBrut
   const reference = rapportJson?.reference || null
   const interventionId = get('intervention_id')
 

@@ -59,6 +59,7 @@ type Draft = {
   clientEmail: string
   technicienNom: string
   interventionId: string | null
+  montantFacture: string
 }
 
 function formatDraftAge(ts: number) {
@@ -121,6 +122,9 @@ export default function NouveauPage() {
   const [agence, setAgence] = useState<string>(AGENCES[0])
   const [codePostal, setCodePostal] = useState('')
   const [dateIntervention, setDateIntervention] = useState(new Date().toISOString().split('T')[0])
+  // Montant réellement facturé (€ TTC). Saisi à la main, jamais déduit d'une
+  // grille tarifaire : il est publié tel quel sur la page de l'étude de cas.
+  const [montantFacture, setMontantFacture] = useState('')
   const [clientNom, setClientNom] = useState('')
   const [clientEmail, setClientEmail] = useState('')
   // Pas de nom d'intervenant : le rapport porte « Agent de secteur — <dept> »,
@@ -289,6 +293,7 @@ export default function NouveauPage() {
       if (d.clientEmail) setClientEmail(d.clientEmail)
       // `d.technicienNom` ignoré : recalculé d'après le code postal restauré.
       if (d.interventionId) setInterventionId(d.interventionId)
+      if (d.montantFacture) setMontantFacture(d.montantFacture)
       setDraftRestoredAt(d.savedAt)
     } catch {
       localStorage.removeItem(DRAFT_KEY)
@@ -318,13 +323,14 @@ export default function NouveauPage() {
       clientEmail,
       technicienNom,
       interventionId,
+      montantFacture,
     }
     try {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
     } catch {
       /* quota dépassé : on ignore silencieusement */
     }
-  }, [step, transcription, typeIntervention, adresse, ville, codePostal, dateIntervention, clientNom, clientEmail, technicienNom, interventionId])
+  }, [step, transcription, typeIntervention, adresse, ville, codePostal, dateIntervention, clientNom, clientEmail, technicienNom, interventionId, montantFacture])
 
   useUnsavedChangesWarning(
     step !== 'done' && (transcription.trim() !== '' || photos.length > 0 || rapport !== null)
@@ -642,6 +648,9 @@ export default function NouveauPage() {
     formData.append('postal_code', codePostal)
     formData.append('agence', agence)
     formData.append('intervention_date', dateIntervention)
+    // Montant facturé : envoyé seulement s'il est saisi. Django ignore un champ
+    // vide et ne touche alors pas au montant déjà en base (republication sûre).
+    if (montantFacture.trim()) formData.append('tarif', montantFacture.trim())
     formData.append('description', truncate(seo.meta_description || '', 195))
     // Title SERP dédié (≠ H1, sans suffixe de marque) : sans lui, le site
     // retombait sur « {service} {ville} {CP} », un title de 24 caractères.
@@ -1201,6 +1210,34 @@ export default function NouveauPage() {
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Date</label>
                   <input type="date" value={dateIntervention} onChange={e => setDateIntervention(e.target.value)} className="w-full border-2 border-slate-200 focus:border-blue-500 outline-none rounded-xl px-4 py-3 text-base transition-colors" />
                 </div>
+              </div>
+
+              {/* Montant facturé — publié tel quel sur l'étude de cas du site.
+                  Optionnel : laissé vide, la page publiée n'affiche aucun prix.
+                  Jamais pré-rempli depuis la grille tarifaire : ce champ dit ce
+                  qui a RÉELLEMENT été facturé sur ce chantier. */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Montant facturé <span className="text-slate-400 normal-case font-semibold">(€ TTC, facultatif)</span>
+                </label>
+                <div className="relative">
+                  <input
+                    value={montantFacture}
+                    onChange={e => setMontantFacture(e.target.value.replace(/[^\d]/g, '').slice(0, 6))}
+                    placeholder="240"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="w-full border-2 border-slate-200 focus:border-blue-500 outline-none rounded-xl px-4 py-3 pr-16 text-base transition-colors"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400">
+                    € TTC
+                  </span>
+                </div>
+                <p className="mt-1.5 text-xs text-slate-500">
+                  {montantFacture
+                    ? `Affiché sur la page publiée : « montant facturé ${montantFacture} € TTC ».`
+                    : 'Vide = aucun prix affiché sur la page publiée.'}
+                </p>
               </div>
 
               {/* Agent de secteur — libellé posé automatiquement d'après le code postal */}
