@@ -60,6 +60,19 @@ type Draft = {
   technicienNom: string
   interventionId: string | null
   montantFacture: string
+  dureeMinutes: string
+  causesBouchon: string
+  travauxEffectues: string
+}
+
+/** « 75 » → « 1 h 15 ». Sert uniquement à l'aide affichée sous le champ. */
+function formatDureeLisible(minutesStr: string) {
+  const m = parseInt(minutesStr, 10)
+  if (!Number.isFinite(m) || m <= 0) return ''
+  if (m < 60) return `${m} min`
+  const h = Math.floor(m / 60)
+  const reste = m % 60
+  return reste === 0 ? `${h} h` : `${h} h ${String(reste).padStart(2, '0')}`
 }
 
 function formatDraftAge(ts: number) {
@@ -125,6 +138,12 @@ export default function NouveauPage() {
   // Montant réellement facturé (€ TTC). Saisi à la main, jamais déduit d'une
   // grille tarifaire : il est publié tel quel sur la page de l'étude de cas.
   const [montantFacture, setMontantFacture] = useState('')
+  // Détails d'intervention — TOUS FACULTATIFS. Ils enrichissent le rapport et la
+  // page publiée quand ils sont remplis ; laissés vides, la génération se fait
+  // exactement comme avant, à partir de la seule dictée.
+  const [dureeMinutes, setDureeMinutes] = useState('')
+  const [causesBouchon, setCausesBouchon] = useState('')
+  const [travauxEffectues, setTravauxEffectues] = useState('')
   const [clientNom, setClientNom] = useState('')
   const [clientEmail, setClientEmail] = useState('')
   // Pas de nom d'intervenant : le rapport porte « Agent de secteur — <dept> »,
@@ -294,6 +313,9 @@ export default function NouveauPage() {
       // `d.technicienNom` ignoré : recalculé d'après le code postal restauré.
       if (d.interventionId) setInterventionId(d.interventionId)
       if (d.montantFacture) setMontantFacture(d.montantFacture)
+      if (d.dureeMinutes) setDureeMinutes(d.dureeMinutes)
+      if (d.causesBouchon) setCausesBouchon(d.causesBouchon)
+      if (d.travauxEffectues) setTravauxEffectues(d.travauxEffectues)
       setDraftRestoredAt(d.savedAt)
     } catch {
       localStorage.removeItem(DRAFT_KEY)
@@ -324,13 +346,16 @@ export default function NouveauPage() {
       technicienNom,
       interventionId,
       montantFacture,
+      dureeMinutes,
+      causesBouchon,
+      travauxEffectues,
     }
     try {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
     } catch {
       /* quota dépassé : on ignore silencieusement */
     }
-  }, [step, transcription, typeIntervention, adresse, ville, codePostal, dateIntervention, clientNom, clientEmail, technicienNom, interventionId, montantFacture])
+  }, [step, transcription, typeIntervention, adresse, ville, codePostal, dateIntervention, clientNom, clientEmail, technicienNom, interventionId, montantFacture, dureeMinutes, causesBouchon, travauxEffectues])
 
   useUnsavedChangesWarning(
     step !== 'done' && (transcription.trim() !== '' || photos.length > 0 || rapport !== null)
@@ -495,7 +520,7 @@ export default function NouveauPage() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcription, type_intervention: typeIntervention, ville, code_postal: codePostal }),
+        body: JSON.stringify({ transcription, type_intervention: typeIntervention, ville, code_postal: codePostal, duree_minutes: dureeMinutes, causes_bouchon: causesBouchon, travaux_effectues: travauxEffectues }),
         signal: AbortSignal.timeout(180_000),
       })
       const data = await res.json()
@@ -651,6 +676,9 @@ export default function NouveauPage() {
     // Montant facturé : envoyé seulement s'il est saisi. Django ignore un champ
     // vide et ne touche alors pas au montant déjà en base (republication sûre).
     if (montantFacture.trim()) formData.append('tarif', montantFacture.trim())
+    if (dureeMinutes.trim()) formData.append('duree_minutes', dureeMinutes.trim())
+    if (causesBouchon.trim()) formData.append('causes_bouchon', causesBouchon.trim())
+    if (travauxEffectues.trim()) formData.append('travaux_effectues', travauxEffectues.trim())
     formData.append('description', truncate(seo.meta_description || '', 195))
     // Title SERP dédié (≠ H1, sans suffixe de marque) : sans lui, le site
     // retombait sur « {service} {ville} {CP} », un title de 24 caractères.
@@ -821,7 +849,7 @@ export default function NouveauPage() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcription, type_intervention: typeIntervention, ville, code_postal: codePostal }),
+        body: JSON.stringify({ transcription, type_intervention: typeIntervention, ville, code_postal: codePostal, duree_minutes: dureeMinutes, causes_bouchon: causesBouchon, travaux_effectues: travauxEffectues }),
         signal: AbortSignal.timeout(180_000),
       })
       const data = await res.json()
@@ -1237,6 +1265,62 @@ export default function NouveauPage() {
                   {montantFacture
                     ? `Affiché sur la page publiée : « montant facturé ${montantFacture} € TTC ».`
                     : 'Vide = aucun prix affiché sur la page publiée.'}
+                </p>
+              </div>
+
+              {/* Durée du chantier — temps de TRAVAIL, jamais un délai d'arrivée
+                  (le site interdit tout délai d'arrivée ferme). */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Durée de l&apos;intervention <span className="text-slate-400 normal-case font-semibold">(minutes, facultatif)</span>
+                </label>
+                <div className="relative">
+                  <input
+                    value={dureeMinutes}
+                    onChange={e => setDureeMinutes(e.target.value.replace(/[^\d]/g, '').slice(0, 4))}
+                    placeholder="75"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="w-full border-2 border-slate-200 focus:border-blue-500 outline-none rounded-xl px-4 py-3 pr-14 text-base transition-colors"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400">min</span>
+                </div>
+                <p className="mt-1.5 text-xs text-slate-500">
+                  {dureeMinutes
+                    ? `Temps passé sur place : ${formatDureeLisible(dureeMinutes)}.`
+                    : 'Temps passé sur place. Vide = aucune durée affichée.'}
+                </p>
+              </div>
+
+              {/* Causes du bouchon + travaux — texte libre, injecté dans le
+                  rapport ET dans la page publiée comme faits vérifiés. */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Causes du bouchon <span className="text-slate-400 normal-case font-semibold">(facultatif)</span>
+                </label>
+                <textarea
+                  value={causesBouchon}
+                  onChange={e => setCausesBouchon(e.target.value.slice(0, 600))}
+                  placeholder="Ex : racines dans le regard, graisses accumulées, lingettes, pente insuffisante…"
+                  rows={2}
+                  className="w-full border-2 border-slate-200 focus:border-blue-500 outline-none rounded-xl px-4 py-3 text-base transition-colors resize-y"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Travaux effectués <span className="text-slate-400 normal-case font-semibold">(facultatif)</span>
+                </label>
+                <textarea
+                  value={travauxEffectues}
+                  onChange={e => setTravauxEffectues(e.target.value.slice(0, 900))}
+                  placeholder="Ex : hydrocurage haute pression du regard et de la canalisation aval, tests d'écoulement, nettoyage de la zone…"
+                  rows={3}
+                  className="w-full border-2 border-slate-200 focus:border-blue-500 outline-none rounded-xl px-4 py-3 text-base transition-colors resize-y"
+                />
+                <p className="mt-1.5 text-xs text-slate-500">
+                  Ces deux champs enrichissent le rapport et la page publiée. Laissés vides, le
+                  rapport est généré normalement à partir de la seule dictée.
                 </p>
               </div>
 

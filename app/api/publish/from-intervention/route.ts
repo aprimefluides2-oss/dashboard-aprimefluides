@@ -189,9 +189,17 @@ export async function POST(req: NextRequest) {
   fd.append('intervention_date', dateIntervention)
   // Montant facturé, mémorisé dans `rapport_json` à la première publication.
   // Absent → champ non envoyé, Django conserve le montant déjà en base.
-  const montantMemorise = (interv.rapport_json as { montant_facture_ttc?: unknown } | null)?.montant_facture_ttc
+  const detailsMemorises = interv.rapport_json as {
+    montant_facture_ttc?: unknown
+    duree_minutes?: unknown
+  } | null
+  const montantMemorise = detailsMemorises?.montant_facture_ttc
   if (typeof montantMemorise === 'number' && montantMemorise > 0) {
     fd.append('tarif', String(Math.round(montantMemorise)))
+  }
+  const dureeMemorisee = detailsMemorises?.duree_minutes
+  if (typeof dureeMemorisee === 'number' && dureeMemorisee > 0) {
+    fd.append('duree_minutes', String(Math.round(dureeMemorisee)))
   }
   fd.append('description', truncate(rawDesc, 195))
   fd.append('meta_keywords', Array.isArray(seo.meta_keywords) ? seo.meta_keywords.join(', ') : '')

@@ -69,7 +69,18 @@ async function slugDisponible(slug: string): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
-  const { transcription: transcriptionBrute, type_intervention, ville, code_postal } = await req.json()
+  const {
+    transcription: transcriptionBrute,
+    type_intervention,
+    ville,
+    code_postal,
+    // Détails saisis dans le formulaire — TOUS FACULTATIFS. Ils ne figurent
+    // volontairement PAS dans le contrôle de champs obligatoires ci-dessous :
+    // une génération doit rester possible avec la seule dictée.
+    duree_minutes,
+    causes_bouchon,
+    travaux_effectues,
+  } = await req.json()
   if (!transcriptionBrute || !type_intervention || !ville) {
     return NextResponse.json({ error: 'Champs manquants' }, { status: 400 })
   }
@@ -80,6 +91,29 @@ export async function POST(req: NextRequest) {
   // Dictée nettoyée des mots inexistants / coupés par la transcription vocale :
   // le LLM reçoit le bon mot et le réutilise partout (cf. lib/fix-transcription).
   const transcription = fixTranscription(transcriptionBrute)
+
+  /**
+   * Détails complémentaires renseignés à la main par le technicien.
+   *
+   * Ils sont présentés au modèle comme des FAITS VÉRIFIÉS, au même rang que la
+   * dictée : sans cette précision, la règle « zéro invention » des prompts (qui
+   * interdit nommément d'inventer une durée ou un outil) conduirait le modèle à
+   * les ignorer. Si rien n'est saisi, `detailsBloc` vaut '' et les prompts sont
+   * strictement identiques à ce qu'ils étaient — d'où l'absence de régression
+   * quand le formulaire est laissé vide.
+   */
+  const dureeNum = Number.parseInt(String(duree_minutes ?? '').trim(), 10)
+  const dureeValide = Number.isFinite(dureeNum) && dureeNum > 0 && dureeNum <= 1440
+  const causesTxt = String(causes_bouchon ?? '').trim()
+  const travauxTxt = String(travaux_effectues ?? '').trim()
+  const detailsLignes = [
+    dureeValide ? `- Durée réelle du chantier : ${dureeNum} minutes (temps de travail sur place, PAS un délai d'arrivée).` : '',
+    causesTxt ? `- Causes du bouchon constatées : ${causesTxt}` : '',
+    travauxTxt ? `- Travaux effectués : ${travauxTxt}` : '',
+  ].filter(Boolean)
+  const detailsBloc = detailsLignes.length
+    ? `\n\nDÉTAILS COMPLÉMENTAIRES SAISIS PAR LE TECHNICIEN (faits vérifiés — à utiliser au même titre que la dictée, ils ne sont PAS des inventions ; n'ajoute pour autant rien au-delà de ce qu'ils disent) :\n${detailsLignes.join('\n')}`
+    : ''
 
   // Pré-calculs (utilisés par les 2 prompts en parallèle)
   const villeSlug = citySlug(ville)
@@ -105,7 +139,7 @@ export async function POST(req: NextRequest) {
   // === APPEL 1 — RAPPORT TECHNIQUE COMPLET (pour PDF détaillé) ===
   const rapportPrompt = `Tu es un rédacteur expert de rapports d'intervention de plomberie/assainissement professionnels (style bureau d'études, rapport d'expertise BTP). À partir d'une dictée vocale d'un technicien, tu produis un document détaillé et exhaustif destiné à un client professionnel (syndic, bailleur, gestionnaire de copropriété).
 
-Dictée technicien: "${transcription}"
+Dictée technicien: "${transcription}"${detailsBloc}
 Type d'intervention: ${type_intervention}
 Ville: ${ville} (${cp})
 Date: ${today.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -113,7 +147,7 @@ Date: ${today.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year:
 ⛔ RÈGLES DE FIDÉLITÉ — ZÉRO INVENTION ⛔
 - INTERDIT d'ajouter un outil, une technique, un matériel ou une action non prononcés par le technicien.
   Exemples INTERDITS si non dictés : furet (électrique ou manuel), hydrocurage, caméra, pompe, produit chimique, regard, colonne, siphon, etc.
-- Si le technicien ne dit pas « furet » → n'écris JAMAIS « furet ». Idem pour hydrocurage, caméra, mécanique, pression en bars, durée, etc.
+- Si le technicien ne dit pas « furet » → n'écris JAMAIS « furet ». Idem pour hydrocurage, caméra, mécanique, pression en bars, durée, etc. SEULE EXCEPTION : ce qui figure dans le bloc « DÉTAILS COMPLÉMENTAIRES SAISIS PAR LE TECHNICIEN » ci-dessus, s'il est présent — c'est du déclaratif technicien, exactement comme la dictée.
 - N'invente AUCUN fait, action, mesure, prix explicite, matériel, durée qui n'est pas dans la dictée.
 - Tu peux REFORMULER en langage professionnel UNIQUEMENT ce qui est déjà dit — pas compléter par déduction métier.
 - ✍ ORTHOGRAPHE : la dictée est une transcription vocale automatique. Si un mot est manifestement mal transcrit (ex. « apparuits » = « appareils ») ou coupé en deux (ex. « disjonc te » = « disjoncte »), écris la forme française correcte. Corriger une coquille n'est PAS inventer un fait — mais ne change ni le sens, ni le vocabulaire technique choisi par le technicien.
@@ -194,7 +228,7 @@ Règles de ton :
 - Pas de superlatifs commerciaux vides ("intervention ultra-rapide", "professionnels reconnus", "qualité premium"). Bannis-les.
 - Pas d'urgence agressive type "APPELEZ MAINTENANT 24H/24 !!". La crédibilité fait le travail.
 - Si la dictée nomme un repère local (rue, quartier), reprends-le — ça ancre la page.
-- Reste factuel : si la dictée ne dit pas combien de temps ça a pris, ne l'invente pas.
+- Reste factuel : si ni la dictée ni les détails complémentaires ne disent combien de temps ça a pris, ne l'invente pas. Si une durée est fournie dans les détails, tu peux l'écrire telle quelle (c'est un temps de travail sur place — ne le présente jamais comme un délai d'arrivée ou d'intervention).
 - ZÉRO COQUILLE : la dictée vient d'une transcription vocale. Un mot manifestement mal transcrit (« apparuits » → « appareils ») ou coupé en deux (« disjonc te » → « disjoncte ») doit être écrit correctement. Une faute visible sur la page détruit la confiance du lecteur ET la valeur de la page comme source citable.
 
 Exemples d'ouvertures correctes :
@@ -208,7 +242,7 @@ La page doit être unique même si ville+service reviennent. Pour ça : ANCRE su
 CONTEXTE — DICTÉE DU TECHNICIEN (source de vérité, reformule pro mais sans inventer d'actions) :
 """
 ${transcription}
-"""
+"""${detailsBloc}
 
 Intervention : ${type_intervention} à ${ville} (${cp})
 Référence unique : ${reference}

@@ -84,10 +84,22 @@ async function persistIntervention(formData: FormData, ltdbResponse: any) {
   // d'une republication depuis l'historique (cf. publish/from-intervention).
   const tarifBrut = get('tarif')
   const tarifNum = tarifBrut && tarifBrut.trim() ? Number(tarifBrut.replace(',', '.')) : null
-  const rapportJson =
-    tarifNum !== null && Number.isFinite(tarifNum) && tarifNum > 0
-      ? { ...(rapportJsonBrut || {}), montant_facture_ttc: Math.round(tarifNum) }
-      : rapportJsonBrut
+  const dureeBrute = get('duree_minutes')
+  const dureeNum = dureeBrute && dureeBrute.trim() ? Number(dureeBrute) : null
+  const detailsMemorises: Record<string, unknown> = {}
+  if (tarifNum !== null && Number.isFinite(tarifNum) && tarifNum > 0) {
+    detailsMemorises.montant_facture_ttc = Math.round(tarifNum)
+  }
+  if (dureeNum !== null && Number.isFinite(dureeNum) && dureeNum > 0) {
+    detailsMemorises.duree_minutes = Math.round(dureeNum)
+  }
+  const causesSaisies = (get('causes_bouchon') || '').trim()
+  const travauxSaisis = (get('travaux_effectues') || '').trim()
+  if (causesSaisies) detailsMemorises.causes_bouchon = causesSaisies
+  if (travauxSaisis) detailsMemorises.travaux_effectues = travauxSaisis
+  const rapportJson = Object.keys(detailsMemorises).length
+    ? { ...(rapportJsonBrut || {}), ...detailsMemorises }
+    : rapportJsonBrut
   const reference = rapportJson?.reference || null
   const interventionId = get('intervention_id')
 
