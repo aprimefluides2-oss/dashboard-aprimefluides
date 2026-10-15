@@ -293,7 +293,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Aprime fluides : ${msg}`, bodyPreview: txt.slice(0, 800), fieldSizes }, { status: djResp.status })
   }
 
-  const slug = (data && typeof data === 'object' && 'slug' in data ? String((data as { slug: string }).slug) : '') || seo.slug || ''
+  const slug = data && typeof data === 'object' && 'slug' in data && typeof data.slug === 'string' ? data.slug : ''
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return NextResponse.json({ error: 'Le site n’a pas confirmé l’adresse publiée. Le dossier reste sauvegardé ; vérifiez le site avant de réessayer.' }, { status: 502 })
   let trackingWarning: string | undefined
   // The public page may already exist: never label this as a failed publication.
   if (slug) {

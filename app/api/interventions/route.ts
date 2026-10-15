@@ -295,9 +295,8 @@ async function notifyTechBestEffort(req: NextRequest, interventionId: string, te
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      // Appel interne serveur→serveur : pas de cookie de session, le
-      // middleware d'auth l'autorise via ce header secret partagé.
-      'x-internal-auth': process.env.NEXTAUTH_SECRET || '',
+      // Forward the authenticated request, without a shared-secret bypass.
+      Authorization: req.headers.get('authorization') || '',
     },
     body: JSON.stringify({
       intervention_id: interventionId,

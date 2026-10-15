@@ -2,7 +2,7 @@
 // installés. Tout déploiement change déjà le hash des fichiers /_next/static/
 // (cache-first sûr), mais cette constante sert de filet de sécurité pour les
 // changements de stratégie SW elle-même.
-const CACHE = 'ltdb-v2'
+const CACHE = 'ltdb-v3-private'
 
 // Pré-charge minimaliste : la coquille HTML + le manifest, le reste est mis
 // en cache à la volée par la stratégie fetch.
@@ -99,7 +99,8 @@ self.addEventListener('fetch', (event) => {
   // Navigation HTML : network-first → l'utilisateur voit toujours la dernière
   // version déployée si online.
   if (req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html')) {
-    event.respondWith(networkFirst(req))
+    // Never persist authenticated pages or customer data in the browser cache.
+    event.respondWith(fetch(req).catch(() => new Response('Connexion requise', { status: 503 })))
     return
   }
 

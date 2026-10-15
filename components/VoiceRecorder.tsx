@@ -1,5 +1,6 @@
 'use client'
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
+import { readRecovery, saveRecovery, removeRecovery } from "@/lib/recovery-store"
 
 interface VoiceRecorderProps {
   onTranscription: (text: string) => void
@@ -9,8 +10,35 @@ export default function VoiceRecorder({ onTranscription }: VoiceRecorderProps) {
   const [recording, setRecording] = useState(false)
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState('')
+  const [pending, setPending] = useState<{ blob: Blob; ext: string } | null>(null)
+  const [ready, setReady] = useState(false)
+  const audioKey = typeof window !== 'undefined' ? `audio:${window.location.pathname}` : 'audio'
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
+
+  useEffect(() => {
+    let active = true
+    void readRecovery<{ blob: Blob; ext: string }>(audioKey).then(saved => {
+      if (active && saved) { setPending(saved); setError('Une dictée enregistrée attend sa transcription. Vous pouvez réessayer.') }
+    }).catch(() => { if (active) setError('Sauvegarde locale de la dictée indisponible. Gardez cette page ouverte.') })
+      .finally(() => { if (active) setReady(true) })
+    return () => { active = false }
+  }, [audioKey])
+
+  async function transcribe(audio: { blob: Blob; ext: string }) {
+    setProcessing(true); setError('')
+    try {
+      const formData = new FormData(); formData.append('audio', audio.blob, `dictee.${audio.ext}`)
+      const res = await fetch('/api/transcribe', { method: 'POST', body: formData })
+      const data: { text?: string; error?: string } = await res.json()
+      if (!res.ok || typeof data.text !== 'string' || !data.text.trim()) throw new Error(data.error || 'Transcription non confirmée')
+      onTranscription(data.text)
+      await removeRecovery(audioKey)
+      setPending(null)
+    } catch (e: unknown) {
+      setError(`${e instanceof Error ? e.message : String(e)} La dictée est conservée ; réessayez sans la réenregistrer.`)
+    } finally { setProcessing(false) }
+  }
 
   // Détecte le mime type supporté (iOS Safari = mp4, autres = webm/opus)
   function pickMimeType(): { mime: string; ext: string } {
@@ -30,6 +58,7 @@ export default function VoiceRecorder({ onTranscription }: VoiceRecorderProps) {
   }
 
   async function startRecording() {
+    if (!ready || pending || processing) return
     setError('')
     try {
       if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
@@ -50,30 +79,15 @@ export default function VoiceRecorder({ onTranscription }: VoiceRecorderProps) {
 
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach(t => t.stop())
-        setProcessing(true)
+        const audio = { blob: new Blob(chunksRef.current, { type: mediaRecorder.mimeType || mime || `audio/${ext}` }), ext }
+        setPending(audio)
         try {
-          const blobType = mediaRecorder.mimeType || mime || `audio/${ext}`
-          const blob = new Blob(chunksRef.current, { type: blobType })
-          const formData = new FormData()
-          formData.append('audio', blob, `dictee.${ext}`)
-          const res = await fetch('/api/transcribe', { method: 'POST', body: formData })
-          const data = await res.json().catch(() => ({} as any))
-          if (!res.ok) {
-            // Le serveur rédige déjà un message compréhensible par le technicien
-            // (ex. configuration manquante) : on l'affiche tel quel, sans préfixe
-            // technique. Le préfixe est réservé aux erreurs imprévues ci-dessous.
-            setError(
-              data.error ||
-                "Transcription indisponible pour le moment. Réessayez, ou tapez le rapport.",
-            )
-            return
-          }
-          onTranscription(data.text)
-        } catch (e: any) {
-          setError(`Erreur transcription : ${e.message}`)
-        } finally {
-          setProcessing(false)
+          await saveRecovery(audioKey, audio)
+          await transcribe(audio)
+        } catch (e: unknown) {
+          setError(`Sauvegarde de la dictée impossible : ${e instanceof Error ? e.message : String(e)}. Ne fermez pas cette page.`)
         }
+
       }
 
       mediaRecorder.start()
@@ -94,7 +108,7 @@ export default function VoiceRecorder({ onTranscription }: VoiceRecorderProps) {
         <button
           type="button"
           onClick={recording ? stopRecording : startRecording}
-          disabled={processing}
+          disabled={processing || !ready || Boolean(pending)}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white ${
             recording ? 'bg-red-600 hover:bg-red-700 animate-pulse' : 'bg-blue-700 hover:bg-blue-800'
           } disabled:opacity-50`}
@@ -103,6 +117,7 @@ export default function VoiceRecorder({ onTranscription }: VoiceRecorderProps) {
         </button>
         {processing && <span className="text-gray-500 text-sm">Transcription en cours...</span>}
       </div>
+      {pending && !processing && <button type="button" className="rounded-lg bg-blue-700 px-4 py-2 text-white" onClick={() => void transcribe(pending)}>Réessayer la transcription de la dictée conservée</button>}
       {error && <p className="text-red-600 text-sm">{error}</p>}
     </div>
   )
