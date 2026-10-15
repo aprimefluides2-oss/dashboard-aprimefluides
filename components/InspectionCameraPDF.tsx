@@ -1,5 +1,6 @@
 'use client'
 import React from "react"
+import { privateReport, streetOnly } from "@/lib/report-privacy"
 import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from "@react-pdf/renderer"
 import { GRAVITE_LABELS, GLOSSAIRE, findDefaut } from "@/lib/camera-defauts"
 import { TEL_PRINCIPAL_FALLBACK } from "@/lib/parametres"
@@ -48,6 +49,9 @@ export type Troncon = {
 }
 
 export type InspectionData = {
+  societe?: string
+  sousTraitance?: boolean
+  statut?: 'brouillon' | 'valide'
   numero: string                   // ex "ITV-20260505-1"
   dateInspection: string           // ISO YYYY-MM-DD
   technicienNom: string
@@ -253,25 +257,24 @@ const s = StyleSheet.create({
 })
 
 /* ============ COMPONENTS ============ */
-const Header = () => (
+const Header = ({ company, neutral }: { company: string; neutral: boolean }) => (
   <View style={s.header} fixed>
     <View>
-      <Text style={s.firmName}>Aprime fluides</Text>
+      <Text style={s.firmName}>{company}</Text>
       <Text style={s.firmTag}>Inspection télévisée des canalisations · ITV · NF EN 13508-2</Text>
     </View>
     <View style={s.headerRight}>
       <Text style={s.headerMetaBold}>Rapport d&apos;inspection caméra</Text>
-      <Text style={s.headerMeta}>1, rue Jean Carasso · 95000 Bezons</Text>
-      <Text style={s.headerMeta}>Tél. {TEL_PRINCIPAL_FALLBACK}</Text>
+      {!neutral && <Text style={s.headerMeta}>Tél. {TEL_PRINCIPAL_FALLBACK}</Text>}
     </View>
   </View>
 )
 
-const Footer = ({ numero }: { numero: string }) => (
+const Footer = ({ numero, company, neutral }: { numero: string; company: string; neutral: boolean }) => (
   <View style={s.footer} fixed>
     <View>
-      <Text style={s.footerL}>Aprime fluides · Rapport ITV {numero}</Text>
-      <Text style={s.footerL}>contact@aprime-fluides.fr · {TEL_PRINCIPAL_FALLBACK}</Text>
+      <Text style={s.footerL}>{company} · Rapport ITV {numero}</Text>
+      {!neutral && <Text style={s.footerL}>contact@aprime-fluides.fr · {TEL_PRINCIPAL_FALLBACK}</Text>}
     </View>
     <Text style={s.footerR} render={({ pageNumber, totalPages }) => `Page ${pageNumber} / ${totalPages}`} />
   </View>
@@ -288,7 +291,12 @@ function TroncRow({ label, value, alt }: { label: string; value: string; alt?: b
 }
 
 /* ============ DOCUMENT ============ */
-export function InspectionDocument({ data }: InspectionPDFProps) {
+export function InspectionDocument({ data: raw }: InspectionPDFProps) {
+  const data = privateReport(raw, raw.client.nom)
+  data.client = { nom: 'Client anonymisé', adresse: streetOnly(raw.client.adresse), codePostal: '', ville: data.client.ville }
+  const company = raw.societe?.trim() || 'Aprime Fluides'
+  const neutral = !!raw.sousTraitance || company.toLowerCase() !== 'aprime fluides'
+
   const etat = ETAT_LABEL[data.conclusionEtat]
   const t = data.troncon || {}
 
@@ -303,7 +311,8 @@ export function InspectionDocument({ data }: InspectionPDFProps) {
   return (
     <Document>
       <Page size="A4" style={s.page}>
-        <Header />
+        <Header company={company} neutral={neutral} />
+        <Text style={{ paddingHorizontal: 40, paddingTop: 8 }}>{data.statut === "valide" ? "Validé par le responsable" : "BROUILLON — À VÉRIFIER"}</Text>
 
         <View style={s.content}>
           {/* Titre */}
@@ -329,7 +338,7 @@ export function InspectionDocument({ data }: InspectionPDFProps) {
             </View>
             <View style={[s.metaCell, s.metaCellLast]}>
               <Text style={s.metaLabel}>Agence</Text>
-              <Text style={s.metaValue}>{data.agence || 'Aprime fluides'}</Text>
+              <Text style={s.metaValue}>{neutral ? company : (data.agence || company)}</Text>
             </View>
           </View>
 
@@ -343,11 +352,8 @@ export function InspectionDocument({ data }: InspectionPDFProps) {
           <View style={s.partyTable} wrap={false}>
             <View style={[s.partyCol, s.partyColSep]}>
               <Text style={s.partyHead}>ÉMETTEUR</Text>
-              <Text style={s.partyName}>Aprime fluides</Text>
-              <Text style={s.partyLine}>1, rue Jean Carasso</Text>
-              <Text style={s.partyLine}>95000 Bezons</Text>
-              <Text style={s.partyLine}>Tél. {TEL_PRINCIPAL_FALLBACK}</Text>
-              <Text style={s.partyLine}>contact@aprime-fluides.fr</Text>
+              <Text style={s.partyName}>{company}</Text>
+              {!neutral && <Text style={s.partyLine}>contact@aprime-fluides.fr · {TEL_PRINCIPAL_FALLBACK}</Text>}
             </View>
             <View style={s.partyCol}>
               <Text style={s.partyHead}>CLIENT</Text>
@@ -464,7 +470,7 @@ export function InspectionDocument({ data }: InspectionPDFProps) {
           </View>
         </View>
 
-        <Footer numero={data.numero} />
+        <Footer numero={data.numero} company={company} neutral={neutral} />
       </Page>
     </Document>
   )
@@ -478,7 +484,7 @@ interface DownloadButtonProps extends InspectionPDFProps {
 
 export default function InspectionDownloadButton(props: DownloadButtonProps) {
   const filename = props.filename
-    || `inspection-camera-${(props.data.client.nom || 'client').toLowerCase().replace(/\s+/g, '-')}-${props.data.numero}.pdf`
+    || `inspection-camera-${props.data.numero.replace(/[^a-zA-Z0-9_-]/g, '-')}.pdf`
   return (
     <PDFDownloadLink document={<InspectionDocument data={props.data} />} fileName={filename}>
       {({ loading }) => (

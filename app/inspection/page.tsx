@@ -1,6 +1,8 @@
 'use client'
 import { useEffect, useMemo, useState } from "react"
 import dynamic from "next/dynamic"
+import InspectionVideoPanel from "@/components/InspectionVideoPanel"
+import { privateReport } from "@/lib/report-privacy"
 import AppTabs from "@/components/AppTabs"
 import VilleCombobox from "@/components/VilleCombobox"
 import {
@@ -61,6 +63,11 @@ function genNumero() {
 
 export default function InspectionPage() {
 
+  const [societe, setSociete] = useState('Aprime Fluides')
+  const [sousTraitance, setSousTraitance] = useState(false)
+  const [statut, setStatut] = useState<'brouillon' | 'valide'>('brouillon')
+  const [destinataire, setDestinataire] = useState('')
+  const [envoiMessage, setEnvoiMessage] = useState('')
   const [numero, setNumero] = useState('')
   useEffect(() => { setNumero(genNumero()) }, [])
 
@@ -176,6 +183,7 @@ export default function InspectionPage() {
         photoLegende: o.photoLegende,
       }))
     return {
+      societe: societe.trim() || "Aprime Fluides", sousTraitance, statut,
       numero,
       dateInspection,
       technicienNom: technicienNom || 'Technicien',
@@ -195,7 +203,7 @@ export default function InspectionPage() {
       conclusionEtat,
     }
   }, [
-    numero, dateInspection, technicienNom, agence,
+    societe, sousTraitance, statut, numero, dateInspection, technicienNom, agence,
     clientNom, clientAdresse, clientCP, clientVille, clientEmail, clientTel,
     reseau, materiau, diametre, longueurM, regardAmont, regardAval, sensInspection, materielUtilise, conditionsMeteo,
     observations, precoSelected, precoCustom, resume, conclusionEtat,
@@ -238,6 +246,22 @@ export default function InspectionPage() {
         </div>
 
         {/* Identité */}
+        <section className="bg-white rounded-2xl border p-5 space-y-3">
+          <h2 className="font-bold">Société et envoi du rapport</h2>
+          <Field label="Société affichée"><input className={inputCls} maxLength={100} value={societe} onChange={e => setSociete(e.target.value)} /></Field>
+          <label className="block"><input type="checkbox" checked={sousTraitance} onChange={e => setSousTraitance(e.target.checked)} /> Sous-traitance : retirer les coordonnées Aprime du PDF</label>
+          <Field label="Statut"><select className={inputCls} value={statut} onChange={e => setStatut(e.target.value as 'brouillon' | 'valide')}><option value="brouillon">Brouillon — à vérifier</option><option value="valide">Validé par le responsable</option></select></Field>
+          <Field label="E-mail destinataire"><input className={inputCls} type="email" value={destinataire} onChange={e => setDestinataire(e.target.value)} /></Field>
+          <button type="button" className="bg-[#0e2a52] text-white px-4 py-2 rounded-lg" onClick={() => {
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(destinataire.trim())) { setEnvoiMessage('Renseignez une adresse e-mail valide.'); return }
+            const subject = `${societe.trim() || 'Aprime Fluides'} — Rapport ITV ${numero}`
+            const body = privateReport(`Bonjour,\n\nVeuillez trouver le rapport ITV ${numero}.\nStatut : ${statut === 'valide' ? 'Validé par le responsable' : 'Brouillon — à vérifier'}.\n\n${resume}\n\n${societe}`, clientNom)
+            window.location.href = `mailto:${encodeURIComponent(destinataire.trim())}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+            setEnvoiMessage('E-mail préparé. Joignez manuellement le PDF téléchargé et relisez avant envoi. Aucun envoi automatique.')
+          }}>Préparer l’e-mail</button>
+          <p role="status" className="text-sm">{envoiMessage}</p>
+        </section>
+        <InspectionVideoPanel onCapture={observation => setObservations(prev => [...prev, observation])} />
         <Section title="1. Informations générales" icon="📍">
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="N° rapport"><input value={numero} onChange={e => setNumero(e.target.value)} className={inputCls} /></Field>
