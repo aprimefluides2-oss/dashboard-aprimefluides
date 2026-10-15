@@ -243,6 +243,7 @@ export async function POST(req: NextRequest) {
   fd.append('client_email', clientEmail)
   fd.append('client_adresse', `${adresse} ${codePostal} ${ville}`.trim())
   fd.append('intervention_id', interventionId)
+  if (interv.publie_slug) fd.append('existing_slug', interv.publie_slug)
   fd.append('technicien_name', technicienNom)
   // Wrap les Blob en File explicite : certains parseurs multipart (Django
   // notamment) discriminent en fonction de l'objet, et un Blob "nu" peut
