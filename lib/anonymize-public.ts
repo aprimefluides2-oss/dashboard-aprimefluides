@@ -151,7 +151,7 @@ const CHAMPS_PUBLICS = ['title', 'meta_title', 'description', 'content'] as cons
  * partaient sur le réseau sans jamais servir — on cesse simplement de les
  * envoyer. Ils restent évidemment dans Supabase, qui est le CRM interne.
  */
-const CHAMPS_IDENTITE = ['client_nom', 'client_email', 'client_adresse', 'transcription'] as const
+const CHAMPS_IDENTITE = ['client_nom', 'client_email', 'client_adresse', 'transcription', 'rapport_json'] as const
 
 /**
  * Dernière barrière avant l'envoi à Django : anonymise les champs publics et
@@ -179,7 +179,7 @@ export function anonymizePublishFormData(fd: FormData): { fd: FormData; retires:
       sortie.append(cle, anonymizePublicText(valeur))
       return
     }
-    if (cle === 'faq_json' || cle === 'seo_json' || cle === 'jsonld') {
+    if (cle === 'faq_json' || cle === 'seo_json' || cle === 'jsonld' || cle === 'howto_json' || cle === 'photos_json') {
       // JSON : on descend dans les valeurs texte plutôt que de filtrer la chaîne
       // sérialisée, pour ne pas risquer d'abîmer l'échappement.
       try {

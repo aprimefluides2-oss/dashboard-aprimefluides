@@ -1,4 +1,5 @@
 'use client'
+import { privateReport, streetOnly } from '@/lib/report-privacy'
 import React from "react"
 import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from "@react-pdf/renderer"
 import { TEL_PRINCIPAL_FALLBACK } from "@/lib/parametres"
@@ -476,9 +477,14 @@ const SectionBand = ({
 
 /* ============ DOCUMENT ============ */
 export function RealisationDocument({
-  clientNom, adresse, ville, codePostal, dateIntervention, typeIntervention,
-  technicienNom, technicienSignature, rapport, reference, photos, phone,
+  clientNom: sourceClientName, adresse: sourceAddress, ville, codePostal: sourcePostalCode, dateIntervention, typeIntervention,
+  technicienNom, technicienSignature, rapport: sourceReport, reference, photos: sourcePhotos, phone,
 }: PDFProps) {
+  const clientNom = 'Client anonymisé'
+  const adresse = streetOnly(sourceAddress || '')
+  const codePostal = ''
+  const rapport = privateReport(sourceReport, sourceClientName)
+  const photos = privateReport(sourcePhotos, sourceClientName)
   const ref = reference || rapport.reference || `APR-${dateIntervention.replace(/-/g, '')}`
   const hasPhotos = (photos?.length ?? 0) > 0
 

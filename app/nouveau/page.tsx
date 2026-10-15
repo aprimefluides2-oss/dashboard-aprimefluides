@@ -584,7 +584,7 @@ export default function NouveauPage() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcription, type_intervention: typeIntervention, ville, code_postal: codePostal, duree_minutes: dureeMinutes, causes_bouchon: causesBouchon, travaux_effectues: travauxEffectues }),
+        body: JSON.stringify({ transcription, client_nom: clientNom, type_intervention: typeIntervention, ville, code_postal: codePostal, duree_minutes: dureeMinutes, causes_bouchon: causesBouchon, travaux_effectues: travauxEffectues }),
         signal: AbortSignal.timeout(180_000),
       })
       const data = await res.json()
@@ -841,7 +841,7 @@ export default function NouveauPage() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcription, type_intervention: typeIntervention, ville, code_postal: codePostal, duree_minutes: dureeMinutes, causes_bouchon: causesBouchon, travaux_effectues: travauxEffectues }),
+        body: JSON.stringify({ transcription, client_nom: clientNom, type_intervention: typeIntervention, ville, code_postal: codePostal, duree_minutes: dureeMinutes, causes_bouchon: causesBouchon, travaux_effectues: travauxEffectues }),
         signal: AbortSignal.timeout(180_000),
       })
       const data = await res.json()

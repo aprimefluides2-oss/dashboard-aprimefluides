@@ -1,3 +1,4 @@
+import { privateReport } from './report-privacy'
 import { getSupabaseOrNull, saveDocument, upsertClient } from "@/lib/supabase"
 import { mergeFacturePayloadMeta } from "@/lib/facture-relance"
 
@@ -164,6 +165,7 @@ export type PersistRapportResult =
  * Retry jusqu'à 5 fois en cas de collision sur la reference unique.
  */
 export async function persistRapport(p: PersistRapportInput): Promise<PersistRapportResult> {
+  p = { ...p, rapport: privateReport(p.rapport, p.clientNom || '') }
   const sb = getSupabaseOrNull()
   if (!sb) return { ok: false, error: 'Supabase non configuré (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY manquants côté serveur)' }
 

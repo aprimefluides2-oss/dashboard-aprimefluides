@@ -1,3 +1,4 @@
+import { privateReport } from '@/lib/report-privacy'
 import { publicationErrors } from '@/lib/publication-check'
 import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseOrNull } from "@/lib/supabase"
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
   if (!interv.rapport_json || Object.keys(interv.rapport_json).length === 0) {
     return NextResponse.json({ error: 'Le rapport n\'est pas généré pour cette intervention.' }, { status: 400 })
   }
-  const seo = interv.seo_json
+  let seo = interv.seo_json
   if (!seo || Object.keys(seo).length === 0) {
     return NextResponse.json({ error: 'Le bloc SEO n\'est pas généré pour cette intervention.' }, { status: 400 })
   }
@@ -76,6 +77,8 @@ export async function POST(req: NextRequest) {
     clientCp = c?.code_postal || null
   }
 
+  seo = privateReport(seo, clientNom)
+
   // Technicien : Django Aprime fluides exige le champ technicien_name NOT NULL en base
   // (commit Django a904cfb). Sans ça, le serializer accepte sans valeur et
   // create() écrit null → IntegrityError 500. Fallback vide si pas de tech.
@@ -95,8 +98,20 @@ export async function POST(req: NextRequest) {
   const ville = interv.ville || clientVille || ''
   const codePostal = interv.code_postal || clientCp || ''
   const adresse = interv.adresse_chantier || clientAdresse || ''
-  const problems = publicationErrors({ title: seo.titre_h1, content: seo.contenu_principal, city: ville, postalCode: codePostal, slug: seo.slug, photoCount: photosUrls.length })
+  // Keep the public address stable when an existing dossier is regenerated.
+  const publicationSlug = interv.publie_slug || seo.slug || ''
+  const problems = publicationErrors({ title: seo.titre_h1, content: seo.contenu_principal, city: ville, postalCode: codePostal, slug: publicationSlug, photoCount: photosUrls.length })
   if (problems.length) return NextResponse.json({ error: problems.join(' ') }, { status: 400 })
+  const { data: otherOwners, error: ownerError } = await sb.from('interventions').select('id').eq('publie_slug', publicationSlug).neq('id', interventionId).limit(1)
+  if (ownerError) return NextResponse.json({ error: 'Impossible de vérifier les doublons. Publication arrêtée.' }, { status: 503 })
+  if (otherOwners?.length) return NextResponse.json({ error: 'Cette adresse appartient déjà à une autre intervention. Aucune publication effectuée.' }, { status: 409 })
+  if (!interv.publie_slug) {
+    try {
+      const existing = await fetch(`${ltdbUrl}/api/gallery/${encodeURIComponent(publicationSlug)}/`, { redirect: 'manual', cache: 'no-store', signal: AbortSignal.timeout(10000) })
+      if (existing.status !== 404) return NextResponse.json({ error: existing.ok ? 'Une réalisation existe déjà à cette adresse. Vérifiez son rattachement avant de republier.' : 'La vérification du site est indisponible. Publication arrêtée.' }, { status: existing.ok ? 409 : 503 })
+    } catch { return NextResponse.json({ error: 'La vérification des doublons a échoué. Publication arrêtée.' }, { status: 503 }) }
+  }
+
   const slugify = (s: string) =>
     (s || '')
       .toLowerCase()
@@ -132,7 +147,7 @@ export async function POST(req: NextRequest) {
         if (!(r.headers.get('content-type') || '').startsWith('image/')) throw new Error('Format de photo invalide')
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
         const blob = await r.blob()
-        return { blob, filename: `${nomBase}-${i + 1}.jpg`, legende: interv.photos_legendes?.[i] || `Photo ${i + 1}` }
+        return { blob, filename: `${nomBase}-${i + 1}.jpg`, legende: privateReport(interv.photos_legendes?.[i] || `Photo ${i + 1}`, clientNom) }
       } catch (e) {
         console.error('[publish/from-intervention] photo fetch', url, e)
         return null
@@ -185,7 +200,7 @@ export async function POST(req: NextRequest) {
   // Construit le FormData attendu par /api/gallery/publish/ Django.
   const fd = new FormData()
   fd.append('title', truncate(rawTitle, 95))
-  fd.append('slug', seo.slug || '')
+  fd.append('slug', publicationSlug)
   fd.append('service_type', interv.type_intervention || '')
   fd.append('location', ville)
   fd.append('intervention_city', ville)
@@ -205,6 +220,7 @@ export async function POST(req: NextRequest) {
   if (typeof dureeMemorisee === 'number' && dureeMemorisee > 0) {
     fd.append('duree_minutes', String(Math.round(dureeMemorisee)))
   }
+  fd.append('meta_title', truncate(seo.meta_title || rawTitle, 118))
   fd.append('description', truncate(rawDesc, 195))
   fd.append('meta_keywords', Array.isArray(seo.meta_keywords) ? seo.meta_keywords.join(', ') : '')
   fd.append('content', contentWithContainers)
@@ -216,6 +232,7 @@ export async function POST(req: NextRequest) {
       acceptedAnswer: { '@type': 'Answer', text: f?.reponse || '' },
     })),
   }))
+  if (seo.howto_json) fd.append('howto_json', seo.howto_json)
   fd.append('jsonld', JSON.stringify(seo.jsonld || {}))
   fd.append('related_services_json', JSON.stringify(seo.related_services || []))
   fd.append('is_published', 'true')
@@ -285,7 +302,7 @@ export async function POST(req: NextRequest) {
     console.error('[publish/from-intervention] Django error', {
       status: djResp.status,
       contentType: djResp.headers.get('content-type'),
-      bodyFull: txt,
+      responseLength: txt.length,
       fieldSizes,
       url: `${ltdbUrl}/api/gallery/publish/`,
     })

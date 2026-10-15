@@ -1,3 +1,4 @@
+import { privateReport } from '@/lib/report-privacy'
 import { NextRequest, NextResponse } from "next/server"
 import { deepseek } from "@/lib/deepseek"
 import { parseAiJson } from "@/lib/parseAiJson"
@@ -71,6 +72,7 @@ async function slugDisponible(slug: string): Promise<string> {
 export async function POST(req: NextRequest) {
   const {
     transcription: transcriptionBrute,
+    client_nom,
     type_intervention,
     ville,
     code_postal,
@@ -379,9 +381,10 @@ sont placés avant pour ne jamais être perdus si la réponse est longue.
       error: e.message,
       stop_reason: (rapportMsg as any)?.stop_reason,
       rawLength: rawFull.length,
-      raw: rawFull,
+      // Never log generated client text.
+      rawLengthOnly: rawFull.length,
     })
-    return NextResponse.json({ error: `Parsing rapport IA : ${e.message}`, raw: rawFull.slice(0, 500) }, { status: 500 })
+    return NextResponse.json({ error: `Parsing rapport IA : ${e.message}`, code: 'INVALID_AI_REPORT' }, { status: 500 })
   }
 
   // Le SEO sert uniquement à la publication site (page /nouveau).
@@ -393,7 +396,7 @@ sont placés avant pour ne jamais être perdus si la réponse est longue.
     seo = parseAiJson(extractText(seoMsg))
   } catch (e: any) {
     seoWarning = `Parsing SEO IA : ${e.message}. Le SEO sera vide — la publication site nécessitera un édit manuel.`
-    console.error('[generate] SEO parse failed', { error: e.message, raw: extractText(seoMsg).slice(0, 500) })
+    console.error('[generate] SEO parse failed', { error: e.message, rawLength: extractText(seoMsg).length })
   }
 
   // Normalisation : garantit que la sortie a toujours la forme attendue
@@ -631,5 +634,5 @@ sont placés avant pour ne jamais être perdus si la réponse est longue.
   }
   seo.page_url = pageUrl
 
-  return NextResponse.json({ rapport, seo, ...(seoWarning ? { warning: seoWarning } : {}) })
+  return NextResponse.json({ rapport: privateReport(rapport, typeof client_nom === 'string' ? client_nom : ''), seo: privateReport(seo, typeof client_nom === 'string' ? client_nom : ''), ...(seoWarning ? { warning: seoWarning } : {}) })
 }
