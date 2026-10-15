@@ -13,6 +13,7 @@ export function privateReport<T>(value: T, clientName = ''): T {
       if (/^(?:adresse|client_adresse|adresse_chantier)$/i.test(key)) return streetOnly(node)
       let text = node.replace(/\b\d{1,4}(?:\s*(?:bis|ter))?\s*,?\s*((?:rue|avenue|boulevard|impasse|allée|allee|chemin|place|quai|route|passage|square)\b)/gi, '$1')
       if (name.length >= 2) text = text.replace(new RegExp(`(?<![A-Za-zÀ-ÿ])${escaped}(?![A-Za-zÀ-ÿ])`, 'gi'), 'le client')
+      text = text.replace(/\bau\s+(rue|avenue|impasse|allée|allee)\b/gi, 'dans la $1')
       return anonymizePublicText(text)
     }
     if (Array.isArray(node)) return node.map(v => walk(v))
