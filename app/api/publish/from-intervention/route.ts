@@ -1,3 +1,4 @@
+import { publicationErrors } from '@/lib/publication-check'
 import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseOrNull } from "@/lib/supabase"
 import { anonymizePublishFormData } from "@/lib/anonymize-public"
@@ -94,6 +95,8 @@ export async function POST(req: NextRequest) {
   const ville = interv.ville || clientVille || ''
   const codePostal = interv.code_postal || clientCp || ''
   const adresse = interv.adresse_chantier || clientAdresse || ''
+  const problems = publicationErrors({ title: seo.titre_h1, content: seo.contenu_principal, city: ville, postalCode: codePostal, slug: seo.slug, photoCount: photosUrls.length })
+  if (problems.length) return NextResponse.json({ error: problems.join(' ') }, { status: 400 })
   const slugify = (s: string) =>
     (s || '')
       .toLowerCase()
@@ -125,7 +128,8 @@ export async function POST(req: NextRequest) {
   const photoBlobs = await Promise.all(
     photosUrls.map(async (url, i) => {
       try {
-        const r = await fetch(toRenderUrl(url))
+        const r = await fetch(toRenderUrl(url), { signal: AbortSignal.timeout(15000) })
+        if (!(r.headers.get('content-type') || '').startsWith('image/')) throw new Error('Format de photo invalide')
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
         const blob = await r.blob()
         return { blob, filename: `${nomBase}-${i + 1}.jpg`, legende: interv.photos_legendes?.[i] || `Photo ${i + 1}` }
@@ -136,8 +140,8 @@ export async function POST(req: NextRequest) {
     })
   )
   const validPhotos = photoBlobs.filter((p): p is NonNullable<typeof p> => p !== null)
-  if (validPhotos.length === 0) {
-    return NextResponse.json({ error: 'Aucune photo téléchargeable depuis Storage.' }, { status: 502 })
+  if (validPhotos.length !== photosUrls.length) {
+    return NextResponse.json({ error: 'Publication annulée : certaines photos ne sont pas récupérables. Votre dossier est conservé.' }, { status: 502 })
   }
 
   // Construit le HTML de contenu identique à /nouveau (resume + contenu + galerie + FAQ).
@@ -290,10 +294,12 @@ export async function POST(req: NextRequest) {
   }
 
   const slug = (data && typeof data === 'object' && 'slug' in data ? String((data as { slug: string }).slug) : '') || seo.slug || ''
-  // Persiste le slug sur l'intervention (best-effort).
+  let trackingWarning: string | undefined
+  // The public page may already exist: never label this as a failed publication.
   if (slug) {
-    await sb.from('interventions').update({ publie_slug: slug }).eq('id', interventionId)
+    const { data: tracked, error: trackingError } = await sb.from('interventions').update({ publie_slug: slug }).eq('id', interventionId).select('id').maybeSingle()
+    if (trackingError || !tracked) trackingWarning = 'Réalisation publiée, mais son suivi dans l’historique reste à vérifier. Ne republiez pas.'
   }
 
-  return NextResponse.json({ ok: true, slug, data })
+  return NextResponse.json({ ok: true, slug, data, ...(trackingWarning ? { warning: trackingWarning } : {}) })
 }

@@ -1,5 +1,6 @@
 'use client'
-import { useRef, useState } from "react"
+import { readRecovery, saveRecovery, removeRecovery } from "@/lib/recovery-store"
+import { useEffect, useRef, useState } from "react"
 
 interface TerrainPhotoCaptureProps {
   interventionId: string
@@ -20,12 +21,44 @@ export default function TerrainPhotoCapture({
   onUploaded,
   titre = 'Prendre une photo',
 }: TerrainPhotoCaptureProps) {
+  const [pendingPhoto, setPendingPhoto] = useState<File | null>(null)
+  const [pendingReady, setPendingReady] = useState(false)
+  const pendingId = useRef('')
+  const pendingKey = `terrain-photo:${interventionId}:${legendeDefaut}`
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
   const [preview, setPreview] = useState<string | null>(null)
   const cameraInputRef = useRef<HTMLInputElement | null>(null)
   const galleryInputRef = useRef<HTMLInputElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setPendingReady(false)
+    void readRecovery<{ file: Blob; name: string; id: string }>(pendingKey).then(saved => {
+      if (cancelled) return
+      pendingId.current = saved?.id || ''
+      setPendingPhoto(saved ? new File([saved.file], saved.name, { type: saved.file.type }) : null)
+      if (saved) setError('Une photo attend son envoi. Réessayez lorsque la connexion revient.')
+    }).catch(() => { if (!cancelled) setError('Reprise locale indisponible : ne fermez pas cette page avant l’envoi.') })
+      .finally(() => { if (!cancelled) setPendingReady(true) })
+    return () => { cancelled = true }
+  }, [pendingKey])
+
+  async function sendPhoto(file: File) {
+    setUploading(true); setError('')
+    try {
+      const fd = new FormData(); fd.append('photo', file); fd.append('legende', legendeDefaut); fd.append('photo_id', pendingId.current)
+      const res = await fetch(`/api/interventions/${interventionId}/photo`, { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok || !data.url) throw new Error(data.error || 'Envoi non confirmé')
+      await removeRecovery(pendingKey)
+      setPendingPhoto(null)
+      onUploaded(data.url, data.terrain_step)
+    } catch (e: unknown) {
+      setError(`${e instanceof Error ? e.message : String(e)} La photo reste en attente sur cet appareil.`)
+    } finally { setUploading(false) }
+  }
 
   async function compress(file: File): Promise<File> {
     if (!file.type.startsWith('image/')) return file
@@ -64,31 +97,18 @@ export default function TerrainPhotoCapture({
   }
 
   async function handleFile(file: File | null) {
-    if (!file) return
-    setError('')
-    setUploading(true)
+    if (!file || !pendingReady || uploading || pendingPhoto) return
+    setError(''); setUploading(true)
     try {
       const compressed = await compress(file)
       setPreview(URL.createObjectURL(compressed))
-
-      const fd = new FormData()
-      fd.append('photo', compressed)
-      fd.append('legende', legendeDefaut)
-
-      const res = await fetch(`/api/interventions/${interventionId}/photo`, {
-        method: 'POST',
-        body: fd,
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
-
-      onUploaded(data.url, data.terrain_step)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
-      setPreview(null)
-    } finally {
-      setUploading(false)
-    }
+      pendingId.current = crypto.randomUUID()
+      await saveRecovery(pendingKey, { file: compressed, name: compressed.name, id: pendingId.current })
+      setPendingPhoto(compressed)
+      await sendPhoto(compressed)
+    } catch (e: unknown) {
+      setError(`Photo non sauvegardée : ${e instanceof Error ? e.message : String(e)}. Gardez l’original et réessayez.`)
+    } finally { setUploading(false) }
   }
 
   return (
@@ -123,7 +143,8 @@ export default function TerrainPhotoCapture({
         </div>
       )}
 
-      {!uploading && (
+      {pendingPhoto && !uploading && <button type="button" className="w-full rounded-xl bg-blue-700 p-4 text-white" onClick={() => void sendPhoto(pendingPhoto)}>Réessayer l’envoi de la photo conservée</button>}
+      {!uploading && !pendingPhoto && pendingReady && (
         <div className="space-y-3">
           <button
             type="button"

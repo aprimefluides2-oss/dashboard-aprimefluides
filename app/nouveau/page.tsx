@@ -20,6 +20,8 @@ import TechnicienSignatureField from "@/components/TechnicienSignatureField"
 import { getTechnicienSignature, setTechnicienSignature as persistTechnicienSignature } from "@/lib/technicien-signature"
 import { useUnsavedChangesWarning } from "@/lib/useUnsavedChangesWarning"
 import { REALISATION_PAGE_STYLE } from "@/lib/realisationPageCss"
+import { readRecovery, saveRecovery, removeRecovery } from '@/lib/recovery-store'
+import { publicationErrors } from '@/lib/publication-check'
 import { proxyImageUrl } from "@/lib/proxyImageUrl"
 
 const PDFDownloadButton = dynamic(() => import("@/components/RealisationPDF"), { ssr: false })
@@ -126,6 +128,14 @@ export default function NouveauPage() {
   const router = useRouter()
   const [step, setStep] = useState<Step>('capture')
   const [error, setError] = useState('')
+
+  const [recoveryReady, setRecoveryReady] = useState(false)
+  const [recoveryStatus, setRecoveryStatus] = useState('Chargement du brouillon local…')
+  const recoveryWritable = useRef(true)
+  const skipRecovery = useRef(typeof window !== 'undefined' && Boolean(sessionStorage.getItem('ltdb_load_rapport_id') || sessionStorage.getItem('ltdb_intervention_prefill')))
+  const recoveryVersion = useRef(0)
+  const publicationInFlight = useRef(false)
+  const [publicationReviewed, setPublicationReviewed] = useState(false)
 
   // Champs
   const [transcription, setTranscription] = useState('')
@@ -290,10 +300,61 @@ export default function NouveauPage() {
     persistTechnicienSignature(v)
   }
 
+  // Recover the complete working dossier, including the actual photo files.
+  useEffect(() => {
+    let cancelled = false
+    async function restore() {
+      try {
+        if (!skipRecovery.current) {
+          const d = await readRecovery<Draft & { rapport: unknown; seo: unknown; photos: Array<{ file: Blob; name: string; legende: string; storedUrl?: string }> }>('nouveau')
+          if (cancelled) return
+          if (d) {
+            const recoveredPhotos = await Promise.all(d.photos.map(async p => {
+              const file = new File([p.file], p.name, { type: p.file.type })
+              const dataUrl = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(reader.error); reader.readAsDataURL(file)
+              })
+              return { file, dataUrl, preview: dataUrl, legende: p.legende, storedUrl: p.storedUrl }
+            }))
+            if (cancelled) return
+            setTranscription(d.transcription); setTypeIntervention(d.typeIntervention)
+            setAdresse(d.adresse); setVille(d.ville); setCodePostal(d.codePostal)
+            setDateIntervention(d.dateIntervention); setClientNom(d.clientNom); setClientEmail(d.clientEmail)
+            setInterventionId(d.interventionId); setMontantFacture(d.montantFacture || '')
+            setDureeMinutes(d.dureeMinutes || ''); setCausesBouchon(d.causesBouchon || ''); setTravauxEffectues(d.travauxEffectues || '')
+            setRapport(d.rapport); setSeo(d.seo); setPhotos(recoveredPhotos)
+            setDraftRestoredAt(d.savedAt); setStep(d.rapport ? 'preview' : 'capture')
+          }
+        }
+        if (!cancelled) setRecoveryStatus('Brouillon conservé sur cet appareil. Il ne remplace pas une sauvegarde serveur.')
+      } catch {
+        recoveryWritable.current = false
+        if (!cancelled) setRecoveryStatus('Reprise locale indisponible. Gardez cette page ouverte et enregistrez dans l’historique dès que possible.')
+      } finally { if (!cancelled) setRecoveryReady(true) }
+    }
+    void restore()
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    if (!recoveryReady || !recoveryWritable.current || photosRestoring || step === 'done') return
+    if (!transcription.trim() && !clientNom.trim() && !adresse.trim() && !ville.trim() && !rapport && !photos.length) return
+    const version = ++recoveryVersion.current
+    setRecoveryStatus('Sauvegarde sur cet appareil en cours…')
+    void saveRecovery('nouveau', {
+      v: DRAFT_VERSION, savedAt: Date.now(), transcription, typeIntervention, adresse, ville, codePostal,
+      dateIntervention, clientNom, clientEmail, technicienNom, interventionId, montantFacture, dureeMinutes, causesBouchon, travauxEffectues,
+      rapport, seo, photos: photos.map(p => ({ file: p.file, name: p.file.name, legende: p.legende, storedUrl: p.storedUrl })),
+    }).then(() => { if (version === recoveryVersion.current) setRecoveryStatus('Brouillon conservé sur cet appareil. Il ne remplace pas une sauvegarde serveur.') })
+      .catch(() => { if (version === recoveryVersion.current) setRecoveryStatus('Sauvegarde locale échouée. Ne fermez pas la page ; enregistrez dans l’historique.') })
+  }, [recoveryReady, photosRestoring, step, transcription, typeIntervention, adresse, ville, codePostal, dateIntervention, clientNom, clientEmail, technicienNom, interventionId, montantFacture, dureeMinutes, causesBouchon, travauxEffectues, rapport, seo, photos])
+
+  useEffect(() => { setPublicationReviewed(false) }, [rapport, seo, photos, ville, codePostal, typeIntervention, dateIntervention])
+
   // Restauration du brouillon au mount (sauf si un prefill /planning est présent)
   useEffect(() => {
     if (typeof window === 'undefined') return
-    if (sessionStorage.getItem('ltdb_intervention_prefill')) return
+    if (skipRecovery.current) return
     const raw = localStorage.getItem(DRAFT_KEY)
     if (!raw) return
     try {
@@ -324,7 +385,7 @@ export default function NouveauPage() {
 
   // Auto-save du brouillon pendant la phase de saisie (capture / extracting / validate)
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || !recoveryReady) return
     if (step !== 'capture' && step !== 'extracting' && step !== 'validate') return
     const hasContent =
       transcription.trim() !== '' ||
@@ -362,6 +423,9 @@ export default function NouveauPage() {
   )
 
   function discardDraft() {
+    if (!confirm('Supprimer le brouillon et ses photos conservés sur cet appareil ?')) return
+    void removeRecovery('nouveau').catch(() => setError('Effacement du brouillon local impossible.'))
+    setRapport(null); setSeo(null)
     if (typeof window !== 'undefined') localStorage.removeItem(DRAFT_KEY)
     setDraftRestoredAt(null)
     setTranscription('')
@@ -632,103 +696,31 @@ export default function NouveauPage() {
   }
 
   async function handlePublish() {
+    if (publicationInFlight.current) return
+    const problems = publicationErrors({ title: seo?.titre_h1, content: seo?.contenu_principal, city: ville, postalCode: codePostal, slug: seo?.slug, photoCount: photos.length })
+    if (!publicationReviewed) problems.push('Confirmez la vérification du texte et des photos avant publication.')
+    if (photosRestoring) problems.push('Attendez la récupération de toutes les photos.')
+    if (problems.length) { setError(problems.join(' ')); return }
+    publicationInFlight.current = true
     setStep('publishing'); setError('')
-    if (photos.length === 0) {
-      setError('Au moins une photo est requise.'); setStep('preview'); return
-    }
-    const totalBytes = photos.reduce((sum, p) => sum + p.file.size, 0)
-    if (totalBytes > 4 * 1024 * 1024) {
-      setError(`Photos trop lourdes (${(totalBytes / 1024 / 1024).toFixed(1)} MB). Retire les plus grandes.`)
-      setStep('preview'); return
-    }
-    const formData = new FormData()
-    const escapeHtml = (s: string) => s
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
-    const galleryHtml = photos.length > 1
-      ? `<section class="content-block gallery-block"><h2>Photos de l'intervention</h2><p>Ces photos documentent les étapes clés sur site (avant, pendant, après).</p><div class="photo-grid">${photos.map((p, i) => `<figure class="photo-card"><img src="{PHOTO_${i + 1}_URL}" alt="${escapeHtml(p.legende || `Photo ${i + 1}`)}" loading="lazy"><figcaption>${escapeHtml(p.legende || `Photo ${i + 1}`)}</figcaption></figure>`).join('')}</div></section>`
-      : ''
-    // FAQ intégrée DIRECTEMENT dans le HTML de contenu : le template Django
-    // n'affiche que `content`, donc la FAQ doit y être (sinon elle n'apparaît
-    // pas sur la page publiée, même si elle part aussi dans faq_json/seo_json).
-    const faqHtml = Array.isArray(seo.faq) && seo.faq.length > 0
-      ? `<section class="content-block faq-block"><h2>Questions fréquentes</h2>${seo.faq.map((f: any) => `<details class="faq-item"><summary>${escapeHtml(f?.question || '')}</summary><div class="faq-answer"><p>${escapeHtml(f?.reponse || '')}</p></div></details>`).join('')}</section>`
-      : ''
-    const resumeHtml = seo.resume_rich_snippet
-      ? `<section class="content-block resume-block"><h2>Résumé de l'intervention</h2><p>${escapeHtml(seo.resume_rich_snippet)}</p></section>`
-      : ''
-    // CSS embed désactivé : Django renvoie HTTP 500 quand le content commence
-    // par un <style>. Cf. fix temporaire dans /api/publish/from-intervention.
-    void REALISATION_PAGE_STYLE
-    const contentWithContainers = `${resumeHtml}${seo.contenu_principal || ''}${galleryHtml}${faqHtml}`
-    // Tronque title/description pour respecter les CharField Django
-    // (title max_length=100 côté backend ; description max ~200). DeepSeek
-    // dépasse parfois → 500 silencieux.
-    const truncate = (s: string, max: number) => s.length <= max ? s : s.slice(0, max - 1).trimEnd() + '…'
-    formData.append('title', truncate(seo.titre_h1 || '', 95))
-    formData.append('slug', seo.slug || '')
-    formData.append('service_type', typeIntervention)
-    formData.append('location', ville)
-    formData.append('intervention_city', ville)
-    formData.append('postal_code', codePostal)
-    formData.append('agence', agence)
-    formData.append('intervention_date', dateIntervention)
-    // Montant facturé : envoyé seulement s'il est saisi. Django ignore un champ
-    // vide et ne touche alors pas au montant déjà en base (republication sûre).
-    if (montantFacture.trim()) formData.append('tarif', montantFacture.trim())
-    if (dureeMinutes.trim()) formData.append('duree_minutes', dureeMinutes.trim())
-    if (causesBouchon.trim()) formData.append('causes_bouchon', causesBouchon.trim())
-    if (travauxEffectues.trim()) formData.append('travaux_effectues', travauxEffectues.trim())
-    formData.append('description', truncate(seo.meta_description || '', 195))
-    // Title SERP dédié (≠ H1, sans suffixe de marque) : sans lui, le site
-    // retombait sur « {service} {ville} {CP} », un title de 24 caractères.
-    formData.append('meta_title', truncate(seo.meta_title || '', 118))
-    formData.append('meta_keywords', (seo.meta_keywords || []).join(', '))
-    formData.append('content', contentWithContainers)
-    formData.append('faq_json', JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", "mainEntity": (Array.isArray(seo?.faq) ? seo.faq : []).map((f: any) => ({ "@type": "Question", "name": f?.question || '', "acceptedAnswer": { "@type": "Answer", "text": f?.reponse || '' } })) }))
-    // HowTo (étapes réelles) : le site ne l'émet que si les étapes sont aussi
-    // rendues visiblement — elles le sont, via le <ol> du contenu.
-    if (seo.howto_json) formData.append('howto_json', seo.howto_json)
-    formData.append('jsonld', JSON.stringify(seo.jsonld || {}))
-    formData.append('related_services_json', JSON.stringify(seo.related_services || []))
-    formData.append('is_published', 'true')
-    formData.append('transcription', transcription || '')
-    formData.append('rapport_json', JSON.stringify(rapport || {}))
-    formData.append('seo_json', JSON.stringify(seo || {}))
-    formData.append('client_nom', clientNom || '')
-    formData.append('client_email', clientEmail || '')
-    formData.append('client_adresse', `${adresse || ''} ${codePostal || ''} ${ville || ''}`.trim())
-    if (interventionId) formData.append('intervention_id', interventionId)
-    // Django Aprime fluides exige technicien_name NOT NULL (sinon IntegrityError 500).
-    formData.append('technicien_name', technicienNom || '')
-    formData.append('before_image', photos[0].file)
-    formData.append('after_image', (photos[1] || photos[0]).file)
-    photos.slice(2).forEach((p, i) => formData.append(`extra_image_${i}`, p.file))
     try {
-      const res = await fetch('/api/publish', { method: 'POST', body: formData })
-      const txt = await res.text()
-      let data: any = null
-      try { data = JSON.parse(txt) } catch {}
-      if (!res.ok) {
-        const msg = data ? (typeof data === 'string' ? data : (data.error || JSON.stringify(data))) : txt.slice(0, 300)
-        throw new Error(msg)
-      }
-      const slug = data?.slug || seo?.slug || ''
-      setPublishedSlug(slug)
-      setTranscription('')
-      setRapport(null); setSeo(null)
-      setClientNom(''); setClientEmail(''); setAdresse(''); setVille(''); setCodePostal('')
-      photoLoadTokenRef.current = null; setPhotosRestoring(false)
-      setPhotos([])
-      setEmailSent(false)
-      setInterventionId(null)
-      if (typeof window !== 'undefined') localStorage.removeItem(DRAFT_KEY)
-      setDraftRestoredAt(null)
-      setStep('done')
-    } catch (e: any) {
-      setError(`Erreur publication : ${e.message}`)
+      // Archive the complete dossier first, then publish that saved version.
+      const id = await saveRapportToHistory()
+      if (!id) throw new Error('La sauvegarde du dossier n’a pas été confirmée.')
+      const res = await fetch('/api/publish/from-intervention', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ interventionId: id }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.ok || !data.slug) throw new Error(data.error || 'Publication non confirmée. Vérifiez l’historique avant de réessayer.')
+      setPublishedSlug(data.slug)
+      await removeRecovery('nouveau').catch(() => setError('Publication réussie ; le brouillon local reste à effacer.'))
+      localStorage.removeItem(DRAFT_KEY)
+      setDraftRestoredAt(null); setStep('done')
+      if (data.warning) setError(data.warning)
+    } catch (e: unknown) {
+      setError(`Publication interrompue : ${e instanceof Error ? e.message : String(e)} Votre brouillon est conservé.`)
       setStep('preview')
-    }
+    } finally { publicationInFlight.current = false }
   }
 
   // ── Historique : ouverture, recherche, chargement d'un rapport pour édition ──
@@ -883,7 +875,12 @@ export default function NouveauPage() {
       typeIntervention,
       dateIntervention,
       transcription,
-      rapport, seo,
+      rapport: { ...rapport,
+        ...(montantFacture.trim() ? { montant_facture_ttc: Number(montantFacture.replace(',', '.')) } : {}),
+        ...(dureeMinutes.trim() ? { duree_minutes: Number(dureeMinutes) } : {}),
+        ...(causesBouchon.trim() ? { causes_bouchon: causesBouchon.trim() } : {}),
+        ...(travauxEffectues.trim() ? { travaux_effectues: travauxEffectues.trim() } : {}),
+      }, seo,
       technicienNom: technicienNom || '',
     }))
     const manifest: { storedUrl?: string; legende: string; fileKey?: string }[] = []
@@ -922,6 +919,7 @@ export default function NouveauPage() {
     const res = await fetch('/api/save-rapport', { method: 'POST', body: form })
     const data = await res.json().catch(() => ({}))
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
+    if (data.debug_upload_errors?.length) throw new Error('Certaines photos ne sont pas enregistrées. Le brouillon est conservé : réessayez.')
     // Insert → on adopte l'id pour que les prochaines sauvegardes updatent la
     // même intervention (et que les photos y restent liées).
     if (data.id && data.id !== interventionId) setInterventionId(data.id)
@@ -952,6 +950,7 @@ export default function NouveauPage() {
   }
 
   function resetForm() {
+    void removeRecovery('nouveau').catch(() => setError('Effacement du brouillon local impossible.'))
     setStep('capture')
     setTranscription(''); setRapport(null); setSeo(null); setError('')
     setClientNom(''); setClientEmail(''); setAdresse(''); setVille(''); setCodePostal('')
@@ -966,8 +965,11 @@ export default function NouveauPage() {
   const totalMb = photos.reduce((s, p) => s + p.file.size, 0) / 1024 / 1024
   const currentStepperIdx = getStepperIndex(step)
 
+  if (!recoveryReady) return <div className="p-6" role="status">Chargement de votre brouillon…</div>
+
   return (
     <div className="min-h-screen bg-slate-50 pb-32">
+      <p role="status" className="bg-blue-50 px-4 py-3 text-sm text-blue-950">{recoveryStatus}</p>
       {/* App tabs (rapport vs devis) */}
       <div className="bg-white border-b border-slate-200 py-2">
         <div className="max-w-3xl mx-auto px-4">
@@ -1481,6 +1483,10 @@ export default function NouveauPage() {
                     >
                       {emailSent ? '✓ Email envoyé' : emailSending ? 'Envoi…' : '✉ Envoyer au client'}
                     </button>
+                    <label className="flex gap-2 text-sm text-slate-700 mb-3">
+                      <input type="checkbox" checked={publicationReviewed} onChange={e => setPublicationReviewed(e.target.checked)} />
+                      J’ai vérifié la ville, le texte et les photos : ils correspondent à cette intervention et ne révèlent pas d’informations privées.
+                    </label>
                     <button
                       onClick={handlePublish}
                       disabled={step === 'publishing'}

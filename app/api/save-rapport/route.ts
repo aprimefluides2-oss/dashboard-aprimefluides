@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
       } catch {
         return NextResponse.json({ error: 'photosManifest invalide' }, { status: 400 })
       }
+      if (!Array.isArray(manifest)) return NextResponse.json({ error: 'Liste de photos invalide' }, { status: 400 })
       const sb = getSupabaseOrNull()
       if (!sb) {
         return NextResponse.json({ error: 'Supabase non configuré' }, { status: 500 })
@@ -81,6 +82,7 @@ export async function POST(req: NextRequest) {
         if (!entry?.fileKey) continue
         const f = formData.get(entry.fileKey)
         if (!(f instanceof File) || f.size === 0) { uploadErrors.push(`${entry.fileKey}: fichier absent/vide`); continue }
+        if (!/^image\/(jpeg|png|webp)$/.test(f.type) || f.size > 4 * 1024 * 1024) { uploadErrors.push('Photo trop lourde ou format non pris en charge'); continue }
         const ext = (f.name.match(/\.[a-zA-Z0-9]+$/)?.[0] || '.jpg').toLowerCase()
         const path = `${folderKey}/${stamp}-${uploadIdx}${ext}`
         const buf = Buffer.from(await f.arrayBuffer())
@@ -99,6 +101,7 @@ export async function POST(req: NextRequest) {
           uploadIdx++
         }
       }
+      if (uploadErrors.length) return NextResponse.json({ error: 'Toutes les photos n’ont pas été transférées. Le dossier existant reste inchangé ; réessayez.', debug_upload_errors: uploadErrors }, { status: 502 })
       photosUrls = urls
       photosLegendes = legendes
       debugUploadErrors = uploadErrors

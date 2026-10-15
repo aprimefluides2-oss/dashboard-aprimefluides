@@ -212,12 +212,13 @@ export async function persistRapport(p: PersistRapportInput): Promise<PersistRap
       if (cid) update.client_id = cid
     }
 
-    const { error } = await sb.from('interventions').update(update).eq('id', p.interventionId)
+    const { data: updated, error } = await sb.from('interventions').update(update).eq('id', p.interventionId).select('id').maybeSingle()
     if (error) {
       console.error('[persistRapport:update]', error)
       return { ok: false, error: `Update intervention ${p.interventionId} : ${error.message}` }
     }
-    return { ok: true, id: p.interventionId, mode: 'update' }
+    if (!updated?.id) return { ok: false, error: 'Intervention introuvable : aucun rapport enregistré.' }
+    return { ok: true, id: updated.id, mode: 'update' }
   }
 
   // ─── INSERT d'une nouvelle intervention (flux sans intervention liée) ───

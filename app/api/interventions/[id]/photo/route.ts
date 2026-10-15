@@ -42,6 +42,9 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: 'Photo trop lourde (max 10 MB)' }, { status: 413 })
   }
 
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return NextResponse.json({ error: 'Format photo non pris en charge' }, { status: 400 })
+  const photoId = String(formData.get('photo_id') || '')
+  if (photoId && !/^[a-f0-9-]{36}$/i.test(photoId)) return NextResponse.json({ error: 'Identifiant photo invalide' }, { status: 400 })
   const legende = String(formData.get('legende') || '').trim().slice(0, 200)
 
   const { data: interv, error: intErr } = await sb
@@ -54,7 +57,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   const folder = interventionId.replace(/[^a-zA-Z0-9_-]/g, '-').slice(0, 80)
   const ext = (file.name.match(/\.[a-zA-Z0-9]+$/)?.[0] || '.jpg').toLowerCase()
-  const path = `${folder}/${Date.now()}${ext}`
+  const path = `${folder}/${photoId || Date.now()}${ext}`
   const buf = Buffer.from(await file.arrayBuffer())
 
   const upload = await sb.storage
@@ -69,6 +72,8 @@ export async function POST(req: NextRequest, { params }: Params) {
   if (!url) {
     return NextResponse.json({ error: 'URL publique introuvable' }, { status: 500 })
   }
+
+  if ((interv.photos_urls || []).includes(url)) return NextResponse.json({ ok: true, url, photos_urls: interv.photos_urls, photos_legendes: interv.photos_legendes, terrain_step: interv.terrain_step })
 
   const photosUrls = [...(interv.photos_urls || []), url]
   const photosLegendes = [...(interv.photos_legendes || []), legende || defaultLegende(photosUrls.length - 1)]
