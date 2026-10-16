@@ -120,8 +120,8 @@ const s = StyleSheet.create({
   },
   firmName: { color: C.white, fontSize: 13, fontFamily: 'Helvetica-Bold', letterSpacing: 0.6, textTransform: 'uppercase' },
   firmTag:  { color: '#bdd0e0', fontSize: 8, marginTop: 2 },
-  headerRight: { alignItems: 'flex-end' },
-  headerMeta:     { color: '#bdd0e0', fontSize: 8, marginBottom: 1 },
+  headerRight: { position:'absolute',right:32,top:10,alignItems: 'flex-end' },
+  headerMeta:     { color: '#bdd0e0', fontSize: 7, lineHeight:1.2, marginBottom: 2 },
   headerMetaBold: { color: C.white,  fontFamily: 'Helvetica-Bold', fontSize: 8.5 },
 
   content: { paddingHorizontal: 32, paddingTop: 14, paddingBottom: 10 },
@@ -282,8 +282,7 @@ const Header = ({ company, neutral }: { company: string; neutral: boolean }) => 
       {neutral && <Text style={s.firmTag}>Inspection et entretien des canalisations</Text>}
     </View>
     <View style={s.headerRight}>
-      <Text style={s.headerMetaBold}>Compte rendu d&apos;intervention</Text>
-      {!neutral && <Text style={s.headerMeta}>Tél. {TEL_PRINCIPAL_FALLBACK}</Text>}
+      {neutral ? <Text style={s.headerMetaBold}>Compte rendu d&apos;intervention</Text> : <><Text style={s.headerMeta}>1 rue Jean Carasso · 95870 Bezons</Text><Text style={s.headerMeta}>Tél. {TEL_PRINCIPAL_FALLBACK}</Text><Text style={s.headerMeta}>aprime-fluides@orange.fr</Text><Text style={s.headerMeta}>www.aprime-fluides.fr</Text></>}
     </View>
   </View>
 )
@@ -298,7 +297,7 @@ const Footer = ({ numero, company, neutral }: { numero: string; company: string;
   </View>
 )
 
-function Watermark({neutral,hero=false}:{neutral:boolean;hero?:boolean}) { return neutral ? null : <View style={{position:'absolute',left:0,right:0,top:0,bottom:0,alignItems:'center',justifyContent:'center'}}><Image src={WATERMARK_SYMBOL} style={{width:'60%',height:'78%',objectFit:'contain',opacity:hero?0.075:0.045}} /></View> }
+function Watermark({neutral}:{neutral:boolean;hero?:boolean}) { return neutral ? null : <View style={{position:'absolute',right:8,width:230,top:0,bottom:0,alignItems:'center',justifyContent:'center'}}><Image src={WATERMARK_SYMBOL} style={{width:'100%',height:'78%',objectFit:'contain',opacity:0.075}} /></View> }
 
 function SectionHeading({number,title}:{number:string;title:string}) {
  return <View style={{flexDirection:'row',alignItems:'center',marginBottom:12,marginTop:3}}><Text style={{fontSize:8,color:C.navy,fontFamily:'Helvetica-Bold',backgroundColor:C.gold,borderRadius:4,padding:6,marginRight:9}}>{number}</Text><Text style={{fontSize:13,color:C.white,fontFamily:'Helvetica-Bold'}}>{title}</Text><View style={{height:1,backgroundColor:C.border,flex:1,marginLeft:12}} /></View>
@@ -349,7 +348,6 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
       <Page size="A4" style={s.page}>
         <View fixed style={{position:"absolute",left:0,top:64,bottom:44,width:5,backgroundColor:C.navy}} />
         <View fixed style={{position:"absolute",left:0,top:64,width:5,height:95,backgroundColor:C.gold}} />
-        {!neutral && <View fixed style={{position:'absolute',left:0,right:0,top:64,bottom:44,alignItems:'center',justifyContent:'center'}}><Image src={WATERMARK_SYMBOL} style={{width:310,height:310,opacity:0.025,objectFit:'contain'}} /></View>}
         <Header company={company} neutral={neutral} />
         <Text style={{ paddingHorizontal: 32, paddingTop: 8, color:'#bdd0e0', fontSize:8, letterSpacing:1 }}>{data.statut === "valide" ? "Validé par le responsable" : "BROUILLON — À VÉRIFIER"}</Text>
 
@@ -393,7 +391,7 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
           <Text style={{fontSize:9,color:'#bdd0e0',marginBottom:12}}>{data.conclusionPrecision || 'Conclusion limitée aux portions accessibles et effectivement contrôlées. Le périmètre et les limites du contrôle restent à préciser.'}</Text>
 
           {/* Identité */}
-          <View style={s.partyTable} wrap={false}><Watermark neutral={neutral} />
+          <View style={s.partyTable} wrap={false}>
             <View style={[s.partyCol, s.partyColSep]}>
               <Text style={s.partyHead}>ÉMETTEUR</Text>
               <Text style={s.partyName}>{company}</Text>
@@ -441,7 +439,7 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
                 const def = findDefaut(o.code || '')
                 const grav = def ? def.gravite : 1
                 return (
-                  <View key={i} wrap={false}>{i === 0 && <SectionHeading number="03" title="Constats et intervention en images" />}<View style={s.obsItem}><Watermark neutral={neutral} />
+                  <View key={i} wrap={false}>{i === 0 && <SectionHeading number="03" title="Constats et intervention en images" />}<View style={s.obsItem}>
                     <View style={s.obsHeader}>
                       <View style={s.obsHeaderLeft}>
                         <Text style={s.obsNum}>{`OBS ${String(i + 1).padStart(2, '0')}`}</Text>
@@ -493,11 +491,11 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
             </>
           )}
 
-          {!data.observations.some(o=>o.videoReference && o.photoUrl) && <View style={s.resumeBox} wrap={false}><Watermark neutral={neutral} /><Text style={s.resumeTitle}>Vidéos et captures</Text><Text style={s.resumeText}>Aucune capture reliée à une vidéo et à un timecode n’est renseignée. Ajouter les vues caméra utiles si elles sont disponibles.</Text></View>}
+          {!data.observations.some(o=>o.videoReference && o.photoUrl) && <View style={s.resumeBox} wrap={false}><Text style={s.resumeTitle}>Vidéos et captures</Text><Text style={s.resumeText}>Aucune capture reliée à une vidéo et à un timecode n’est renseignée. Ajouter les vues caméra utiles si elles sont disponibles.</Text></View>}
 
           {/* Préconisations */}
           {data.preconisations.length > 0 && (
-            <View style={s.precoBox} wrap={false}><Watermark neutral={neutral} />
+            <View style={s.precoBox} wrap={false}>
               <Text style={s.precoTitle}>Suites à prévoir</Text>
               {data.preconisations.map((p, i) => (
                 <View key={i} style={s.precoItem}>
@@ -511,14 +509,14 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
 
           {/* Résumé */}
           {data.resume ? (
-            <View style={s.resumeBox} wrap={false}><Watermark neutral={neutral} />
+            <View style={s.resumeBox} wrap={false}>
               <Text style={s.resumeTitle}>Bilan de l’intervention</Text>
               <Text style={s.resumeText}>{data.resume}</Text>
             </View>
           ) : null}
 
           {/* Glossaire */}
-          {glossary.length > 0 && <View style={s.glossBox} wrap={false}><Watermark neutral={neutral} />
+          {glossary.length > 0 && <View style={s.glossBox} wrap={false}>
             <Text style={s.glossTitle}>Quelques termes utiles</Text>
             {glossary.map(g => (
               <View key={g.terme} style={s.glossRow}>
