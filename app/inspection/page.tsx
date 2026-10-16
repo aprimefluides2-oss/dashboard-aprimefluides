@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import dynamic from "next/dynamic"
 import InspectionRecovery from "@/components/InspectionRecovery"
 import InspectionAnnotation from "@/components/InspectionAnnotation"
@@ -61,7 +61,7 @@ async function compressImage(file: File, maxDim = 1600, quality = 0.82): Promise
 
 function genNumero() {
   const d = new Date()
-  const seq = String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0')
+  const seq = [d.getHours(), d.getMinutes(), d.getSeconds()].map(n => String(n).padStart(2, '0')).join('') + '-' + crypto.randomUUID().slice(0, 8)
   return `ITV-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${seq}`
 }
 
@@ -223,7 +223,13 @@ export default function InspectionPage() {
   const canPreview = clientNom.trim().length > 0
 
   const draft = useMemo(() => ({ videoManifest,numero,dateInspection,technicienNom,diffusion,societe,sousTraitance,statut,destinataire,clientNom,clientAdresse,clientCP,clientVille,clientEmail,clientTel,reseau,materiau,diametre,longueurM,regardAmont,regardAval,sensInspection,materielUtilise,conditionsMeteo,observations:observations.map(({_photoFile,_photoPreview,...o})=>o),precoSelected,precoCustom,resume,conclusionEtat }), [videoManifest,numero,dateInspection,technicienNom,diffusion,societe,sousTraitance,statut,destinataire,clientNom,clientAdresse,clientCP,clientVille,clientEmail,clientTel,reseau,materiau,diametre,longueurM,regardAmont,regardAval,sensInspection,materielUtilise,conditionsMeteo,observations,precoSelected,precoCustom,resume,conclusionEtat])
+  const initialDraft = useRef(draft)
+  function createNewStudy() {
+    return { ...initialDraft.current, numero: genNumero(), dateInspection: new Date().toISOString().split('T')[0] }
+  }
   function restoreDraft(raw: Record<string,unknown>) {
+    observations.forEach(o => { if (o._photoPreview) URL.revokeObjectURL(o._photoPreview) })
+    setAnnotating(null);setShowPreview(false);setPhotoError('');setEnvoiMessage('');setNewPrecoTitre('');setNewPrecoDetail('')
     const d = raw as typeof draft
     setVideoManifest(d.videoManifest || []);setVideoSession(v=>v+1);setNumero(d.numero);setDateInspection(d.dateInspection);setTechnicienNom(d.technicienNom);setDiffusion(d.diffusion);setSociete(d.societe);setSousTraitance(d.sousTraitance);setStatut(d.statut);setDestinataire(d.destinataire);setClientNom(d.clientNom);setClientAdresse(d.clientAdresse);setClientCP(d.clientCP);setClientVille(d.clientVille);setClientEmail(d.clientEmail);setClientTel(d.clientTel);setReseau(d.reseau);setMateriau(d.materiau);setDiametre(d.diametre);setLongueurM(d.longueurM);setRegardAmont(d.regardAmont);setRegardAval(d.regardAval);setSensInspection(d.sensInspection);setMaterielUtilise(d.materielUtilise);setConditionsMeteo(d.conditionsMeteo);setObservations(d.observations);setPrecoSelected(d.precoSelected);setPrecoCustom(d.precoCustom);setResume(d.resume);setConclusionEtat(d.conclusionEtat)
   }
@@ -236,7 +242,7 @@ export default function InspectionPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-5">
-        <InspectionRecovery snapshot={draft} onRestore={restoreDraft} />
+        <InspectionRecovery snapshot={draft} onRestore={restoreDraft} createNewStudy={createNewStudy} />
         {/* Header bandeau */}
         <div className="bg-gradient-to-br from-[#0e2a52] to-[#1a3a6b] text-white rounded-2xl shadow-sm p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
