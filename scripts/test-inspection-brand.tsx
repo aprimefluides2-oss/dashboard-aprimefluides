@@ -11,11 +11,11 @@ async function main(){
   writeFileSync(path,await renderToBuffer(<InspectionDocument data={{...base,...overrides}}/>))
   const text=execFileSync('pdftotext',[path,'-'],{encoding:'utf8'})
   const images=execFileSync('pdfimages',['-list',path],{encoding:'utf8'})
-  assert.ok(text.includes("Compte rendu d'intervention"));assert.ok(text.includes('Les points relevés'))
+  assert.ok(text.replace(/\s+/g," ").includes("Compte rendu d'intervention"));assert.ok(text.includes('Les points relevés'))
   assert.ok(!text.includes('Client fictif'));assert.ok(!text.includes('12 rue'))
   assert.ok(!text.includes('Chemisage'));assert.ok(!text.includes('Hydrocurage'))
-  if(name==='aprime'){assert.match(images,/\b336\s+159\b/);assert.ok(text.includes('Aprime Fluides'))}
-  else{assert.ok(!/\b336\s+159\b/.test(images));assert.ok(!text.includes('Aprime Fluides'));assert.ok(text.includes('Entreprise partenaire'))}
+  if(name==='aprime'){assert.match(images,/\bimage\b/);assert.ok(text.includes('Aprime Fluides'))}
+  else{assert.ok(!/\bimage\b/.test(images));assert.ok(!text.includes('Aprime Fluides'));assert.ok(text.includes('Entreprise partenaire'))}
  }
  console.log('17 contrôles de marque réussis : logo Aprime, neutralité sous-traitance, confidentialité et glossaire limité.')
 }

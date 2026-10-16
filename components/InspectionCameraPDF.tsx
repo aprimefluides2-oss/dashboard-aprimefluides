@@ -1,6 +1,6 @@
 'use client'
+import { WATERMARK_SYMBOL } from '@/lib/aprime-watermark-symbol'
 import React from "react"
-import { APRIME_REPORT_LOGO } from "@/lib/aprime-report-logo"
 import { inspectionLocation } from "@/lib/inspection-location"
 import { privateReport, streetOnly } from "@/lib/report-privacy"
 import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from "@react-pdf/renderer"
@@ -105,177 +105,180 @@ const s = StyleSheet.create({
     paddingHorizontal: 0, paddingTop: 76, paddingBottom: 52,
     fontFamily: 'Helvetica',
     fontSize: 9.5,
-    color: C.text,
-    backgroundColor: C.white,
+    color: C.white,
+    backgroundColor: C.navyDark,
     lineHeight: 1.45,
   },
 
   /* Header */
   header: {
     position: 'absolute', top: 0, left: 0, right: 0, height: 64,
-    paddingHorizontal: 40, paddingTop: 10, paddingBottom: 8,
+    paddingHorizontal: 32, paddingTop: 10, paddingBottom: 8,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end',
-    backgroundColor: C.white,
-    borderBottomWidth: 3, borderBottomColor: C.gold,
+    backgroundColor: C.navyDark,
+    borderBottomWidth: 1, borderBottomColor: "#285477",
   },
-  firmName: { color: C.navy, fontSize: 13, fontFamily: 'Helvetica-Bold', letterSpacing: 0.6, textTransform: 'uppercase' },
-  firmTag:  { color: C.muted, fontSize: 8, marginTop: 2 },
+  firmName: { color: C.white, fontSize: 13, fontFamily: 'Helvetica-Bold', letterSpacing: 0.6, textTransform: 'uppercase' },
+  firmTag:  { color: '#bdd0e0', fontSize: 8, marginTop: 2 },
   headerRight: { alignItems: 'flex-end' },
-  headerMeta:     { color: C.muted, fontSize: 8, marginBottom: 1 },
-  headerMetaBold: { color: C.navy,  fontFamily: 'Helvetica-Bold', fontSize: 8.5 },
+  headerMeta:     { color: '#bdd0e0', fontSize: 8, marginBottom: 1 },
+  headerMetaBold: { color: C.white,  fontFamily: 'Helvetica-Bold', fontSize: 8.5 },
 
-  content: { paddingHorizontal: 40, paddingTop: 14, paddingBottom: 10 },
+  content: { paddingHorizontal: 32, paddingTop: 14, paddingBottom: 10 },
 
   /* Title */
-  titleBlock: { marginBottom: 16, backgroundColor: C.navyDark, padding: 16, borderRadius: 5 },
-  titleRedBar: { height: 3, width: 38, backgroundColor: C.gold, marginBottom: 8 },
-  titleMain: { color: C.white, fontSize: 21, fontFamily: 'Helvetica-Bold', lineHeight: 1.15 },
-  titleSub:  { color: C.white, fontSize: 9, marginTop: 7 },
+  titleBlock: { marginBottom: 18, backgroundColor: C.navy, padding: 24, paddingTop: 25, paddingBottom: 22, borderRadius: 14, overflow: 'hidden' },
+  titleRedBar: { height: 4, width: 42, backgroundColor: C.gold, marginBottom: 8 },
+  titleMain: { color: C.white, fontSize: 32, fontFamily: 'Helvetica', lineHeight: 1.12, letterSpacing:-0.5 },
+  titleSub:  { color: C.white, fontSize: 9, marginTop: 10 },
 
   /* Méta */
   metaTable: {
-    flexDirection: 'row', borderWidth: 1, borderColor: C.border,
-    marginBottom: 14, backgroundColor: C.rowAlt,
+    flexDirection: 'row', borderBottomWidth: 1, borderColor: C.border,
+    marginBottom: 18, backgroundColor: C.navyDark,
   },
   metaCell: {
     minWidth: 0, flex: 1, paddingVertical: 7, paddingHorizontal: 12,
-    borderRightWidth: 1, borderRightColor: C.border,
+    borderRightWidth: 0,
   },
   metaCellLast: { borderRightWidth: 0 },
-  metaLabel: { color: C.muted, fontSize: 8, textTransform: 'uppercase', letterSpacing: 0.4 },
-  metaValue: { color: C.navy, fontFamily: 'Helvetica-Bold', fontSize: 9.5, marginTop: 2 },
+  metaLabel: { color: '#bdd0e0', fontSize: 8, textTransform: 'uppercase', letterSpacing: 0.4 },
+  metaValue: { color: C.white, fontFamily: 'Helvetica-Bold', fontSize: 9.5, marginTop: 2 },
 
   /* Etat (badge large) */
   etatBox: {
-    borderWidth: 1, borderColor: C.border, borderRadius: 4,
-    paddingVertical: 8, paddingHorizontal: 12, marginBottom: 14,
+    borderWidth: 0, borderLeftWidth:3, borderLeftColor:C.gold, borderRadius: 6,
+    paddingVertical: 10, paddingHorizontal: 14, marginBottom: 12,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
-  etatLbl: { color: C.muted, fontSize: 8, textTransform: 'uppercase', letterSpacing: 0.4 },
+  etatLbl: { color: C.white, fontSize: 8, textTransform: 'uppercase', letterSpacing: 0.4 },
   etatVal: { fontFamily: 'Helvetica-Bold', fontSize: 11.5 },
 
   /* Section title */
   sectionTitle: {
-    color: C.navy, fontFamily: 'Helvetica-Bold', fontSize: 11,
+    color: C.white, fontFamily: 'Helvetica-Bold', fontSize: 13,
     letterSpacing: 0,
     paddingBottom: 5, marginBottom: 9,
-    borderBottomWidth: 1, borderBottomColor: C.border,
+    borderBottomWidth: 2, borderBottomColor: C.gold,
   },
 
   /* Identité (2 colonnes) */
   partyTable: {
-    flexDirection: 'row', borderWidth: 1, borderColor: C.border, marginBottom: 12,
+    flexDirection: 'row', borderWidth: 0, backgroundColor: C.navy, borderRadius: 8, overflow:'hidden', marginBottom: 18,
   },
   partyCol: { flex: 1, padding: 10 },
-  partyColSep: { borderRightWidth: 1, borderRightColor: C.border },
+  partyColSep: { borderRightWidth: 1, borderRightColor: "#285477" },
   partyHead: {
-    color: C.navy, fontSize: 8, fontFamily: 'Helvetica-Bold',
+    color: C.gold, fontSize: 8, fontFamily: 'Helvetica-Bold',
     textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 4,
   },
-  partyName: { color: C.text, fontFamily: 'Helvetica-Bold', fontSize: 10, marginBottom: 2 },
-  partyLine: { color: C.text, fontSize: 9, marginBottom: 1 },
+  partyName: { color: C.white, fontFamily: 'Helvetica-Bold', fontSize: 10, marginBottom: 2 },
+  partyLine: { color: C.white, fontSize: 9, marginBottom: 1 },
 
   /* Tableau tronçon */
-  troncTable: { borderWidth: 1, borderColor: C.border, marginBottom: 14 },
-  troncRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: C.border },
+  troncTable: { borderWidth: 0, borderColor: C.border, marginBottom: 14 },
+  troncRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: "#285477" },
   troncRowLast: { borderBottomWidth: 0 },
-  troncRowAlt: { backgroundColor: C.rowAlt },
+  troncRowAlt: { backgroundColor: C.navy },
   troncLabel: {
     width: '30%', paddingVertical: 6, paddingHorizontal: 10,
-    color: C.navy, fontFamily: 'Helvetica-Bold', fontSize: 9,
-    borderRightWidth: 1, borderRightColor: C.border,
+    color: C.white, fontFamily: 'Helvetica-Bold', fontSize: 9,
+    borderRightWidth: 1, borderRightColor: "#285477",
   },
-  troncValue: { flex: 1, paddingVertical: 6, paddingHorizontal: 10, color: C.text, fontSize: 9.5 },
+  troncValue: { flex: 1, paddingVertical: 6, paddingHorizontal: 10, color: C.white, fontSize: 9.5 },
 
   /* Observations */
   obsItem: {
-    borderBottomWidth: 1, borderColor: C.border, marginBottom: 10,
-    backgroundColor: C.white,
+    borderWidth: 0, borderBottomWidth:1,borderColor: C.navy, borderRadius: 9, overflow: 'hidden', marginBottom: 12,
+    backgroundColor: C.navy,
   },
   obsHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: 6, paddingHorizontal: 10,
-    backgroundColor: C.rowAlt, borderBottomWidth: 1, borderBottomColor: C.border,
+    paddingVertical: 6, paddingHorizontal: 12,
+    backgroundColor: C.navy, borderBottomWidth: 1, borderBottomColor:'#326087',
   },
   obsHeaderLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   obsNum: {
-    backgroundColor: C.navy, color: C.gold,
-    paddingVertical: 3, paddingHorizontal: 7, marginRight: 8,
+    backgroundColor: C.gold, color: C.navy,
+    paddingVertical: 4, paddingHorizontal: 7, borderRadius:3, marginRight: 10,
     fontFamily: 'Helvetica-Bold', fontSize: 8.5, letterSpacing: 0.5,
   },
-  obsPos: { color: C.text, fontFamily: 'Helvetica-Bold', fontSize: 9.5 },
+  obsPos: { color: C.white, fontFamily: 'Helvetica-Bold', fontSize: 9.5 },
   obsCode: {
     paddingVertical: 2, paddingHorizontal: 6,
     fontFamily: 'Helvetica-Bold', fontSize: 8.5, letterSpacing: 0.5,
   },
-  obsBody: { padding: 10, flexDirection: 'row', alignItems: 'center' },
+  obsBody: { padding: 10, paddingTop:8, flexDirection: 'row', alignItems: 'center' },
   obsText: { flex: 1, minWidth: 0 },
   obsCodeBlock: { marginBottom: 4 },
   obsCodeLine: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
-  obsCodeKey: { color: C.muted, fontSize: 8, textTransform: 'uppercase', letterSpacing: 0.4, width: 80 },
-  obsCodeVal: { color: C.text, fontFamily: 'Helvetica-Bold', fontSize: 9.5, flex: 1, minWidth: 0 },
-  obsDesc: { color: C.text, fontSize: 9.5, marginTop: 4, lineHeight: 1.5 },
-  obsPhotoWrap: { width: 138, marginRight: 14, borderWidth: 1, borderColor: C.border, padding: 5, backgroundColor: C.rowAlt },
-  obsPhotoImg: { width: '100%', maxHeight: 132, objectFit: 'contain' },
-  obsPhotoCap: { color: C.muted, fontSize: 8, textAlign: 'left', marginTop: 5 },
+  obsCodeKey: { color: '#c1d6e7', fontSize: 8, textTransform: 'uppercase', letterSpacing: 0.4, width: 80 },
+  obsCodeVal: { color: C.white, fontFamily: 'Helvetica-Bold', fontSize: 9.5, flex: 1, minWidth: 0 },
+  obsDesc: { color: C.white, fontSize: 9.5, marginTop: 4, lineHeight: 1.5 },
+  obsPhotoWrap: { width: 160, marginRight: 18, borderWidth: 1, borderColor:'#326087', borderRadius: 5, padding: 6, backgroundColor: C.navyDark },
+  obsPhotoImg: { width: '100%', maxHeight: 118, objectFit: 'contain' },
+  obsPhotoCap: { color: '#d0dfeb', fontSize: 7, textAlign: 'left', marginTop: 5 },
 
   /* Préco (vert) */
   precoBox: {
-    backgroundColor: C.white, borderWidth: 1, borderColor: C.border,
-    borderLeftWidth: 3, borderLeftColor: C.gold, padding: 12, marginBottom: 12,
+    overflow:'hidden',
+    backgroundColor: C.navy, borderWidth: 1, borderColor: C.navy,
+    borderRadius: 8, borderLeftWidth: 4, borderLeftColor: C.gold, padding: 16, marginBottom: 12,
   },
   precoTitle: {
-    color: C.greenDark, fontFamily: 'Helvetica-Bold', fontSize: 9.5,
+    color: C.gold, fontFamily: 'Helvetica-Bold', fontSize: 9.5,
     textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8,
   },
   precoItem: { marginBottom: 8 },
-  precoItemTitle: { color: C.text, fontFamily: 'Helvetica-Bold', fontSize: 10, marginBottom: 2 },
-  precoItemDetail: { color: C.text, fontSize: 9.5, lineHeight: 1.5 },
+  precoItemTitle: { color: C.white, fontFamily: 'Helvetica-Bold', fontSize: 10, marginBottom: 2 },
+  precoItemDetail: { color: C.white, fontSize: 9.5, lineHeight: 1.5 },
   precoItemUrgence: {
-    color: C.muted, fontSize: 8, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 2,
+    color: '#c1d6e7', fontSize: 8, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 2,
   },
 
   /* Résumé (jaune) */
   resumeBox: {
-    backgroundColor: C.rowAlt, borderWidth: 1, borderColor: C.border,
-    borderLeftWidth: 3, borderLeftColor: C.navy, padding: 12, marginBottom: 12,
+    overflow:'hidden',
+    backgroundColor: C.navy, borderWidth: 1, borderColor: C.navy,
+    borderRadius: 8, borderLeftWidth: 4, borderLeftColor: C.navy, padding: 16, marginBottom: 12,
   },
   resumeTitle: {
-    color: C.navy, fontFamily: 'Helvetica-Bold', fontSize: 9.5,
+    color: C.gold, fontFamily: 'Helvetica-Bold', fontSize: 9.5,
     textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6,
   },
-  resumeText: { color: C.text, fontSize: 10, lineHeight: 1.6 },
+  resumeText: { color: C.white, fontSize: 10, lineHeight: 1.6 },
 
   /* Glossaire */
   glossBox: {
-    backgroundColor: C.blueSoft, borderWidth: 1, borderColor: C.blueBorder,
+    overflow:'hidden',
+    backgroundColor: C.navy, borderTopWidth: 1, borderColor: C.navy,
     padding: 10, marginBottom: 6,
   },
   glossTitle: {
-    color: C.navy, fontFamily: 'Helvetica-Bold', fontSize: 8.5,
+    color: C.gold, fontFamily: 'Helvetica-Bold', fontSize: 8.5,
     textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4,
   },
   glossRow: { flexDirection: 'row', marginBottom: 2 },
-  glossTerme: { color: C.navy, fontFamily: 'Helvetica-Bold', fontSize: 8, width: 90 },
-  glossDef:  { flex: 1, color: C.text, fontSize: 8, lineHeight: 1.45 },
+  glossTerme: { color: C.gold, fontFamily: 'Helvetica-Bold', fontSize: 8, width: 90 },
+  glossDef:  { flex: 1, color: C.white, fontSize: 8, lineHeight: 1.45 },
 
   /* Footer */
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0, height: 44,
-    paddingHorizontal: 40, paddingTop: 6, paddingBottom: 6,
-    borderTopWidth: 1, borderTopColor: C.border,
+    paddingHorizontal: 32, paddingTop: 6, paddingBottom: 6,
+    borderTopWidth: 1, borderTopColor: "#285477",
     flexDirection: 'row', justifyContent: 'space-between',
-    backgroundColor: C.white,
+    backgroundColor: C.navyDark,
   },
-  footerL: { color: C.muted, fontSize: 7.5, lineHeight: 1.4 },
-  footerR: { color: C.muted, fontSize: 7.5, textAlign: 'right', position: 'absolute', right: 40, top: 6, width: 75 },
+  footerL: { color: '#bdd0e0', fontSize: 7.5, lineHeight: 1.4 },
+  footerR: { color: '#bdd0e0', fontSize: 7.5, textAlign: 'right', position: 'absolute', right: 32, top: 6, width: 75 },
 })
 
 /* ============ COMPONENTS ============ */
 const Header = ({ company, neutral }: { company: string; neutral: boolean }) => (
   <View style={s.header} fixed>
     <View>
-      {neutral ? <Text style={s.firmName}>{company}</Text> : <Image src={APRIME_REPORT_LOGO} style={{width:123,height:44,objectFit:'contain'}} />}
+      {neutral ? <Text style={s.firmName}>{company}</Text> : <View style={{flexDirection:'row',alignItems:'center'}}><Image src={WATERMARK_SYMBOL} style={{width:34,height:38,objectFit:'contain',marginRight:8}} /><View><Text style={{color:C.white,fontSize:13,fontFamily:'Helvetica-Bold',letterSpacing:1}}>APRIME FLUIDES</Text><Text style={{color:'#bdd0e0',fontSize:6,letterSpacing:1,marginTop:3}}>DÉBOUCHAGE &amp; ASSAINISSEMENT</Text></View></View>}
       {neutral && <Text style={s.firmTag}>Inspection et entretien des canalisations</Text>}
     </View>
     <View style={s.headerRight}>
@@ -295,6 +298,12 @@ const Footer = ({ numero, company, neutral }: { numero: string; company: string;
   </View>
 )
 
+function Watermark({neutral,hero=false}:{neutral:boolean;hero?:boolean}) { return neutral ? null : <View style={{position:'absolute',left:0,right:0,top:0,bottom:0,alignItems:'center',justifyContent:'center'}}><Image src={WATERMARK_SYMBOL} style={{width:'60%',height:'78%',objectFit:'contain',opacity:hero?0.075:0.045}} /></View> }
+
+function SectionHeading({number,title}:{number:string;title:string}) {
+ return <View style={{flexDirection:'row',alignItems:'center',marginBottom:12,marginTop:3}}><Text style={{fontSize:8,color:C.navy,fontFamily:'Helvetica-Bold',backgroundColor:C.gold,borderRadius:4,padding:6,marginRight:9}}>{number}</Text><Text style={{fontSize:13,color:C.white,fontFamily:'Helvetica-Bold'}}>{title}</Text><View style={{height:1,backgroundColor:C.border,flex:1,marginLeft:12}} /></View>
+}
+
 function TroncRow({ label, value, alt }: { label: string; value: string; alt?: boolean }) {
   if (!value) return null
   return (
@@ -306,7 +315,7 @@ function TroncRow({ label, value, alt }: { label: string; value: string; alt?: b
 }
 
 function ObservationSummary({observation:o,index:i}: {observation:ObservationItem;index:number}) {
- return <View wrap={false} style={{borderBottomWidth:1,borderBottomColor:C.border,paddingVertical:6}}>
+ return <View wrap={false} style={{borderBottomWidth:1,borderBottomColor:"#285477",paddingVertical:6}}>
    <Text style={{fontFamily:'Helvetica-Bold'}}>OBS {String(i+1).padStart(2,'0')} · {inspectionLocation(o)}</Text>
    {o.videoReference && <Text>{o.videoReference} · {o.timecode || 'repère non relevé'} · {o.distanceM === undefined ? 'distance non mesurée' : `${o.distanceM} m depuis ${o.pointDepart || 'départ non précisé'}`}</Text>}
    <Text>{o.description || 'Description à compléter'}{o.code ? ` · Code ${o.code}` : ''} · {o.photoUrl ? `${o.videoReference ? 'Capture' : 'Photo'} OBS ${String(i+1).padStart(2,'0')}` : 'Sans image'}</Text>
@@ -338,28 +347,33 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
   return (
     <Document>
       <Page size="A4" style={s.page}>
+        <View fixed style={{position:"absolute",left:0,top:64,bottom:44,width:5,backgroundColor:C.navy}} />
+        <View fixed style={{position:"absolute",left:0,top:64,width:5,height:95,backgroundColor:C.gold}} />
+        {!neutral && <View fixed style={{position:'absolute',left:0,right:0,top:64,bottom:44,alignItems:'center',justifyContent:'center'}}><Image src={WATERMARK_SYMBOL} style={{width:310,height:310,opacity:0.025,objectFit:'contain'}} /></View>}
         <Header company={company} neutral={neutral} />
-        <Text style={{ paddingHorizontal: 40, paddingTop: 8 }}>{data.statut === "valide" ? "Validé par le responsable" : "BROUILLON — À VÉRIFIER"}</Text>
+        <Text style={{ paddingHorizontal: 32, paddingTop: 8, color:'#bdd0e0', fontSize:8, letterSpacing:1 }}>{data.statut === "valide" ? "Validé par le responsable" : "BROUILLON — À VÉRIFIER"}</Text>
 
         <View style={s.content}>
           {/* Titre */}
           <View style={s.titleBlock}>
+            <Watermark neutral={neutral} hero />
+            <Text style={{fontSize:8,color:C.gold,letterSpacing:2,marginBottom:13}}>RAPPORT TECHNIQUE / INSPECTION CAMÉRA</Text>
             <View style={s.titleRedBar} />
-            <Text style={s.titleMain}>Compte rendu d&apos;intervention</Text>
+            <Text style={s.titleMain}>Compte rendu{`\n`}<Text style={{fontFamily:'Helvetica-Bold'}}>d&apos;intervention</Text></Text>
             <Text style={s.titleSub}>Inspection caméra et travaux sur canalisation</Text>
-            <Text style={s.titleSub}>{clientPrive ? "CONFIDENTIEL — Usage client, ne pas publier" : "Copie anonymisée — vérifier les images avant partage"}</Text>
+            <Text style={[s.titleSub,{fontSize:7,letterSpacing:0.3,opacity:0.75}]}>{clientPrive ? "CONFIDENTIEL — Usage client, ne pas publier" : "Copie anonymisée — vérifier les images avant partage"}</Text>
           </View>
 
+          <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:18,paddingHorizontal:2}}>
+            <View><Text style={{fontSize:7,letterSpacing:1.5,color:'#bdd0e0',marginBottom:3}}>LIEU D’INTERVENTION</Text><Text style={{fontSize:21,fontFamily:'Helvetica-Bold',color:C.white}}>{data.client.ville || 'À compléter'}</Text></View>
+            <View style={{alignItems:'flex-end'}}><Text style={{fontSize:7,letterSpacing:1.5,color:'#bdd0e0',marginBottom:4}}>DATE DU CONTRÔLE</Text><Text style={{fontSize:12,color:C.white,fontFamily:'Helvetica-Bold'}}>{fmtDateFR(data.dateInspection)}</Text></View>
+          </View>
           {/* Méta */}
-          <View style={{borderWidth:1,borderColor:C.border,backgroundColor:C.rowAlt,padding:10,marginBottom:4}} wrap={false}>
+          <View style={{borderWidth:0,backgroundColor:C.navyDark,padding:0,paddingBottom:6,marginBottom:4}} wrap={false}>
             <Text style={s.metaLabel}>Référence du dossier</Text>
             <Text style={s.metaValue}>{data.numero.match(/.{1,65}/g)?.join('\n') || 'À compléter'}</Text>
           </View>
           <View style={s.metaTable} wrap={false}>
-            <View style={s.metaCell}>
-              <Text style={s.metaLabel}>Date d&apos;inspection</Text>
-              <Text style={s.metaValue}>{fmtDateFR(data.dateInspection)}</Text>
-            </View>
             <View style={s.metaCell}>
               <Text style={s.metaLabel}>Technicien</Text>
               <Text style={s.metaValue}>{data.technicienNom || 'À compléter'}</Text>
@@ -371,15 +385,15 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
           </View>
 
           {/* État */}
-          <View style={[s.etatBox, { backgroundColor: etat.bg }]} wrap={false}>
+          <View style={[s.etatBox, { backgroundColor: C.navy }]} wrap={false}>
             <Text style={s.etatLbl}>Résultat du contrôle</Text>
-            <Text style={[s.etatVal, { color: etat.fg }]}>{etat.label}</Text>
+            <Text style={[s.etatVal, { color: C.white }]}>{etat.label}</Text>
           </View>
 
-          <Text style={{fontSize:9,color:C.muted,marginBottom:12}}>{data.conclusionPrecision || 'Conclusion limitée aux portions accessibles et effectivement contrôlées. Le périmètre et les limites du contrôle restent à préciser.'}</Text>
+          <Text style={{fontSize:9,color:'#bdd0e0',marginBottom:12}}>{data.conclusionPrecision || 'Conclusion limitée aux portions accessibles et effectivement contrôlées. Le périmètre et les limites du contrôle restent à préciser.'}</Text>
 
           {/* Identité */}
-          <View style={s.partyTable} wrap={false}>
+          <View style={s.partyTable} wrap={false}><Watermark neutral={neutral} />
             <View style={[s.partyCol, s.partyColSep]}>
               <Text style={s.partyHead}>ÉMETTEUR</Text>
               <Text style={s.partyName}>{company}</Text>
@@ -398,7 +412,7 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
           </View>
 
           {/* Tronçon */}
-          <Text style={s.sectionTitle}>Le réseau contrôlé</Text>
+          <View wrap={false}><SectionHeading number="01" title="Le réseau contrôlé" />
           <View style={s.troncTable} wrap={false}>
             <TroncRow label="Type de réseau"  value={t.reseau || ''}                       alt />
             <TroncRow label="Matériau"        value={t.materiau || ''} />
@@ -411,9 +425,10 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
             <TroncRow label="Conditions"       value={t.conditionsMeteo || ''}             alt />
           </View>
 
+          </View>
           {data.observations.length > 0 && <View>
             <View wrap={false}>
-              <Text style={s.sectionTitle}>Les points relevés</Text>
+              <SectionHeading number="02" title="Les points relevés" />
               <ObservationSummary observation={data.observations[0]} index={0} />
             </View>
             {data.observations.slice(1).map((o,i)=><ObservationSummary key={i+1} observation={o} index={i+1} />)}
@@ -421,12 +436,12 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
           {/* Observations */}
           {data.observations.length > 0 && (
             <>
-              <Text style={s.sectionTitle} minPresenceAhead={70}>Constats et intervention en images</Text>
+
               {data.observations.map((o, i) => {
                 const def = findDefaut(o.code || '')
                 const grav = def ? def.gravite : 1
                 return (
-                  <View key={i} style={s.obsItem} wrap={false}>
+                  <View key={i} wrap={false}>{i === 0 && <SectionHeading number="03" title="Constats et intervention en images" />}<View style={s.obsItem}><Watermark neutral={neutral} />
                     <View style={s.obsHeader}>
                       <View style={s.obsHeaderLeft}>
                         <Text style={s.obsNum}>{`OBS ${String(i + 1).padStart(2, '0')}`}</Text>
@@ -447,7 +462,7 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
                           </Text>
                         </View>
                       ) : null}
-                      <View style={s.obsText}>
+                      <View style={s.obsText}><Text style={{fontSize:7,color:C.gold,letterSpacing:1.4,marginBottom:5}}>CONSTAT / INTERVENTION</Text>
                       {def ? (
                         <View style={s.obsCodeBlock}>
                           <View style={s.obsCodeLine}>
@@ -472,17 +487,17 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
                       {o.description ? <Text style={s.obsDesc}>{o.description}</Text> : null}
                       </View>
                     </View>
-                  </View>
+                  </View></View>
                 )
               })}
             </>
           )}
 
-          {!data.observations.some(o=>o.videoReference && o.photoUrl) && <View style={s.resumeBox} wrap={false}><Text style={s.resumeTitle}>Vidéos et captures</Text><Text style={s.resumeText}>Aucune capture reliée à une vidéo et à un timecode n’est renseignée. Ajouter les vues caméra utiles si elles sont disponibles.</Text></View>}
+          {!data.observations.some(o=>o.videoReference && o.photoUrl) && <View style={s.resumeBox} wrap={false}><Watermark neutral={neutral} /><Text style={s.resumeTitle}>Vidéos et captures</Text><Text style={s.resumeText}>Aucune capture reliée à une vidéo et à un timecode n’est renseignée. Ajouter les vues caméra utiles si elles sont disponibles.</Text></View>}
 
           {/* Préconisations */}
           {data.preconisations.length > 0 && (
-            <View style={s.precoBox} wrap={false}>
+            <View style={s.precoBox} wrap={false}><Watermark neutral={neutral} />
               <Text style={s.precoTitle}>Suites à prévoir</Text>
               {data.preconisations.map((p, i) => (
                 <View key={i} style={s.precoItem}>
@@ -496,14 +511,14 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
 
           {/* Résumé */}
           {data.resume ? (
-            <View style={s.resumeBox} wrap={false}>
+            <View style={s.resumeBox} wrap={false}><Watermark neutral={neutral} />
               <Text style={s.resumeTitle}>Bilan de l’intervention</Text>
               <Text style={s.resumeText}>{data.resume}</Text>
             </View>
           ) : null}
 
           {/* Glossaire */}
-          {glossary.length > 0 && <View style={s.glossBox} wrap={false}>
+          {glossary.length > 0 && <View style={s.glossBox} wrap={false}><Watermark neutral={neutral} />
             <Text style={s.glossTitle}>Quelques termes utiles</Text>
             {glossary.map(g => (
               <View key={g.terme} style={s.glossRow}>
