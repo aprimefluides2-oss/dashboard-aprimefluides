@@ -1,5 +1,6 @@
 'use client'
 import React from "react"
+import { APRIME_REPORT_LOGO } from "@/lib/aprime-report-logo"
 import { inspectionLocation } from "@/lib/inspection-location"
 import { privateReport, streetOnly } from "@/lib/report-privacy"
 import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from "@react-pdf/renderer"
@@ -8,21 +9,22 @@ import { TEL_PRINCIPAL_FALLBACK } from "@/lib/parametres"
 
 /* ============ CHARTE ============ */
 const C = {
-  navy: '#0f2e5c',
-  navyDark: '#0a2047',
-  navyMid: '#25477f',
+  navy: '#083d6a',
+  navyDark: '#00284b',
+  navyMid: '#004c91',
+  gold: '#facc15',
   red: '#c0392b',
   redSoft: '#fdecea',
-  greenSoft: '#e8f3ec',
-  greenBorder: '#a3c9b3',
-  greenDark: '#0f5132',
+  greenSoft: '#f3f7fa',
+  greenBorder: '#d6e2eb',
+  greenDark: '#083d6a',
   yellowSoft: '#fff8dc',
   yellowBorder: '#e8d384',
   yellowDark: '#7c5e00',
   blueSoft: '#eef4fc',
   blueBorder: '#b9cce8',
-  rowAlt: '#eef2f8',
-  border: '#c7cfdb',
+  rowAlt: '#f3f7fa',
+  border: '#d6e2eb',
   text: '#1a1f2e',
   muted: '#5a6270',
   white: '#ffffff',
@@ -111,10 +113,10 @@ const s = StyleSheet.create({
   /* Header */
   header: {
     position: 'absolute', top: 0, left: 0, right: 0, height: 64,
-    paddingHorizontal: 40, paddingTop: 18, paddingBottom: 10,
+    paddingHorizontal: 40, paddingTop: 10, paddingBottom: 8,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end',
     backgroundColor: C.white,
-    borderBottomWidth: 3, borderBottomColor: C.navy,
+    borderBottomWidth: 3, borderBottomColor: C.gold,
   },
   firmName: { color: C.navy, fontSize: 13, fontFamily: 'Helvetica-Bold', letterSpacing: 0.6, textTransform: 'uppercase' },
   firmTag:  { color: C.muted, fontSize: 8, marginTop: 2 },
@@ -125,10 +127,10 @@ const s = StyleSheet.create({
   content: { paddingHorizontal: 40, paddingTop: 14, paddingBottom: 10 },
 
   /* Title */
-  titleBlock: { marginBottom: 12 },
-  titleRedBar: { height: 4, width: 56, backgroundColor: C.red, marginBottom: 6 },
-  titleMain: { color: C.navy, fontSize: 18, fontFamily: 'Helvetica-Bold', textTransform: 'uppercase', letterSpacing: 1 },
-  titleSub:  { color: C.muted, fontSize: 9, marginTop: 4, letterSpacing: 0.5 },
+  titleBlock: { marginBottom: 16, backgroundColor: C.navyDark, padding: 16, borderRadius: 5 },
+  titleRedBar: { height: 3, width: 38, backgroundColor: C.gold, marginBottom: 8 },
+  titleMain: { color: C.white, fontSize: 21, fontFamily: 'Helvetica-Bold', lineHeight: 1.15 },
+  titleSub:  { color: C.white, fontSize: 9, marginTop: 7 },
 
   /* Méta */
   metaTable: {
@@ -155,9 +157,9 @@ const s = StyleSheet.create({
   /* Section title */
   sectionTitle: {
     color: C.navy, fontFamily: 'Helvetica-Bold', fontSize: 11,
-    textTransform: 'uppercase', letterSpacing: 0.6,
-    paddingBottom: 4, marginBottom: 8,
-    borderBottomWidth: 1, borderBottomColor: C.navy,
+    letterSpacing: 0,
+    paddingBottom: 5, marginBottom: 9,
+    borderBottomWidth: 1, borderBottomColor: C.border,
   },
 
   /* Identité (2 colonnes) */
@@ -197,8 +199,8 @@ const s = StyleSheet.create({
   },
   obsHeaderLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   obsNum: {
-    backgroundColor: C.navy, color: C.white,
-    paddingVertical: 2, paddingHorizontal: 6, marginRight: 8,
+    backgroundColor: C.navy, color: C.gold,
+    paddingVertical: 3, paddingHorizontal: 7, marginRight: 8,
     fontFamily: 'Helvetica-Bold', fontSize: 8.5, letterSpacing: 0.5,
   },
   obsPos: { color: C.text, fontFamily: 'Helvetica-Bold', fontSize: 9.5 },
@@ -211,16 +213,16 @@ const s = StyleSheet.create({
   obsCodeBlock: { marginBottom: 4 },
   obsCodeLine: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
   obsCodeKey: { color: C.muted, fontSize: 8, textTransform: 'uppercase', letterSpacing: 0.4, width: 80 },
-  obsCodeVal: { color: C.text, fontFamily: 'Helvetica-Bold', fontSize: 9.5 },
+  obsCodeVal: { color: C.text, fontFamily: 'Helvetica-Bold', fontSize: 9.5, flex: 1, minWidth: 0 },
   obsDesc: { color: C.text, fontSize: 9.5, marginTop: 4, lineHeight: 1.5 },
   obsPhotoWrap: { width: 138, marginRight: 14, borderWidth: 1, borderColor: C.border, padding: 5, backgroundColor: C.rowAlt },
-  obsPhotoImg: { width: '100%', maxHeight: 144, objectFit: 'contain' },
+  obsPhotoImg: { width: '100%', maxHeight: 132, objectFit: 'contain' },
   obsPhotoCap: { color: C.muted, fontSize: 8, textAlign: 'left', marginTop: 5 },
 
   /* Préco (vert) */
   precoBox: {
-    backgroundColor: C.greenSoft, borderWidth: 1, borderColor: C.greenBorder,
-    borderLeftWidth: 4, padding: 12, marginBottom: 12,
+    backgroundColor: C.white, borderWidth: 1, borderColor: C.border,
+    borderLeftWidth: 3, borderLeftColor: C.gold, padding: 12, marginBottom: 12,
   },
   precoTitle: {
     color: C.greenDark, fontFamily: 'Helvetica-Bold', fontSize: 9.5,
@@ -235,11 +237,11 @@ const s = StyleSheet.create({
 
   /* Résumé (jaune) */
   resumeBox: {
-    backgroundColor: C.yellowSoft, borderWidth: 1, borderColor: C.yellowBorder,
-    borderLeftWidth: 4, padding: 12, marginBottom: 12,
+    backgroundColor: C.rowAlt, borderWidth: 1, borderColor: C.border,
+    borderLeftWidth: 3, borderLeftColor: C.navy, padding: 12, marginBottom: 12,
   },
   resumeTitle: {
-    color: C.yellowDark, fontFamily: 'Helvetica-Bold', fontSize: 9.5,
+    color: C.navy, fontFamily: 'Helvetica-Bold', fontSize: 9.5,
     textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6,
   },
   resumeText: { color: C.text, fontSize: 10, lineHeight: 1.6 },
@@ -266,18 +268,18 @@ const s = StyleSheet.create({
     backgroundColor: C.white,
   },
   footerL: { color: C.muted, fontSize: 7.5, lineHeight: 1.4 },
-  footerR: { color: C.muted, fontSize: 7.5, textAlign: 'right' },
+  footerR: { color: C.muted, fontSize: 7.5, textAlign: 'right', position: 'absolute', right: 40, top: 6, width: 75 },
 })
 
 /* ============ COMPONENTS ============ */
 const Header = ({ company, neutral }: { company: string; neutral: boolean }) => (
   <View style={s.header} fixed>
     <View>
-      <Text style={s.firmName}>{company}</Text>
-      <Text style={s.firmTag}>Inspection télévisée des canalisations · ITV · NF EN 13508-2</Text>
+      {neutral ? <Text style={s.firmName}>{company}</Text> : <Image src={APRIME_REPORT_LOGO} style={{width:123,height:44,objectFit:'contain'}} />}
+      {neutral && <Text style={s.firmTag}>Inspection et entretien des canalisations</Text>}
     </View>
     <View style={s.headerRight}>
-      <Text style={s.headerMetaBold}>Rapport d&apos;inspection caméra</Text>
+      <Text style={s.headerMetaBold}>Compte rendu d&apos;intervention</Text>
       {!neutral && <Text style={s.headerMeta}>Tél. {TEL_PRINCIPAL_FALLBACK}</Text>}
     </View>
   </View>
@@ -285,11 +287,11 @@ const Header = ({ company, neutral }: { company: string; neutral: boolean }) => 
 
 const Footer = ({ numero, company, neutral }: { numero: string; company: string; neutral: boolean }) => (
   <View style={s.footer} fixed>
-    <View>
+    <View style={{flex:1}}>
       <Text style={s.footerL}>{company} · Rapport ITV {numero}</Text>
       {!neutral && <Text style={s.footerL}>contact@aprime-fluides.fr · {TEL_PRINCIPAL_FALLBACK}</Text>}
     </View>
-    <Text style={s.footerR} render={({ pageNumber, totalPages }) => `Page ${pageNumber} / ${totalPages}`} />
+    <Text fixed style={s.footerR} render={({ pageNumber, totalPages }) => `Page ${pageNumber} / ${totalPages}`} />
   </View>
 )
 
@@ -303,6 +305,14 @@ function TroncRow({ label, value, alt }: { label: string; value: string; alt?: b
   )
 }
 
+function ObservationSummary({observation:o,index:i}: {observation:ObservationItem;index:number}) {
+ return <View wrap={false} style={{borderBottomWidth:1,borderBottomColor:C.border,paddingVertical:6}}>
+   <Text style={{fontFamily:'Helvetica-Bold'}}>OBS {String(i+1).padStart(2,'0')} · {inspectionLocation(o)}</Text>
+   {o.videoReference && <Text>{o.videoReference} · {o.timecode || 'repère non relevé'} · {o.distanceM === undefined ? 'distance non mesurée' : `${o.distanceM} m depuis ${o.pointDepart || 'départ non précisé'}`}</Text>}
+   <Text>{o.description || 'Description à compléter'}{o.code ? ` · Code ${o.code}` : ''} · {o.photoUrl ? `${o.videoReference ? 'Capture' : 'Photo'} OBS ${String(i+1).padStart(2,'0')}` : 'Sans image'}</Text>
+ </View>
+}
+
 /* ============ DOCUMENT ============ */
 export function InspectionDocument({ data: raw }: InspectionPDFProps) {
   const data = privateReport(raw, raw.client.nom)
@@ -313,6 +323,9 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
 
   const etat = ETAT_LABEL[data.conclusionEtat]
   const t = data.troncon || {}
+  const vocabulary = JSON.stringify([data.observations,data.preconisations,data.resume,t]).toLocaleLowerCase('fr')
+  const glossary = GLOSSAIRE.filter(g => g.terme === 'DN' ? !!t.diametre : g.terme === 'ITV' ? data.observations.some(o=>!!o.videoReference) : g.terme === 'EN 13508-2' ? data.observations.some(o=>!!findDefaut(o.code || '')) : vocabulary.includes(g.terme.toLocaleLowerCase('fr')))
+
 
   // Bouton couleur code défaut
   const codeStyle = (gravite: number) => {
@@ -332,14 +345,14 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
           {/* Titre */}
           <View style={s.titleBlock}>
             <View style={s.titleRedBar} />
-            <Text style={s.titleMain}>Rapport d&apos;inspection caméra</Text>
-            <Text style={s.titleSub}>Inspection télévisée (ITV) — codification NF EN 13508-2</Text>
-            <Text style={s.titleSub}>{clientPrive ? "CONFIDENTIEL — Rapport client avec adresse exacte — ne pas publier" : "Copie anonymisée — contrôler aussi les images avant partage"}</Text>
+            <Text style={s.titleMain}>Compte rendu d&apos;intervention</Text>
+            <Text style={s.titleSub}>Inspection caméra et travaux sur canalisation</Text>
+            <Text style={s.titleSub}>{clientPrive ? "CONFIDENTIEL — Usage client, ne pas publier" : "Copie anonymisée — vérifier les images avant partage"}</Text>
           </View>
 
           {/* Méta */}
           <View style={{borderWidth:1,borderColor:C.border,backgroundColor:C.rowAlt,padding:10,marginBottom:4}} wrap={false}>
-            <Text style={s.metaLabel}>N° rapport</Text>
+            <Text style={s.metaLabel}>Référence du dossier</Text>
             <Text style={s.metaValue}>{data.numero.match(/.{1,65}/g)?.join('\n') || 'À compléter'}</Text>
           </View>
           <View style={s.metaTable} wrap={false}>
@@ -359,7 +372,7 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
 
           {/* État */}
           <View style={[s.etatBox, { backgroundColor: etat.bg }]} wrap={false}>
-            <Text style={s.etatLbl}>Conclusion</Text>
+            <Text style={s.etatLbl}>Résultat du contrôle</Text>
             <Text style={[s.etatVal, { color: etat.fg }]}>{etat.label}</Text>
           </View>
 
@@ -385,7 +398,7 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
           </View>
 
           {/* Tronçon */}
-          <Text style={s.sectionTitle}>Caractéristiques du tronçon inspecté</Text>
+          <Text style={s.sectionTitle}>Le réseau contrôlé</Text>
           <View style={s.troncTable} wrap={false}>
             <TroncRow label="Type de réseau"  value={t.reseau || ''}                       alt />
             <TroncRow label="Matériau"        value={t.materiau || ''} />
@@ -399,17 +412,16 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
           </View>
 
           {data.observations.length > 0 && <View>
-            <Text style={s.sectionTitle}>Récapitulatif des incidents et interventions</Text>
-            {data.observations.map((o,i)=><View key={i} wrap={false} style={{borderBottomWidth:1,borderBottomColor:C.border,paddingVertical:6}}>
-              <Text style={{fontFamily:'Helvetica-Bold'}}>OBS {String(i+1).padStart(2,'0')} · {inspectionLocation(o)}</Text>
-              <Text>{o.videoReference ? `${o.videoReference} · ${o.timecode || 'repère non relevé'} · ${o.distanceM === undefined ? 'distance non mesurée' : `${o.distanceM} m depuis ${o.pointDepart || 'départ non précisé'}`}` : ''}</Text>
-              <Text>{o.description || 'Description à compléter'}{o.code ? ` · Code ${o.code}` : ''} · {o.photoUrl ? `${o.videoReference ? 'Capture' : 'Photo'} OBS ${String(i+1).padStart(2,'0')}` : 'Sans image'}</Text>
-            </View>)}
+            <View wrap={false}>
+              <Text style={s.sectionTitle}>Les points relevés</Text>
+              <ObservationSummary observation={data.observations[0]} index={0} />
+            </View>
+            {data.observations.slice(1).map((o,i)=><ObservationSummary key={i+1} observation={o} index={i+1} />)}
           </View>}
           {/* Observations */}
           {data.observations.length > 0 && (
             <>
-              <Text style={s.sectionTitle} minPresenceAhead={70}>Observations relevées</Text>
+              <Text style={s.sectionTitle} minPresenceAhead={70}>Constats et intervention en images</Text>
               {data.observations.map((o, i) => {
                 const def = findDefaut(o.code || '')
                 const grav = def ? def.gravite : 1
@@ -466,17 +478,17 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
             </>
           )}
 
-          {!data.observations.some(o=>o.videoReference && o.photoUrl) && <View style={s.resumeBox} wrap={false}><Text style={s.resumeTitle}>Pièces disponibles</Text><Text style={s.resumeText}>Aucune image n’est reliée à une référence vidéo et à un timecode dans ce rapport. Vérifiez si des captures caméra complémentaires doivent être jointes.</Text></View>}
+          {!data.observations.some(o=>o.videoReference && o.photoUrl) && <View style={s.resumeBox} wrap={false}><Text style={s.resumeTitle}>Vidéos et captures</Text><Text style={s.resumeText}>Aucune capture reliée à une vidéo et à un timecode n’est renseignée. Ajouter les vues caméra utiles si elles sont disponibles.</Text></View>}
 
           {/* Préconisations */}
           {data.preconisations.length > 0 && (
             <View style={s.precoBox} wrap={false}>
-              <Text style={s.precoTitle}>Préconisations</Text>
+              <Text style={s.precoTitle}>Suites à prévoir</Text>
               {data.preconisations.map((p, i) => (
                 <View key={i} style={s.precoItem}>
                   <Text style={s.precoItemTitle}>• {p.titre}</Text>
                   <Text style={s.precoItemDetail}>{p.detail}</Text>
-                  {p.urgence ? <Text style={s.precoItemUrgence}>Urgence : {p.urgence}</Text> : null}
+                  {p.urgence ? <Text style={s.precoItemUrgence}>Délai conseillé : {{immediate:'Dès que possible', 'court-terme':'À court terme', preventive:'Lors de l’entretien prévu'}[p.urgence] || p.urgence}</Text> : null}
                 </View>
               ))}
             </View>
@@ -485,21 +497,21 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
           {/* Résumé */}
           {data.resume ? (
             <View style={s.resumeBox} wrap={false}>
-              <Text style={s.resumeTitle}>Synthèse du technicien</Text>
+              <Text style={s.resumeTitle}>Bilan de l’intervention</Text>
               <Text style={s.resumeText}>{data.resume}</Text>
             </View>
           ) : null}
 
           {/* Glossaire */}
-          <View style={s.glossBox} wrap={false}>
-            <Text style={s.glossTitle}>Glossaire technique</Text>
-            {GLOSSAIRE.map(g => (
+          {glossary.length > 0 && <View style={s.glossBox} wrap={false}>
+            <Text style={s.glossTitle}>Quelques termes utiles</Text>
+            {glossary.map(g => (
               <View key={g.terme} style={s.glossRow}>
                 <Text style={s.glossTerme}>{g.terme}</Text>
                 <Text style={s.glossDef}>{g.def}</Text>
               </View>
             ))}
-          </View>
+          </View>}
         </View>
 
         <Footer numero={data.numero} company={company} neutral={neutral} />
