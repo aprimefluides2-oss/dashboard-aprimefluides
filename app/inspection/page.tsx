@@ -242,7 +242,7 @@ export default function InspectionPage() {
             </button>
             <InspectionDownloadButton
               data={data}
-              filename={`inspection-camera-${(clientNom || 'client').toLowerCase().replace(/\s+/g, '-')}-${numero}.pdf`}
+              filename={`inspection-camera-${numero.replace(/[^a-zA-Z0-9_-]/g, '-')}-${diffusion === 'client-prive' ? 'confidentiel' : 'anonymise'}.pdf`}
               className="bg-orange-500 hover:bg-orange-600 px-4 py-2.5 rounded-xl font-bold text-sm text-white disabled:opacity-50"
               label="📄 Télécharger PDF"
             />
