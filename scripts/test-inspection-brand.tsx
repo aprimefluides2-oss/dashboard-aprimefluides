@@ -14,8 +14,8 @@ async function main(){
   assert.ok(text.replace(/\s+/g," ").includes("Compte rendu d'intervention"));assert.ok(text.includes('Les points relevés'))
   assert.ok(!text.includes('Client fictif'));assert.ok(!text.includes('12 rue'))
   assert.ok(!text.includes('Chemisage'));assert.ok(!text.includes('Hydrocurage'))
-  if(name==='aprime'){assert.match(images,/\bimage\b/);assert.ok(text.includes('Aprime Fluides'));assert.ok(text.includes('Depuis 2005'))}
-  else{assert.ok(!/\bimage\b/.test(images));assert.ok(!text.includes('Aprime Fluides'));assert.ok(text.includes('Entreprise partenaire'));assert.ok(!text.includes('Depuis 2005'))}
+  if(name==='aprime'){assert.match(images,/\bimage\b/);assert.ok(text.includes('Aprime Fluides'));assert.ok(text.replace(/\s+/g,' ').includes('À votre service depuis 2005'))}
+  else{assert.ok(!/\bimage\b/.test(images));assert.ok(!text.includes('Aprime Fluides'));assert.ok(text.includes('Entreprise partenaire'));assert.ok(!text.replace(/\s+/g,' ').includes('À votre service depuis 2005'))}
  }
  console.log('19 contrôles de marque réussis : logo Aprime, neutralité sous-traitance, confidentialité et glossaire limité.')
 }

@@ -1,11 +1,14 @@
 'use client'
+import { APRIME_HANDWRITING_FONT } from '@/lib/aprime-handwriting-font'
 import { WATERMARK_SYMBOL } from '@/lib/aprime-watermark-symbol'
 import React from "react"
 import { inspectionLocation } from "@/lib/inspection-location"
 import { privateReport, streetOnly } from "@/lib/report-privacy"
-import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from "@react-pdf/renderer"
+import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink, Font } from "@react-pdf/renderer"
 import { GRAVITE_LABELS, GLOSSAIRE, findDefaut } from "@/lib/camera-defauts"
 import { TEL_PRINCIPAL_FALLBACK } from "@/lib/parametres"
+
+Font.register({family:'AprimeSignature',src:APRIME_HANDWRITING_FONT})
 
 /* ============ CHARTE ============ */
 const C = {
@@ -278,7 +281,7 @@ const s = StyleSheet.create({
 const Header = ({ company, neutral }: { company: string; neutral: boolean }) => (
   <View style={s.header} fixed>
     <View style={{position:'absolute',left:32,top:12,width:249,height:88,backgroundColor:C.navy,borderRadius:9,borderTopWidth:3,borderTopColor:C.gold,padding:13,justifyContent:'center'}}>
-      {neutral ? <><Text style={{color:C.white,fontSize:16,fontFamily:'Helvetica-Bold'}}>{company}</Text><Text style={{color:'#d4e2ed',fontSize:8,marginTop:5}}>Inspection et entretien des canalisations</Text></> : <View style={{flexDirection:'row',alignItems:'center'}}><Image src={WATERMARK_SYMBOL} style={{width:44,height:49,objectFit:'contain',marginRight:11}} /><View style={{width:167}}><Text style={{color:C.white,fontSize:17,fontFamily:'Helvetica-Bold',letterSpacing:0.4}}>APRIME FLUIDES</Text><Text style={{color:'#d4e2ed',fontSize:8,letterSpacing:0.3,marginTop:6}}>Débouchage &amp; assainissement</Text><Text style={{color:C.gold,fontSize:9,fontFamily:'Helvetica-Bold',marginTop:4}}>Depuis 2005</Text></View></View>}
+      {neutral ? <><Text style={{color:C.white,fontSize:16,fontFamily:'Helvetica-Bold'}}>{company}</Text><Text style={{color:'#d4e2ed',fontSize:8,marginTop:5}}>Inspection et entretien des canalisations</Text></> : <View style={{flexDirection:'row',alignItems:'center'}}><Image src={WATERMARK_SYMBOL} style={{width:44,height:49,objectFit:'contain',marginRight:11}} /><View style={{width:167}}><Text style={{color:C.white,fontSize:17,fontFamily:'Helvetica-Bold',letterSpacing:0.4}}>APRIME FLUIDES</Text><Text style={{color:'#d4e2ed',fontSize:8,letterSpacing:0.3,marginTop:6}}>Débouchage &amp; assainissement</Text><Text style={{color:C.gold,fontSize:15,fontFamily:'AprimeSignature',lineHeight:1.1,marginTop:4}}>À votre service depuis 2005</Text></View></View>}
     </View>
     <View style={{position:'absolute',right:32,top:12,width:270,height:88,backgroundColor:C.navy,borderRadius:9,borderWidth:1,borderColor:'#326087',padding:12,justifyContent:'center'}}>
       {neutral ? <Text style={{color:C.white,fontSize:12,fontFamily:'Helvetica-Bold'}}>Compte rendu d&apos;intervention</Text> : <>
