@@ -102,7 +102,7 @@ function fmtDateFR(iso: string): string {
 /* ============ STYLES ============ */
 const s = StyleSheet.create({
   page: {
-    paddingHorizontal: 0, paddingTop: 76, paddingBottom: 52,
+    paddingHorizontal: 0, paddingTop: 116, paddingBottom: 52,
     fontFamily: 'Helvetica',
     fontSize: 9.5,
     color: C.white,
@@ -112,7 +112,7 @@ const s = StyleSheet.create({
 
   /* Header */
   header: {
-    position: 'absolute', top: 0, left: 0, right: 0, height: 64,
+    position: 'absolute', top: 0, left: 0, right: 0, height: 112,
     paddingHorizontal: 32, paddingTop: 10, paddingBottom: 8,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end',
     backgroundColor: C.navyDark,
@@ -189,7 +189,7 @@ const s = StyleSheet.create({
 
   /* Observations */
   obsItem: {
-    borderWidth: 0, borderBottomWidth:1,borderColor: C.navy, borderRadius: 9, overflow: 'hidden', marginBottom: 12,
+    borderWidth: 0, borderBottomWidth:1,borderColor: C.navy, borderRadius: 9, overflow: 'hidden', marginBottom: 10,
     backgroundColor: C.navy,
   },
   obsHeader: {
@@ -216,7 +216,7 @@ const s = StyleSheet.create({
   obsCodeVal: { color: C.white, fontFamily: 'Helvetica-Bold', fontSize: 9.5, flex: 1, minWidth: 0 },
   obsDesc: { color: C.white, fontSize: 9.5, marginTop: 4, lineHeight: 1.5 },
   obsPhotoWrap: { width: 160, marginRight: 18, borderWidth: 1, borderColor:'#326087', borderRadius: 5, padding: 6, backgroundColor: C.navyDark },
-  obsPhotoImg: { width: '100%', maxHeight: 118, objectFit: 'contain' },
+  obsPhotoImg: { width: '100%', maxHeight: 102, objectFit: 'contain' },
   obsPhotoCap: { color: '#d0dfeb', fontSize: 7, textAlign: 'left', marginTop: 5 },
 
   /* Préco (vert) */
@@ -277,12 +277,17 @@ const s = StyleSheet.create({
 /* ============ COMPONENTS ============ */
 const Header = ({ company, neutral }: { company: string; neutral: boolean }) => (
   <View style={s.header} fixed>
-    <View>
-      {neutral ? <Text style={s.firmName}>{company}</Text> : <View style={{flexDirection:'row',alignItems:'center'}}><Image src={WATERMARK_SYMBOL} style={{width:34,height:38,objectFit:'contain',marginRight:8}} /><View><Text style={{color:C.white,fontSize:13,fontFamily:'Helvetica-Bold',letterSpacing:1}}>APRIME FLUIDES</Text><Text style={{color:'#bdd0e0',fontSize:6,letterSpacing:1,marginTop:3}}>DÉBOUCHAGE &amp; ASSAINISSEMENT</Text></View></View>}
-      {neutral && <Text style={s.firmTag}>Inspection et entretien des canalisations</Text>}
+    <View style={{position:'absolute',left:32,top:12,width:249,height:88,backgroundColor:C.navy,borderRadius:9,borderTopWidth:3,borderTopColor:C.gold,padding:13,justifyContent:'center'}}>
+      {neutral ? <><Text style={{color:C.white,fontSize:16,fontFamily:'Helvetica-Bold'}}>{company}</Text><Text style={{color:'#d4e2ed',fontSize:8,marginTop:5}}>Inspection et entretien des canalisations</Text></> : <View style={{flexDirection:'row',alignItems:'center'}}><Image src={WATERMARK_SYMBOL} style={{width:44,height:49,objectFit:'contain',marginRight:11}} /><View style={{width:167}}><Text style={{color:C.white,fontSize:17,fontFamily:'Helvetica-Bold',letterSpacing:0.4}}>APRIME FLUIDES</Text><Text style={{color:'#d4e2ed',fontSize:8,letterSpacing:0.3,marginTop:6}}>Débouchage &amp; assainissement</Text></View></View>}
     </View>
-    <View style={s.headerRight}>
-      {neutral ? <Text style={s.headerMetaBold}>Compte rendu d&apos;intervention</Text> : <><Text style={s.headerMeta}>1 rue Jean Carasso · 95870 Bezons</Text><Text style={s.headerMeta}>Tél. {TEL_PRINCIPAL_FALLBACK}</Text><Text style={s.headerMeta}>aprime-fluides@orange.fr</Text><Text style={s.headerMeta}>www.aprime-fluides.fr</Text></>}
+    <View style={{position:'absolute',right:32,top:12,width:270,height:88,backgroundColor:C.navy,borderRadius:9,borderWidth:1,borderColor:'#326087',padding:12,justifyContent:'center'}}>
+      {neutral ? <Text style={{color:C.white,fontSize:12,fontFamily:'Helvetica-Bold'}}>Compte rendu d&apos;intervention</Text> : <>
+        <Text style={{color:C.gold,fontSize:7.5,fontFamily:'Helvetica-Bold',letterSpacing:1,marginBottom:5}}>NOS COORDONNÉES</Text>
+        <Text style={{color:C.white,fontSize:9.5,lineHeight:1.25}}>1 rue Jean Carasso · 95870 Bezons</Text>
+        <Text style={{color:C.white,fontSize:11,fontFamily:'Helvetica-Bold',lineHeight:1.25}}>Tél. {TEL_PRINCIPAL_FALLBACK}</Text>
+        <Text style={{color:C.white,fontSize:9.5,lineHeight:1.25}}>aprime-fluides@orange.fr</Text>
+        <Text style={{color:'#d4e2ed',fontSize:9.5,lineHeight:1.25}}>www.aprime-fluides.fr</Text>
+      </>}
     </View>
   </View>
 )
@@ -346,8 +351,8 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
   return (
     <Document>
       <Page size="A4" style={s.page}>
-        <View fixed style={{position:"absolute",left:0,top:64,bottom:44,width:5,backgroundColor:C.navy}} />
-        <View fixed style={{position:"absolute",left:0,top:64,width:5,height:95,backgroundColor:C.gold}} />
+        <View fixed style={{position:"absolute",left:0,top:112,bottom:44,width:5,backgroundColor:C.navy}} />
+        <View fixed style={{position:"absolute",left:0,top:112,width:5,height:95,backgroundColor:C.gold}} />
         <Header company={company} neutral={neutral} />
         <Text style={{ paddingHorizontal: 32, paddingTop: 8, color:'#bdd0e0', fontSize:8, letterSpacing:1 }}>{data.statut === "valide" ? "Validé par le responsable" : "BROUILLON — À VÉRIFIER"}</Text>
 
