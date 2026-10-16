@@ -1,0 +1,19 @@
+'use client'
+import { useEffect, useRef, useState } from 'react'
+import { validInspectionDraft } from '@/lib/inspection-draft'
+import { readRecovery, saveRecovery } from '@/lib/recovery-store'
+type Snapshot = Record<string, unknown>
+export default function InspectionRecovery({ snapshot, onRestore }: { snapshot: Snapshot; onRestore: (s: Snapshot) => void }) {
+  const restore = useRef(onRestore); restore.current = onRestore
+  const template = useRef(snapshot)
+  const generation = useRef(0)
+  const [ready, setReady] = useState(false)
+  const [message, setMessage] = useState('Ouverture de la sauvegarde locale…')
+  const [retry, setRetry] = useState(0)
+  const dirty = useRef(false)
+  useEffect(() => { let live=true; readRecovery<{version:number; data:Snapshot}>('inspection-camera-v1').then(saved=>{if(!live)return;if(saved?.version===1){if(!validInspectionDraft(saved.data,template.current))throw new Error('Copie locale non reconnue');restore.current(saved.data);setMessage('Dossier repris depuis cet appareil. Reconnectez la clé et sélectionnez à nouveau les vidéos si nécessaire.')}else setMessage('Sauvegarde automatique sur cet appareil activée.');setReady(true)}).catch(()=>{if(live)setMessage('Sauvegarde locale indisponible : exportez régulièrement une copie du dossier.')});return()=>{live=false} },[retry])
+  useEffect(()=>{if(!ready)return;dirty.current=true;const id=++generation.current;setMessage('Enregistrement local en cours…');const timer=setTimeout(()=>{saveRecovery('inspection-camera-v1',{version:1,data:snapshot}).then(()=>{if(id!==generation.current)return;dirty.current=false;setMessage('Dossier et captures enregistrés sur cet appareil.')}).catch(()=>setMessage('Échec de sauvegarde locale : exportez une copie avant de quitter.'))},300);return()=>clearTimeout(timer)},[ready,snapshot])
+  useEffect(()=>{const warn=(event:BeforeUnloadEvent)=>{if(dirty.current){event.preventDefault();event.returnValue=''}};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn)},[])
+  function download(){const url=URL.createObjectURL(new Blob([JSON.stringify({version:1,data:snapshot})],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='dossier-inspection-confidentiel.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+  return <section className="bg-white border rounded-2xl p-5 space-y-3"><h2 className="font-bold">Sauvegarde et reprise du dossier</h2><p role="status">{message}</p><p className="text-sm text-slate-600">Sauvegarde locale du dossier en cours, des captures et annotations. Les vidéos originales restent sur votre clé. Une copie exportée permet de conserver plusieurs dossiers. Elle contient l’adresse du chantier : conservez-la dans un emplacement privé. Les données locales peuvent être effacées par le navigateur.</p><div className="flex gap-3 flex-wrap"><button type="button" className="bg-[#0e2a52] text-white p-2 rounded" onClick={download}>Exporter une copie du dossier</button>{!ready && <button type="button" onClick={()=>setRetry(n=>n+1)}>Réessayer la sauvegarde</button>}<label className="border p-2 rounded">Reprendre une copie exportée<input className="block" type="file" accept=".json,application/json" onChange={async e=>{const input=e.currentTarget;const file=input.files?.[0];if(!file)return;try{if(file.size>50*1024*1024)throw new Error();const parsed=JSON.parse(await file.text());if(parsed.version!==1||!validInspectionDraft(parsed.data,template.current))throw new Error();if(!window.confirm('Remplacer le dossier affiché par cette copie ? Exportez le dossier actuel avant de poursuivre si vous devez le conserver.'))return;restore.current(parsed.data);setMessage('Copie importée.');}catch{setMessage('Copie non reconnue ou trop volumineuse (maximum 50 Mo).')}finally{input.value=''}}} /></label></div></section>
+}

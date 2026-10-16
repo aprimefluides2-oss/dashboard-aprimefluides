@@ -1,8 +1,9 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import type { ObservationItem } from './InspectionCameraPDF'
+export type VideoEntry = { id:string; name:string; size:number; modified:number }
 type Clip = { id: string; file: File; url: string }
-export default function InspectionVideoPanel({ onCapture }: { onCapture: (observation: ObservationItem) => void }) {
+export default function InspectionVideoPanel({ onCapture, manifest, onManifest }: { onCapture: (observation: ObservationItem) => void; manifest:VideoEntry[]; onManifest:(entries:VideoEntry[])=>void }) {
   const video = useRef<HTMLVideoElement>(null)
   const urls = useRef<string[]>([])
   const [clips, setClips] = useState<Clip[]>([])
@@ -44,7 +45,10 @@ export default function InspectionVideoPanel({ onCapture }: { onCapture: (observ
       <input className="block mt-2" type="file" multiple accept=".mp4,.webm,.mov,.m4v,.avi,video/*" onChange={e => {
         const files = Array.from(e.target.files || [])
         const accepted = files.filter(file => /\.(mp4|webm|mov|m4v|avi)$/i.test(file.name))
-        const added = accepted.map((file, i) => { const url = URL.createObjectURL(file); urls.current.push(url); return { file, url, id: `Vidéo ${clips.length+i+1}` } })
+        const entries=[...manifest]
+        const added:Clip[]=[]
+        for(const file of accepted){let entry=entries.find(m=>m.name===file.name&&m.size===file.size&&m.modified===file.lastModified);if(!entry){entry={id:`Vidéo ${entries.length+1}`,name:file.name,size:file.size,modified:file.lastModified};entries.push(entry)}if(clips.some(c=>c.id===entry!.id)||added.some(c=>c.id===entry!.id))continue;const url=URL.createObjectURL(file);urls.current.push(url);added.push({file,url,id:entry.id})}
+        onManifest(entries)
         setClips(prev => [...prev, ...added]); if (!selected && added.length) setSelected(added[0].id)
         setMessage(`${added.length} vidéo(s) ajoutée(s) localement. ${files.length-accepted.length} fichier(s) non pris en charge. Certains codecs AVI/MOV peuvent nécessiter une conversion MP4.`)
         e.target.value = ''
@@ -64,6 +68,6 @@ export default function InspectionVideoPanel({ onCapture }: { onCapture: (observ
     <label className="block">Légende de la prochaine capture<input maxLength={400} className={input} value={caption} onChange={e => setCaption(e.target.value)} /></label>
     <button type="button" disabled={!clip} onClick={capture} className="bg-[#0e2a52] text-white px-4 py-2 rounded-lg disabled:opacity-50">Relever l’incident et capturer l’image</button>
     <p role="status" className="text-sm">{message}</p>
-    <p className="text-sm text-slate-600">Aucun transfert ni publication de la vidéo. Les données restent dans cet onglet : téléchargez le PDF avant de quitter. Conservez les vidéos originales de la clé avec les mêmes références. Vérifiez les données visibles dans les captures avant tout partage.</p>
+    <p className="text-sm text-slate-600">Aucun transfert ni publication de la vidéo. Les relevés et captures sont sauvegardés avec le dossier. Après reprise, sélectionnez à nouveau les vidéos originales : leurs références sont conservées si le nom, la taille et la date du fichier correspondent. Conservez les vidéos originales de la clé avec les mêmes références. Vérifiez les données visibles dans les captures avant tout partage.</p>
   </section>
 }

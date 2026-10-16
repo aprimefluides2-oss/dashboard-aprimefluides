@@ -210,7 +210,7 @@ const s = StyleSheet.create({
   obsCodeVal: { color: C.text, fontFamily: 'Helvetica-Bold', fontSize: 9.5 },
   obsDesc: { color: C.text, fontSize: 9.5, marginTop: 4, lineHeight: 1.5 },
   obsPhotoWrap: { marginTop: 8, borderWidth: 1, borderColor: C.border, padding: 4 },
-  obsPhotoImg: { width: '100%', height: 180, objectFit: 'cover' },
+  obsPhotoImg: { width: '100%', height: 180, objectFit: 'contain' },
   obsPhotoCap: { color: C.muted, fontSize: 8, textAlign: 'center', marginTop: 4 },
 
   /* Préco (vert) */
@@ -391,10 +391,18 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
             <TroncRow label="Conditions"       value={t.conditionsMeteo || ''}             alt />
           </View>
 
+          {data.observations.length > 0 && <View>
+            <Text style={s.sectionTitle}>Récapitulatif des incidents</Text>
+            {data.observations.map((o,i)=><View key={i} wrap={false} style={{borderBottomWidth:1,borderBottomColor:C.border,paddingVertical:6}}>
+              <Text style={{fontFamily:'Helvetica-Bold'}}>OBS {String(i+1).padStart(2,'0')} · {o.troncon || o.position || 'Point non précisé'}</Text>
+              <Text>{o.videoReference ? `${o.videoReference} · ${o.timecode || 'repère non relevé'} · ${o.distanceM === undefined ? 'distance non mesurée' : `${o.distanceM} m depuis ${o.pointDepart || 'départ non précisé'}`}` : o.position}</Text>
+              <Text>{o.description || 'Description à compléter'}{o.code ? ` · Code ${o.code}` : ''} · {o.photoUrl ? `Capture OBS ${String(i+1).padStart(2,'0')}` : 'Sans capture'}</Text>
+            </View>)}
+          </View>}
           {/* Observations */}
           {data.observations.length > 0 && (
             <>
-              <Text style={s.sectionTitle}>Observations relevées</Text>
+              <Text style={s.sectionTitle} minPresenceAhead={70}>Observations relevées</Text>
               {data.observations.map((o, i) => {
                 const def = findDefaut(o.code || '')
                 const grav = def ? def.gravite : 1

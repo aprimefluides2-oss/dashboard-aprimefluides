@@ -1,6 +1,10 @@
 'use client'
 import { useEffect, useMemo, useState } from "react"
 import dynamic from "next/dynamic"
+import InspectionRecovery from "@/components/InspectionRecovery"
+import InspectionAnnotation from "@/components/InspectionAnnotation"
+import type { Mark } from "@/components/InspectionAnnotation"
+import type { VideoEntry } from "@/components/InspectionVideoPanel"
 import InspectionVideoPanel from "@/components/InspectionVideoPanel"
 import { privateReport } from "@/lib/report-privacy"
 import AppTabs from "@/components/AppTabs"
@@ -14,7 +18,7 @@ import type { InspectionData, ObservationItem, Troncon } from "@/components/Insp
 const InspectionDownloadButton = dynamic(() => import("@/components/InspectionCameraPDF"), { ssr: false })
 const InspectionPDFViewer = dynamic(() => import("@/components/InspectionCameraPreviewModal"), { ssr: false })
 
-type ObsForm = ObservationItem & { _photoFile?: File; _photoPreview?: string }
+type ObsForm = ObservationItem & { originalPhotoUrl?: string; annotations?: Mark[]; _photoFile?: File; _photoPreview?: string }
 
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -63,6 +67,8 @@ function genNumero() {
 
 export default function InspectionPage() {
 
+  const [videoManifest, setVideoManifest] = useState<VideoEntry[]>([])
+  const [videoSession, setVideoSession] = useState(0)
   const [diffusion, setDiffusion] = useState<'client-prive' | 'anonymise'>('client-prive')
   const [societe, setSociete] = useState('Aprime Fluides')
   const [sousTraitance, setSousTraitance] = useState(false)
@@ -99,6 +105,7 @@ export default function InspectionPage() {
   const [observations, setObservations] = useState<ObsForm[]>([
     { position: '', code: '', description: '' },
   ])
+  const [annotating, setAnnotating] = useState<number | null>(null)
   const [photoError, setPhotoError] = useState('')
 
   // Préconisations
@@ -140,14 +147,14 @@ export default function InspectionPage() {
       const compressed = await compressImage(file)
       const dataUrl = await fileToDataUrl(compressed)
       const preview = URL.createObjectURL(compressed)
-      updateObs(i, { _photoFile: compressed, _photoPreview: preview, photoUrl: dataUrl })
+      updateObs(i, { _photoFile: compressed, _photoPreview: preview, photoUrl: dataUrl, originalPhotoUrl: undefined, annotations: undefined })
     } catch (e: any) {
       console.error(e)
       setPhotoError(`Photo n°${i + 1} : ${e?.message || 'compression impossible'}. Réessaie ou choisis une autre image.`)
     }
   }
   function clearObsPhoto(i: number) {
-    updateObs(i, { _photoFile: undefined, _photoPreview: undefined, photoUrl: undefined })
+    updateObs(i, { _photoFile: undefined, _photoPreview: undefined, photoUrl: undefined, originalPhotoUrl: undefined, annotations: undefined })
   }
 
   function togglePreco(id: string) {
@@ -215,6 +222,11 @@ export default function InspectionPage() {
 
   const canPreview = clientNom.trim().length > 0
 
+  const draft = useMemo(() => ({ videoManifest,numero,dateInspection,technicienNom,diffusion,societe,sousTraitance,statut,destinataire,clientNom,clientAdresse,clientCP,clientVille,clientEmail,clientTel,reseau,materiau,diametre,longueurM,regardAmont,regardAval,sensInspection,materielUtilise,conditionsMeteo,observations:observations.map(({_photoFile,_photoPreview,...o})=>o),precoSelected,precoCustom,resume,conclusionEtat }), [videoManifest,numero,dateInspection,technicienNom,diffusion,societe,sousTraitance,statut,destinataire,clientNom,clientAdresse,clientCP,clientVille,clientEmail,clientTel,reseau,materiau,diametre,longueurM,regardAmont,regardAval,sensInspection,materielUtilise,conditionsMeteo,observations,precoSelected,precoCustom,resume,conclusionEtat])
+  function restoreDraft(raw: Record<string,unknown>) {
+    const d = raw as typeof draft
+    setVideoManifest(d.videoManifest || []);setVideoSession(v=>v+1);setNumero(d.numero);setDateInspection(d.dateInspection);setTechnicienNom(d.technicienNom);setDiffusion(d.diffusion);setSociete(d.societe);setSousTraitance(d.sousTraitance);setStatut(d.statut);setDestinataire(d.destinataire);setClientNom(d.clientNom);setClientAdresse(d.clientAdresse);setClientCP(d.clientCP);setClientVille(d.clientVille);setClientEmail(d.clientEmail);setClientTel(d.clientTel);setReseau(d.reseau);setMateriau(d.materiau);setDiametre(d.diametre);setLongueurM(d.longueurM);setRegardAmont(d.regardAmont);setRegardAval(d.regardAval);setSensInspection(d.sensInspection);setMaterielUtilise(d.materielUtilise);setConditionsMeteo(d.conditionsMeteo);setObservations(d.observations);setPrecoSelected(d.precoSelected);setPrecoCustom(d.precoCustom);setResume(d.resume);setConclusionEtat(d.conclusionEtat)
+  }
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
@@ -224,6 +236,7 @@ export default function InspectionPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-5">
+        <InspectionRecovery snapshot={draft} onRestore={restoreDraft} />
         {/* Header bandeau */}
         <div className="bg-gradient-to-br from-[#0e2a52] to-[#1a3a6b] text-white rounded-2xl shadow-sm p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
@@ -267,7 +280,7 @@ export default function InspectionPage() {
           }}>Préparer l’e-mail</button>
           <p role="status" className="text-sm">{envoiMessage}</p>
         </section>
-        <InspectionVideoPanel onCapture={observation => setObservations(prev => [...prev, observation])} />
+        <InspectionVideoPanel key={videoSession} manifest={videoManifest} onManifest={setVideoManifest} onCapture={observation => setObservations(prev => [...prev, observation])} />
         <Section title="1. Informations générales" icon="📍">
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="N° rapport"><input value={numero} onChange={e => setNumero(e.target.value)} className={inputCls} /></Field>
@@ -403,6 +416,7 @@ export default function InspectionPage() {
                       placeholder="Détails observés sur place : étendue, conséquences, contexte…"
                     />
                   </Field>
+                  {o.photoUrl && <button type="button" className="text-blue-800 font-bold" onClick={()=>setAnnotating(i)}>Annoter cette capture (flèche / cercle)</button>}
                   <div className="grid sm:grid-cols-[180px_1fr] gap-3 items-start">
                     <div>
                       {o._photoPreview || o.photoUrl ? (
@@ -528,6 +542,7 @@ export default function InspectionPage() {
         </Section>
       </main>
 
+      {annotating !== null && observations[annotating]?.photoUrl && <InspectionAnnotation src={observations[annotating].originalPhotoUrl || observations[annotating].photoUrl!} initial={observations[annotating].annotations} onClose={()=>setAnnotating(null)} onSave={(photoUrl,annotations)=>{updateObs(annotating,{originalPhotoUrl:observations[annotating].originalPhotoUrl || observations[annotating].photoUrl,photoUrl,annotations,_photoPreview:undefined});setAnnotating(null)}} />}
       {showPreview && (
         <InspectionPDFViewer data={data} onClose={() => setShowPreview(false)} />
       )}
