@@ -1,5 +1,6 @@
 'use client'
 import React from "react"
+import { inspectionLocation } from "@/lib/inspection-location"
 import { privateReport, streetOnly } from "@/lib/report-privacy"
 import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from "@react-pdf/renderer"
 import { GRAVITE_LABELS, GLOSSAIRE, findDefaut } from "@/lib/camera-defauts"
@@ -75,6 +76,7 @@ export type InspectionData = {
   troncon: Troncon
   observations: ObservationItem[]
   preconisations: { titre: string; detail: string; urgence?: string }[]
+  conclusionPrecision?: string
   resume: string                   // synthèse globale
   conclusionEtat: 'bon' | 'a-surveiller' | 'desordre' | 'critique'
 }
@@ -98,7 +100,7 @@ function fmtDateFR(iso: string): string {
 /* ============ STYLES ============ */
 const s = StyleSheet.create({
   page: {
-    paddingHorizontal: 0,
+    paddingHorizontal: 0, paddingTop: 76, paddingBottom: 52,
     fontFamily: 'Helvetica',
     fontSize: 9.5,
     color: C.text,
@@ -108,6 +110,7 @@ const s = StyleSheet.create({
 
   /* Header */
   header: {
+    position: 'absolute', top: 0, left: 0, right: 0, height: 64,
     paddingHorizontal: 40, paddingTop: 18, paddingBottom: 10,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end',
     backgroundColor: C.white,
@@ -133,7 +136,7 @@ const s = StyleSheet.create({
     marginBottom: 14, backgroundColor: C.rowAlt,
   },
   metaCell: {
-    flex: 1, paddingVertical: 7, paddingHorizontal: 12,
+    minWidth: 0, flex: 1, paddingVertical: 7, paddingHorizontal: 12,
     borderRightWidth: 1, borderRightColor: C.border,
   },
   metaCellLast: { borderRightWidth: 0 },
@@ -255,7 +258,8 @@ const s = StyleSheet.create({
 
   /* Footer */
   footer: {
-    paddingHorizontal: 40, paddingTop: 8, paddingBottom: 14,
+    position: 'absolute', bottom: 0, left: 0, right: 0, height: 44,
+    paddingHorizontal: 40, paddingTop: 6, paddingBottom: 6,
     borderTopWidth: 1, borderTopColor: C.border,
     flexDirection: 'row', justifyContent: 'space-between',
     backgroundColor: C.white,
@@ -333,18 +337,18 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
           </View>
 
           {/* Méta */}
+          <View style={{borderWidth:1,borderColor:C.border,backgroundColor:C.rowAlt,padding:10,marginBottom:4}} wrap={false}>
+            <Text style={s.metaLabel}>N° rapport</Text>
+            <Text style={s.metaValue}>{data.numero.match(/.{1,65}/g)?.join('\n') || 'À compléter'}</Text>
+          </View>
           <View style={s.metaTable} wrap={false}>
-            <View style={s.metaCell}>
-              <Text style={s.metaLabel}>N° rapport</Text>
-              <Text style={s.metaValue}>{data.numero}</Text>
-            </View>
             <View style={s.metaCell}>
               <Text style={s.metaLabel}>Date d&apos;inspection</Text>
               <Text style={s.metaValue}>{fmtDateFR(data.dateInspection)}</Text>
             </View>
             <View style={s.metaCell}>
               <Text style={s.metaLabel}>Technicien</Text>
-              <Text style={s.metaValue}>{data.technicienNom || '—'}</Text>
+              <Text style={s.metaValue}>{data.technicienNom || 'À compléter'}</Text>
             </View>
             <View style={[s.metaCell, s.metaCellLast]}>
               <Text style={s.metaLabel}>Agence</Text>
@@ -357,6 +361,8 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
             <Text style={s.etatLbl}>Conclusion</Text>
             <Text style={[s.etatVal, { color: etat.fg }]}>{etat.label}</Text>
           </View>
+
+          <Text style={{fontSize:9,color:C.muted,marginBottom:12}}>{data.conclusionPrecision || 'Conclusion limitée aux portions accessibles et effectivement contrôlées. Le périmètre et les limites du contrôle restent à préciser.'}</Text>
 
           {/* Identité */}
           <View style={s.partyTable} wrap={false}>
@@ -392,11 +398,11 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
           </View>
 
           {data.observations.length > 0 && <View>
-            <Text style={s.sectionTitle}>Récapitulatif des incidents</Text>
+            <Text style={s.sectionTitle}>Récapitulatif des incidents et interventions</Text>
             {data.observations.map((o,i)=><View key={i} wrap={false} style={{borderBottomWidth:1,borderBottomColor:C.border,paddingVertical:6}}>
-              <Text style={{fontFamily:'Helvetica-Bold'}}>OBS {String(i+1).padStart(2,'0')} · {o.troncon || o.position || 'Point non précisé'}</Text>
-              <Text>{o.videoReference ? `${o.videoReference} · ${o.timecode || 'repère non relevé'} · ${o.distanceM === undefined ? 'distance non mesurée' : `${o.distanceM} m depuis ${o.pointDepart || 'départ non précisé'}`}` : o.position}</Text>
-              <Text>{o.description || 'Description à compléter'}{o.code ? ` · Code ${o.code}` : ''} · {o.photoUrl ? `Capture OBS ${String(i+1).padStart(2,'0')}` : 'Sans capture'}</Text>
+              <Text style={{fontFamily:'Helvetica-Bold'}}>OBS {String(i+1).padStart(2,'0')} · {inspectionLocation(o)}</Text>
+              <Text>{o.videoReference ? `${o.videoReference} · ${o.timecode || 'repère non relevé'} · ${o.distanceM === undefined ? 'distance non mesurée' : `${o.distanceM} m depuis ${o.pointDepart || 'départ non précisé'}`}` : ''}</Text>
+              <Text>{o.description || 'Description à compléter'}{o.code ? ` · Code ${o.code}` : ''} · {o.photoUrl ? `${o.videoReference ? 'Capture' : 'Photo'} OBS ${String(i+1).padStart(2,'0')}` : 'Sans image'}</Text>
             </View>)}
           </View>}
           {/* Observations */}
@@ -411,7 +417,7 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
                     <View style={s.obsHeader}>
                       <View style={s.obsHeaderLeft}>
                         <Text style={s.obsNum}>{`OBS ${String(i + 1).padStart(2, '0')}`}</Text>
-                        <Text style={s.obsPos}>{o.position || `Point ${i + 1}`}</Text>
+                        <Text style={s.obsPos}>{inspectionLocation(o)}</Text>
                       </View>
                       {def ? (
                         <Text style={[s.obsCode, codeStyle(grav)] as any}>
@@ -456,6 +462,8 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
               })}
             </>
           )}
+
+          {!data.observations.some(o=>o.videoReference && o.photoUrl) && <View style={s.resumeBox} wrap={false}><Text style={s.resumeTitle}>Pièces disponibles</Text><Text style={s.resumeText}>Aucune image n’est reliée à une référence vidéo et à un timecode dans ce rapport. Vérifiez si des captures caméra complémentaires doivent être jointes.</Text></View>}
 
           {/* Préconisations */}
           {data.preconisations.length > 0 && (

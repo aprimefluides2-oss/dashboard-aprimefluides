@@ -1,7 +1,7 @@
 export function validInspectionDraft(value: unknown, template: Record<string,unknown>): value is Record<string,unknown> {
  if(!value||typeof value!=='object'||Array.isArray(value))return false
  const d=value as Record<string,unknown>
- for(const [key,example] of Object.entries(template)) if(!Array.isArray(example)&&typeof d[key]!==typeof example)return false
+ for(const [key,example] of Object.entries(template)) if(!(key==="conclusionPrecision" && d[key]===undefined)) if(!Array.isArray(example)&&typeof d[key]!==typeof example)return false
  if(!['client-prive','anonymise'].includes(String(d.diffusion))||!['brouillon','valide'].includes(String(d.statut))||!['bon','a-surveiller','desordre','critique'].includes(String(d.conclusionEtat)))return false
  if(!Array.isArray(d.precoSelected)||!d.precoSelected.every(x=>typeof x==='string')||!Array.isArray(d.precoCustom)||!d.precoCustom.every(x=>x&&typeof x.titre==='string'&&typeof x.detail==='string'))return false
  if(!Array.isArray(d.videoManifest)||!d.videoManifest.every(m=>m&&typeof m.id==='string'&&/^Vidéo [1-9][0-9]*$/.test(m.id)&&typeof m.name==='string'&&Number.isFinite(m.size)&&Number.isFinite(m.modified)))return false

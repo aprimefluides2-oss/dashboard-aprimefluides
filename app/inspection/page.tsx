@@ -116,6 +116,7 @@ export default function InspectionPage() {
 
   // Synthèse
   const [resume, setResume] = useState('')
+  const [conclusionPrecision, setConclusionPrecision] = useState('')
   const [conclusionEtat, setConclusionEtat] = useState<InspectionData['conclusionEtat']>('a-surveiller')
 
   // Aperçu modal
@@ -210,19 +211,20 @@ export default function InspectionPage() {
       troncon,
       observations: cleanObs,
       preconisations: allPrecos,
-      resume,
+      resume, conclusionPrecision,
       conclusionEtat,
     }
   }, [
     diffusion, societe, sousTraitance, statut, numero, dateInspection, technicienNom, agence,
     clientNom, clientAdresse, clientCP, clientVille, clientEmail, clientTel,
     reseau, materiau, diametre, longueurM, regardAmont, regardAval, sensInspection, materielUtilise, conditionsMeteo,
-    observations, precoSelected, precoCustom, resume, conclusionEtat,
+    observations, precoSelected, precoCustom, resume, conclusionPrecision, conclusionEtat,
   ])
 
+  useEffect(()=>{ setStatut('brouillon') }, [numero,dateInspection,technicienNom,societe,sousTraitance,clientNom,clientAdresse,clientCP,clientVille,reseau,materiau,diametre,longueurM,regardAmont,regardAval,sensInspection,materielUtilise,conditionsMeteo,observations,precoSelected,precoCustom,resume,conclusionPrecision,conclusionEtat])
   const canPreview = clientNom.trim().length > 0
 
-  const draft = useMemo(() => ({ videoManifest,numero,dateInspection,technicienNom,diffusion,societe,sousTraitance,statut,destinataire,clientNom,clientAdresse,clientCP,clientVille,clientEmail,clientTel,reseau,materiau,diametre,longueurM,regardAmont,regardAval,sensInspection,materielUtilise,conditionsMeteo,observations:observations.map(({_photoFile,_photoPreview,...o})=>o),precoSelected,precoCustom,resume,conclusionEtat }), [videoManifest,numero,dateInspection,technicienNom,diffusion,societe,sousTraitance,statut,destinataire,clientNom,clientAdresse,clientCP,clientVille,clientEmail,clientTel,reseau,materiau,diametre,longueurM,regardAmont,regardAval,sensInspection,materielUtilise,conditionsMeteo,observations,precoSelected,precoCustom,resume,conclusionEtat])
+  const draft = useMemo(() => ({ videoManifest,numero,dateInspection,technicienNom,diffusion,societe,sousTraitance,statut,destinataire,clientNom,clientAdresse,clientCP,clientVille,clientEmail,clientTel,reseau,materiau,diametre,longueurM,regardAmont,regardAval,sensInspection,materielUtilise,conditionsMeteo,observations:observations.map(({_photoFile,_photoPreview,...o})=>o),precoSelected,precoCustom,resume,conclusionPrecision,conclusionEtat }), [videoManifest,numero,dateInspection,technicienNom,diffusion,societe,sousTraitance,statut,destinataire,clientNom,clientAdresse,clientCP,clientVille,clientEmail,clientTel,reseau,materiau,diametre,longueurM,regardAmont,regardAval,sensInspection,materielUtilise,conditionsMeteo,observations,precoSelected,precoCustom,resume,conclusionPrecision,conclusionEtat])
   const initialDraft = useRef(draft)
   function createNewStudy() {
     return { ...initialDraft.current, numero: genNumero(), dateInspection: new Date().toISOString().split('T')[0] }
@@ -231,7 +233,7 @@ export default function InspectionPage() {
     observations.forEach(o => { if (o._photoPreview) URL.revokeObjectURL(o._photoPreview) })
     setAnnotating(null);setShowPreview(false);setPhotoError('');setEnvoiMessage('');setNewPrecoTitre('');setNewPrecoDetail('')
     const d = raw as typeof draft
-    setVideoManifest(d.videoManifest || []);setVideoSession(v=>v+1);setNumero(d.numero);setDateInspection(d.dateInspection);setTechnicienNom(d.technicienNom);setDiffusion(d.diffusion);setSociete(d.societe);setSousTraitance(d.sousTraitance);setStatut(d.statut);setDestinataire(d.destinataire);setClientNom(d.clientNom);setClientAdresse(d.clientAdresse);setClientCP(d.clientCP);setClientVille(d.clientVille);setClientEmail(d.clientEmail);setClientTel(d.clientTel);setReseau(d.reseau);setMateriau(d.materiau);setDiametre(d.diametre);setLongueurM(d.longueurM);setRegardAmont(d.regardAmont);setRegardAval(d.regardAval);setSensInspection(d.sensInspection);setMaterielUtilise(d.materielUtilise);setConditionsMeteo(d.conditionsMeteo);setObservations(d.observations);setPrecoSelected(d.precoSelected);setPrecoCustom(d.precoCustom);setResume(d.resume);setConclusionEtat(d.conclusionEtat)
+    setVideoManifest(d.videoManifest || []);setVideoSession(v=>v+1);setNumero(d.numero);setDateInspection(d.dateInspection);setTechnicienNom(d.technicienNom);setDiffusion(d.diffusion);setSociete(d.societe);setSousTraitance(d.sousTraitance);setStatut(d.statut);setDestinataire(d.destinataire);setClientNom(d.clientNom);setClientAdresse(d.clientAdresse);setClientCP(d.clientCP);setClientVille(d.clientVille);setClientEmail(d.clientEmail);setClientTel(d.clientTel);setReseau(d.reseau);setMateriau(d.materiau);setDiametre(d.diametre);setLongueurM(d.longueurM);setRegardAmont(d.regardAmont);setRegardAval(d.regardAval);setSensInspection(d.sensInspection);setMaterielUtilise(d.materielUtilise);setConditionsMeteo(d.conditionsMeteo);setObservations(d.observations);setPrecoSelected(d.precoSelected);setPrecoCustom(d.precoCustom);setResume(d.resume);setConclusionPrecision(d.conclusionPrecision || '');setConclusionEtat(d.conclusionEtat)
   }
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
@@ -275,7 +277,8 @@ export default function InspectionPage() {
           <p className="text-sm text-slate-600">L’adresse exacte figure uniquement dans le PDF client privé. Aucun bouton de ce module ne publie ce rapport sur le site. Le nom et les contacts du client restent masqués dans les deux versions.</p>
           <Field label="Société affichée"><input className={inputCls} maxLength={100} value={societe} onChange={e => setSociete(e.target.value)} /></Field>
           <label className="block"><input type="checkbox" checked={sousTraitance} onChange={e => setSousTraitance(e.target.checked)} /> Sous-traitance : retirer les coordonnées Aprime du PDF</label>
-          <Field label="Statut"><select className={inputCls} value={statut} onChange={e => setStatut(e.target.value as 'brouillon' | 'valide')}><option value="brouillon">Brouillon — à vérifier</option><option value="valide">Validé par le responsable</option></select></Field>
+          <Field label="Statut"><select className={inputCls} value={statut} onChange={e => setStatut(e.target.value as 'brouillon' | 'valide')}><option value="brouillon">Brouillon — à vérifier</option><option value="valide" disabled={!technicienNom.trim() || !conclusionPrecision.trim() || !resume.trim()}>Validé par le responsable</option></select></Field>
+          {(!technicienNom.trim() || !conclusionPrecision.trim() || !resume.trim()) && <p className="text-sm text-amber-800">Avant validation : renseignez le technicien, le périmètre du contrôle et la synthèse. Vérifiez aussi les repères, les images et les suites recommandées.</p>}
           <Field label="E-mail destinataire"><input className={inputCls} type="email" value={destinataire} onChange={e => setDestinataire(e.target.value)} /></Field>
           <button type="button" className="bg-[#0e2a52] text-white px-4 py-2 rounded-lg" onClick={() => {
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(destinataire.trim())) { setEnvoiMessage('Renseignez une adresse e-mail valide.'); return }
@@ -291,7 +294,7 @@ export default function InspectionPage() {
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="N° rapport"><input value={numero} onChange={e => setNumero(e.target.value)} className={inputCls} /></Field>
             <Field label="Date d'inspection"><input type="date" value={dateInspection} onChange={e => setDateInspection(e.target.value)} className={inputCls} /></Field>
-            <Field label="Technicien"><input value={technicienNom} onChange={e => setTechnicienNom(e.target.value)} className={inputCls} placeholder="Nom du technicien" /></Field>
+            <Field label="Technicien"><input value={technicienNom} onChange={e => setTechnicienNom(e.target.value)} className={inputCls} placeholder="Nom ou fonction — ex. Technicien secteur" /></Field>
             <Field label="Agence"><input value={agence} disabled className={inputCls + ' bg-slate-50 text-slate-500'} /></Field>
           </div>
         </Section>
@@ -506,8 +509,8 @@ export default function InspectionPage() {
 
           <div className="mt-4 bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
             <div className="text-xs font-bold text-slate-600 uppercase tracking-wider">Ajouter une préconisation libre</div>
-            <input value={newPrecoTitre} onChange={e => setNewPrecoTitre(e.target.value)} placeholder="Titre" className={inputCls} />
-            <textarea value={newPrecoDetail} onChange={e => setNewPrecoDetail(e.target.value)} placeholder="Détail (optionnel)" rows={2} className={inputCls + ' resize-y'} />
+            <input value={newPrecoTitre} onChange={e => setNewPrecoTitre(e.target.value)} aria-label="Titre de la préconisation complémentaire" placeholder="Ex. Curage complémentaire par le regard R1" className={inputCls} />
+            <textarea value={newPrecoDetail} onChange={e => setNewPrecoDetail(e.target.value)} aria-label="Périmètre et motif de la préconisation" placeholder="Regard de départ, portion concernée, motif technique et délai recommandé. Indiquez ce qui reste à confirmer." rows={2} className={inputCls + ' resize-y'} />
             <button
               type="button" onClick={addCustomPreco} disabled={!newPrecoTitre.trim()}
               className="bg-[#0e2a52] hover:bg-[#1a3a6b] disabled:opacity-50 text-white text-sm font-bold py-2 px-4 rounded-lg"
@@ -517,6 +520,7 @@ export default function InspectionPage() {
           </div>
         </Section>
 
+        <p className="text-sm text-slate-600">Les repères saisis sont repris dans le récapitulatif. À défaut, seuls les repères explicites du commentaire (place, cave, regard ou étage) sont utilisés. Les distances ne sont jamais déduites automatiquement.</p>
         {/* Synthèse */}
         <Section title="6. Synthèse & conclusion" icon="📝">
           <Field label="Conclusion globale">
@@ -538,6 +542,10 @@ export default function InspectionPage() {
               ))}
             </div>
           </Field>
+          <Field label="Périmètre et résultat du contrôle">
+            <textarea value={conclusionPrecision} onChange={e=>setConclusionPrecision(e.target.value)} className={inputCls} rows={3} placeholder="Précisez les portions contrôlées, le résultat après intervention et les parties non inspectées." />
+          </Field>
+          <p className="text-sm text-slate-600">Une conclusion satisfaisante concerne uniquement les portions effectivement contrôlées. Pour un complément recommandé, précisez le regard de départ, la portion, le motif et le délai dans la préconisation libre.</p>
           <Field label="Résumé technique">
             <textarea
               value={resume} onChange={e => setResume(e.target.value)}
