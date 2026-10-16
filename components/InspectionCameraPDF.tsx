@@ -120,8 +120,8 @@ const s = StyleSheet.create({
   },
   firmName: { color: C.white, fontSize: 13, fontFamily: 'Helvetica-Bold', letterSpacing: 0.6, textTransform: 'uppercase' },
   firmTag:  { color: '#bdd0e0', fontSize: 8, marginTop: 2 },
-  headerRight: { position:'absolute',right:32,top:10,alignItems: 'flex-end' },
-  headerMeta:     { color: '#bdd0e0', fontSize: 7, lineHeight:1.2, marginBottom: 2 },
+  headerRight: { position:'absolute',right:32,top:10,width:235,alignItems: 'flex-end' },
+  headerMeta:     { color: '#bdd0e0', fontSize: 7, lineHeight:1.2, marginBottom: 2, width:235, textAlign:'right' },
   headerMetaBold: { color: C.white,  fontFamily: 'Helvetica-Bold', fontSize: 8.5 },
 
   content: { paddingHorizontal: 32, paddingTop: 14, paddingBottom: 10 },
