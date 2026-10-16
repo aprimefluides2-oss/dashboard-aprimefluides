@@ -29,6 +29,13 @@ const C = {
 
 /* ============ TYPES ============ */
 export type ObservationItem = {
+  videoReference?: string
+  timecode?: string
+  troncon?: string
+  pointDepart?: string
+  sensInspection?: string
+  distanceM?: number
+  distanceSource?: string
   position: string         // "12 m", "regard 2", "à mi-tronçon"
   code?: string            // code EN 13508-2 (BAB, BBA…) ou null
   description: string
@@ -49,6 +56,7 @@ export type Troncon = {
 }
 
 export type InspectionData = {
+  diffusion?: 'client-prive' | 'anonymise'
   societe?: string
   sousTraitance?: boolean
   statut?: 'brouillon' | 'valide'
@@ -293,7 +301,8 @@ function TroncRow({ label, value, alt }: { label: string; value: string; alt?: b
 /* ============ DOCUMENT ============ */
 export function InspectionDocument({ data: raw }: InspectionPDFProps) {
   const data = privateReport(raw, raw.client.nom)
-  data.client = { nom: 'Client anonymisé', adresse: streetOnly(raw.client.adresse), codePostal: '', ville: data.client.ville }
+  const clientPrive = raw.diffusion === 'client-prive'
+  data.client = { nom: 'Client anonymisé', adresse: clientPrive ? raw.client.adresse : streetOnly(raw.client.adresse), codePostal: clientPrive ? raw.client.codePostal : '', ville: data.client.ville }
   const company = raw.societe?.trim() || 'Aprime Fluides'
   const neutral = !!raw.sousTraitance || company.toLowerCase() !== 'aprime fluides'
 
@@ -320,6 +329,7 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
             <View style={s.titleRedBar} />
             <Text style={s.titleMain}>Rapport d&apos;inspection caméra</Text>
             <Text style={s.titleSub}>Inspection télévisée (ITV) — codification NF EN 13508-2</Text>
+            <Text style={s.titleSub}>{clientPrive ? "CONFIDENTIEL — Rapport client avec adresse exacte — ne pas publier" : "Copie anonymisée — contrôler aussi les images avant partage"}</Text>
           </View>
 
           {/* Méta */}
@@ -420,6 +430,9 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
                           </View>
                         </View>
                       ) : null}
+                      {o.videoReference && <Text style={s.obsDesc}>{o.videoReference} · Repère vidéo : {o.timecode || 'non relevé'}</Text>}
+                      {o.troncon && <Text style={s.obsDesc}>Tronçon : {o.troncon} · Départ : {o.pointDepart || 'non précisé'} · Sens : {o.sensInspection || 'non précisé'}</Text>}
+                      {o.videoReference && <Text style={s.obsDesc}>{typeof o.distanceM === 'number' ? `Distance : ${o.distanceM} m depuis le départ · Source : ${o.distanceSource || 'non précisée'}` : 'Distance non mesurée'}</Text>}
                       {o.description ? <Text style={s.obsDesc}>{o.description}</Text> : null}
                       {o.photoUrl ? (
                         <View style={s.obsPhotoWrap}>

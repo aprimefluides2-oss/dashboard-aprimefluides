@@ -63,6 +63,7 @@ function genNumero() {
 
 export default function InspectionPage() {
 
+  const [diffusion, setDiffusion] = useState<'client-prive' | 'anonymise'>('client-prive')
   const [societe, setSociete] = useState('Aprime Fluides')
   const [sousTraitance, setSousTraitance] = useState(false)
   const [statut, setStatut] = useState<'brouillon' | 'valide'>('brouillon')
@@ -176,14 +177,17 @@ export default function InspectionPage() {
     const cleanObs: ObservationItem[] = observations
       .filter(o => o.position || o.description || o.photoUrl || o.code)
       .map(o => ({
-        position: o.position,
+        videoReference: o.videoReference, timecode: o.timecode, troncon: o.troncon,
+        pointDepart: o.pointDepart, sensInspection: o.sensInspection,
+        distanceM: o.distanceM, distanceSource: o.distanceSource,
+        position: o.videoReference ? `${o.troncon || 'Tronçon'} — ${o.distanceM === undefined ? 'distance non mesurée' : `${o.distanceM} m`}` : o.position,
         code: o.code || undefined,
         description: o.description,
         photoUrl: o.photoUrl,
         photoLegende: o.photoLegende,
       }))
     return {
-      societe: societe.trim() || "Aprime Fluides", sousTraitance, statut,
+      diffusion, societe: societe.trim() || "Aprime Fluides", sousTraitance, statut,
       numero,
       dateInspection,
       technicienNom: technicienNom || 'Technicien',
@@ -203,7 +207,7 @@ export default function InspectionPage() {
       conclusionEtat,
     }
   }, [
-    societe, sousTraitance, statut, numero, dateInspection, technicienNom, agence,
+    diffusion, societe, sousTraitance, statut, numero, dateInspection, technicienNom, agence,
     clientNom, clientAdresse, clientCP, clientVille, clientEmail, clientTel,
     reseau, materiau, diametre, longueurM, regardAmont, regardAval, sensInspection, materielUtilise, conditionsMeteo,
     observations, precoSelected, precoCustom, resume, conclusionEtat,
@@ -248,6 +252,8 @@ export default function InspectionPage() {
         {/* Identité */}
         <section className="bg-white rounded-2xl border p-5 space-y-3">
           <h2 className="font-bold">Société et envoi du rapport</h2>
+          <Field label="Destination du PDF"><select className={inputCls} value={diffusion} onChange={e => setDiffusion(e.target.value as 'client-prive' | 'anonymise')}><option value="client-prive">Rapport client privé — adresse exacte</option><option value="anonymise">Copie anonymisée — ville et rue seulement</option></select></Field>
+          <p className="text-sm text-slate-600">L’adresse exacte figure uniquement dans le PDF client privé. Aucun bouton de ce module ne publie ce rapport sur le site. Le nom et les contacts du client restent masqués dans les deux versions.</p>
           <Field label="Société affichée"><input className={inputCls} maxLength={100} value={societe} onChange={e => setSociete(e.target.value)} /></Field>
           <label className="block"><input type="checkbox" checked={sousTraitance} onChange={e => setSousTraitance(e.target.checked)} /> Sous-traitance : retirer les coordonnées Aprime du PDF</label>
           <Field label="Statut"><select className={inputCls} value={statut} onChange={e => setStatut(e.target.value as 'brouillon' | 'valide')}><option value="brouillon">Brouillon — à vérifier</option><option value="valide">Validé par le responsable</option></select></Field>
@@ -275,7 +281,7 @@ export default function InspectionPage() {
         <Section title="2. Client" icon="👤">
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Nom / Raison sociale"><input value={clientNom} onChange={e => setClientNom(e.target.value)} className={inputCls} /></Field>
-            <Field label="Adresse"><input value={clientAdresse} onChange={e => setClientAdresse(e.target.value)} className={inputCls} /></Field>
+            <Field label="Adresse exacte du chantier (rapport privé)"><input value={clientAdresse} onChange={e => setClientAdresse(e.target.value)} className={inputCls} /></Field>
             <Field label="Code postal"><input value={clientCP} onChange={e => setClientCP(e.target.value)} className={inputCls} /></Field>
             <Field label="Ville">
               <VilleCombobox
@@ -375,6 +381,14 @@ export default function InspectionPage() {
                       </select>
                     </Field>
                   </div>
+                  {o.videoReference && <div className="grid sm:grid-cols-2 gap-3">
+                    <p className="text-sm">{o.videoReference} · Repère {o.timecode}</p>
+                    <Field label="Tronçon"><input className={inputCls} value={o.troncon || ''} onChange={e => updateObs(i, {troncon:e.target.value})} /></Field>
+                    <Field label="Point de départ"><input className={inputCls} value={o.pointDepart || ''} onChange={e => updateObs(i, {pointDepart:e.target.value})} /></Field>
+                    <Field label="Sens"><input className={inputCls} value={o.sensInspection || ''} onChange={e => updateObs(i, {sensInspection:e.target.value})} /></Field>
+                    <Field label="Distance (m), vide si inconnue"><input type="number" min="0" step="0.01" className={inputCls} value={o.distanceM ?? ''} onChange={e => { const n=Number(e.target.value); if(e.target.value === '' || (Number.isFinite(n) && n>=0)) updateObs(i, {distanceM:e.target.value === '' ? undefined : n}) }} /></Field>
+                    <Field label="Origine de la mesure"><select className={inputCls} value={o.distanceSource || 'Compteur visible dans la vidéo'} onChange={e => updateObs(i, {distanceSource:e.target.value})}><option>Compteur visible dans la vidéo</option><option>Relevé communiqué par le technicien</option></select></Field>
+                  </div>}
                   {def && (
                     <p className="text-xs text-slate-600 italic bg-white border border-slate-200 rounded p-2">
                       <strong className="text-[#0e2a52]">{def.code}</strong> — {def.description}
