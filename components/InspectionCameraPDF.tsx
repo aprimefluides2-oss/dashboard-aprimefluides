@@ -187,7 +187,7 @@ const s = StyleSheet.create({
 
   /* Observations */
   obsItem: {
-    borderWidth: 1, borderColor: C.border, marginBottom: 8,
+    borderBottomWidth: 1, borderColor: C.border, marginBottom: 10,
     backgroundColor: C.white,
   },
   obsHeader: {
@@ -206,15 +206,16 @@ const s = StyleSheet.create({
     paddingVertical: 2, paddingHorizontal: 6,
     fontFamily: 'Helvetica-Bold', fontSize: 8.5, letterSpacing: 0.5,
   },
-  obsBody: { padding: 10 },
+  obsBody: { padding: 10, flexDirection: 'row', alignItems: 'center' },
+  obsText: { flex: 1, minWidth: 0 },
   obsCodeBlock: { marginBottom: 4 },
   obsCodeLine: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
   obsCodeKey: { color: C.muted, fontSize: 8, textTransform: 'uppercase', letterSpacing: 0.4, width: 80 },
   obsCodeVal: { color: C.text, fontFamily: 'Helvetica-Bold', fontSize: 9.5 },
   obsDesc: { color: C.text, fontSize: 9.5, marginTop: 4, lineHeight: 1.5 },
-  obsPhotoWrap: { marginTop: 8, borderWidth: 1, borderColor: C.border, padding: 4 },
-  obsPhotoImg: { width: '100%', height: 180, objectFit: 'contain' },
-  obsPhotoCap: { color: C.muted, fontSize: 8, textAlign: 'center', marginTop: 4 },
+  obsPhotoWrap: { width: 138, marginRight: 14, borderWidth: 1, borderColor: C.border, padding: 5, backgroundColor: C.rowAlt },
+  obsPhotoImg: { width: '100%', maxHeight: 144, objectFit: 'contain' },
+  obsPhotoCap: { color: C.muted, fontSize: 8, textAlign: 'left', marginTop: 5 },
 
   /* Préco (vert) */
   precoBox: {
@@ -426,6 +427,15 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
                       ) : null}
                     </View>
                     <View style={s.obsBody}>
+                      {o.photoUrl ? (
+                        <View style={s.obsPhotoWrap}>
+                          <Image src={o.photoUrl} style={s.obsPhotoImg} />
+                          <Text style={s.obsPhotoCap}>
+                            {o.photoLegende || `Photo ${i + 1}${o.position ? ` — ${o.position}` : ''}`}
+                          </Text>
+                        </View>
+                      ) : null}
+                      <View style={s.obsText}>
                       {def ? (
                         <View style={s.obsCodeBlock}>
                           <View style={s.obsCodeLine}>
@@ -448,14 +458,7 @@ export function InspectionDocument({ data: raw }: InspectionPDFProps) {
                       {o.troncon && <Text style={s.obsDesc}>Tronçon : {o.troncon} · Départ : {o.pointDepart || 'non précisé'} · Sens : {o.sensInspection || 'non précisé'}</Text>}
                       {o.videoReference && <Text style={s.obsDesc}>{typeof o.distanceM === 'number' ? `Distance : ${o.distanceM} m depuis le départ · Source : ${o.distanceSource || 'non précisée'}` : 'Distance non mesurée'}</Text>}
                       {o.description ? <Text style={s.obsDesc}>{o.description}</Text> : null}
-                      {o.photoUrl ? (
-                        <View style={s.obsPhotoWrap}>
-                          <Image src={o.photoUrl} style={s.obsPhotoImg} />
-                          <Text style={s.obsPhotoCap}>
-                            {o.photoLegende || `Photo ${i + 1}${o.position ? ` — ${o.position}` : ''}`}
-                          </Text>
-                        </View>
-                      ) : null}
+                      </View>
                     </View>
                   </View>
                 )
